@@ -1,2 +1,2 @@
-# agent-research
-A CLI tool for agents to request deep research into a subject
+# Seek CLI (`seek`)
+A CLI tool for agents to request search the web, retrieve websites, and request deep research.

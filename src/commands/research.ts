@@ -117,7 +117,7 @@ export function registerResearchCommand(program: Command): void {
   research
     .command("perplexity")
     .description(
-      "Best for deep consumer or market briefings. Polished, long-form, inline-cited text reports.",
+      "Best for deep consumer or market briefings. Runs Sonar Deep Research as an async job (sync calls time out) and polls until the polished, inline-cited report is ready.",
     )
     .argument("<query...>", "Research question")
     .option("--model <name>", "Override model (default: sonar-deep-research)")
@@ -126,18 +126,42 @@ export function registerResearchCommand(program: Command): void {
       "Reasoning effort: low | medium | high",
       "medium",
     )
-    .option("--json", "Emit raw JSON response")
+    .option("--quiet", "Suppress polling progress on stderr", false)
+    .option("--json", "Emit raw JSON async job object")
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
-      const data = await perplexityDeepResearch(query, {
+
+      if (!opts.quiet) {
+        process.stderr.write("Starting Perplexity Sonar Deep Research (async).\n");
+      }
+
+      const job = await perplexityDeepResearch(query, {
         model: opts.model,
         reasoningEffort: opts.effort,
+        onProgress: opts.quiet
+          ? undefined
+          : (j) =>
+              process.stderr.write(
+                `  [${new Date().toISOString()}] status=${j.status}\n`,
+              ),
       });
-      if (opts.json) {
-        emit(data, { json: true });
+
+      if (job.status !== "COMPLETED") {
+        process.stderr.write(
+          `\nresearch ended with status=${job.status}` +
+            (job.error_message ? `: ${job.error_message}` : "") +
+            "\n",
+        );
+        if (opts.json) emit(job, { json: true });
+        process.exitCode = 1;
         return;
       }
-      const text = data.choices?.[0]?.message?.content ?? "";
-      emitText(text + renderCitations(data.citations));
+
+      if (opts.json) {
+        emit(job, { json: true });
+        return;
+      }
+      const text = job.response?.choices?.[0]?.message?.content ?? "";
+      emitText(text + renderCitations(job.response?.citations));
     });
 }

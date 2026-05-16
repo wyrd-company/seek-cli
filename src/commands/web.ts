@@ -53,11 +53,17 @@ export function registerWebCommand(program: Command): void {
     .option("-n, --num <number>", "Number of results", (v) => parseInt(v, 10), 10)
     .option(
       "-t, --type <type>",
-      "Search type: neural | keyword | auto",
+      "Search type: auto | fast | neural | instant | deep-lite | deep | deep-reasoning",
       "auto",
     )
-    .option("--category <name>", "Restrict to a category (e.g. research paper, news, github)")
+    .option("--category <name>", "Restrict to a category (e.g. research paper, news, company, github)")
     .option("--text", "Include full page text snippets", false)
+    .option("--start <date>", "Only pages published on/after this date (YYYY-MM-DD)")
+    .option("--end <date>", "Only pages published on/before this date (YYYY-MM-DD)")
+    .option(
+      "--system <text>",
+      "System prompt to bias the search (sources to prefer, novelty, etc.)",
+    )
     .option("--json", "Emit raw JSON response")
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
@@ -66,6 +72,9 @@ export function registerWebCommand(program: Command): void {
         type: opts.type,
         category: opts.category,
         includeText: opts.text,
+        startPublishedDate: opts.start,
+        endPublishedDate: opts.end,
+        systemPrompt: opts.system,
       });
       if (opts.json) {
         emit(data, { json: true });
@@ -74,7 +83,7 @@ export function registerWebCommand(program: Command): void {
       emitText(
         renderSearchResults(
           data.results.map((r) => ({
-            title: r.title,
+            title: r.title ?? undefined,
             url: r.url,
             score: r.score,
             content: r.text ?? (r.highlights ?? []).join("\n…\n"),
@@ -121,8 +130,14 @@ export function registerWebCommand(program: Command): void {
       "Best for quick, human-readable summaries. Synthesizes the web into a short, conversational answer with citations.",
     )
     .argument("<query...>", "Question or query")
-    .option("--model <name>", "Override model (default: sonar)")
-    .option("--recency <window>", "Restrict sources: day | week | month | year")
+    .option("--model <name>", "Override model (default: sonar; sonar-pro, sonar-reasoning, etc. also work)")
+    .option("--recency <window>", "Restrict sources by recency: hour | day | week | month")
+    .option("--mode <mode>", "Search mode: web (default) | academic")
+    .option(
+      "--domains <list>",
+      "Comma-separated allow-list of domains",
+      (v: string) => v.split(",").map((d) => d.trim()).filter(Boolean),
+    )
     .option("--max-tokens <n>", "Cap response tokens", (v) => parseInt(v, 10))
     .option("--json", "Emit raw JSON response")
     .action(async (queryParts: string[], opts) => {
@@ -130,6 +145,8 @@ export function registerWebCommand(program: Command): void {
       const data = await perplexitySearch(query, {
         model: opts.model,
         searchRecency: opts.recency,
+        searchMode: opts.mode,
+        searchDomainFilter: opts.domains,
         maxTokens: opts.maxTokens,
       });
       if (opts.json) {

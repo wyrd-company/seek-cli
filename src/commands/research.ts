@@ -2,7 +2,12 @@ import { Command } from "commander";
 import { readFileSync } from "node:fs";
 import { emit, emitText, renderCitations } from "../lib/output.ts";
 import { parallelTaskRun } from "../providers/parallel.ts";
-import { googleResearch, extractText, extractCitations } from "../providers/google.ts";
+import {
+  googleDeepResearch,
+  extractReportText,
+  extractCitations as extractGoogleCitations,
+  summarizeProgress,
+} from "../providers/google.ts";
 import { perplexityDeepResearch } from "../providers/perplexity.ts";
 
 export function registerResearchCommand(program: Command): void {
@@ -56,27 +61,56 @@ export function registerResearchCommand(program: Command): void {
   research
     .command("google")
     .description(
-      "Best for corporate and scientific intelligence. Long-horizon, multi-source research grounded in Google Search.",
+      "Best for corporate and scientific intelligence. Runs the Gemini Deep Research agent — autonomous, multi-step web research that returns a full report with citations.",
     )
     .argument("<query...>", "Research question")
-    .option("--model <name>", "Gemini model id (default: gemini-2.5-pro)")
+    .option(
+      "--max",
+      "Use deep-research-max-preview-04-2026 (slower, more comprehensive). Default is the faster preview agent.",
+      false,
+    )
+    .option("--agent <name>", "Override the agent id explicitly")
     .option(
       "--system <text>",
-      "Optional system prompt — e.g. \"act as an equity research analyst\"",
+      "Optional system instruction (e.g. \"act as an equity research analyst\")",
     )
-    .option("--json", "Emit raw JSON response")
+    .option("--quiet", "Suppress polling progress on stderr", false)
+    .option("--json", "Emit raw JSON interaction object")
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
-      const data = await googleResearch(query, {
-        model: opts.model,
-        systemPrompt: opts.system,
+      const agent =
+        opts.agent ??
+        (opts.max ? "deep-research-max-preview-04-2026" : "deep-research-preview-04-2026");
+
+      if (!opts.quiet) {
+        process.stderr.write(`Starting Gemini Deep Research (${agent}) — this typically takes 5-20 minutes.\n`);
+      }
+
+      const interaction = await googleDeepResearch(query, {
+        agent,
+        systemInstruction: opts.system,
+        onProgress: opts.quiet
+          ? undefined
+          : (i) => process.stderr.write(`  [${new Date().toISOString()}] ${summarizeProgress(i)}\n`),
       });
-      if (opts.json) {
-        emit(data, { json: true });
+
+      if (interaction.status !== "completed") {
+        process.stderr.write(
+          `\nresearch ended with status=${interaction.status}` +
+            (interaction.error?.message ? `: ${interaction.error.message}` : "") +
+            "\n",
+        );
+        if (opts.json) emit(interaction, { json: true });
+        process.exitCode = 1;
         return;
       }
-      const text = extractText(data);
-      const citations = extractCitations(data);
+
+      if (opts.json) {
+        emit(interaction, { json: true });
+        return;
+      }
+      const text = extractReportText(interaction);
+      const citations = extractGoogleCitations(interaction);
       emitText(text + renderCitations(citations));
     });
 

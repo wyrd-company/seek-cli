@@ -8,75 +8,197 @@ function headers(): Record<string, string> {
   return { "x-api-key": key };
 }
 
+// ---------- Search (POST /v1/search) ----------
+
 export interface ParallelSearchOptions {
   objective?: string;
+  processor?: "base" | "pro";
   maxResults?: number;
   maxCharsPerResult?: number;
-  processor?: "base" | "pro";
+  maxCharsTotal?: number;
+  sourcePolicy?: { include_domains?: string[]; exclude_domains?: string[] };
 }
 
-export interface ParallelSearchResult {
+export interface WebSearchResult {
   url: string;
-  title: string;
-  excerpts: string[];
+  title?: string | null;
+  excerpts?: string[] | null;
+  publish_date?: string | null;
+}
+
+export interface SearchResult {
+  search_id: string;
+  results: WebSearchResult[];
+  usage?: unknown;
+  warnings?: unknown;
 }
 
 export async function parallelSearch(
   query: string,
   opts: ParallelSearchOptions = {},
-): Promise<{ search_id: string; results: ParallelSearchResult[] }> {
-  return await request(`${BASE_URL}/v1beta/search`, {
+): Promise<SearchResult> {
+  const body: Record<string, unknown> = {
+    objective: opts.objective ?? query,
+    search_queries: [query],
+    processor: opts.processor ?? "base",
+  };
+  if (opts.maxResults != null) body.max_results = opts.maxResults;
+  if (opts.maxCharsPerResult != null || opts.maxCharsTotal != null) {
+    body.excerpt_settings = {
+      ...(opts.maxCharsPerResult != null && { max_chars_per_result: opts.maxCharsPerResult }),
+      ...(opts.maxCharsTotal != null && { max_chars_total: opts.maxCharsTotal }),
+    };
+  }
+  if (opts.sourcePolicy) body.source_policy = opts.sourcePolicy;
+
+  return await request<SearchResult>(`${BASE_URL}/v1/search`, {
     method: "POST",
     headers: headers(),
-    body: {
-      objective: opts.objective ?? query,
-      search_queries: [query],
-      processor: opts.processor ?? "base",
-      max_results: opts.maxResults ?? 10,
-      max_chars_per_result: opts.maxCharsPerResult ?? 1500,
-    },
+    body,
     timeoutMs: 90_000,
   });
 }
 
-export interface ParallelTaskRun {
-  run_id: string;
-  status: string;
-  is_active: boolean;
-  processor: string;
-  warnings?: unknown;
-  error?: unknown;
+// ---------- Extract (POST /v1/extract) ----------
+
+export interface ParallelExtractOptions {
+  fullContent?: boolean;
+  maxCharsPerResult?: number;
+  maxCharsTotal?: number;
+  fetchPolicy?: { max_age_seconds?: number; timeout_ms?: number };
+  sourcePolicy?: { include_domains?: string[]; exclude_domains?: string[] };
 }
 
-export interface ParallelTaskResult {
-  run: ParallelTaskRun;
-  output: {
-    type: string;
-    content: unknown;
-    basis?: Array<{ field: string; citations: Array<{ url: string; title?: string }> }>;
-  };
+export interface ExtractResult {
+  url: string;
+  title?: string | null;
+  excerpts?: string[] | null;
+  full_content?: string | null;
+  publish_date?: string | null;
+}
+
+export interface ExtractError {
+  url: string;
+  error?: string | null;
+  [key: string]: unknown;
+}
+
+export interface ExtractResponse {
+  extract_id: string;
+  results: ExtractResult[];
+  errors: ExtractError[];
+  usage?: unknown;
+  warnings?: unknown;
+}
+
+export async function parallelExtract(
+  urls: string[],
+  opts: ParallelExtractOptions = {},
+): Promise<ExtractResponse> {
+  const body: Record<string, unknown> = { urls };
+  if (opts.fullContent !== undefined) body.full_content = opts.fullContent;
+  if (opts.maxCharsPerResult != null || opts.maxCharsTotal != null) {
+    body.excerpt_settings = {
+      ...(opts.maxCharsPerResult != null && { max_chars_per_result: opts.maxCharsPerResult }),
+      ...(opts.maxCharsTotal != null && { max_chars_total: opts.maxCharsTotal }),
+    };
+  }
+  if (opts.fetchPolicy) body.fetch_policy = opts.fetchPolicy;
+  if (opts.sourcePolicy) body.source_policy = opts.sourcePolicy;
+
+  return await request<ExtractResponse>(`${BASE_URL}/v1/extract`, {
+    method: "POST",
+    headers: headers(),
+    body,
+    timeoutMs: 120_000,
+  });
+}
+
+// ---------- Tasks (POST /v1/tasks/runs) ----------
+
+export type TaskStatus =
+  | "queued"
+  | "action_required"
+  | "running"
+  | "completed"
+  | "failed"
+  | "cancelling"
+  | "cancelled";
+
+export interface TaskRun {
+  run_id: string;
+  interaction_id: string;
+  status: TaskStatus;
+  is_active: boolean;
+  processor: string;
+  created_at: string | null;
+  modified_at: string | null;
+  error?: { message?: string; [key: string]: unknown } | null;
+  warnings?: unknown;
+}
+
+export interface Citation {
+  url: string;
+  title?: string | null;
+  excerpts?: string[] | null;
+}
+
+export interface FieldBasis {
+  field: string;
+  reasoning: string;
+  citations?: Citation[];
+  confidence?: string | null;
+}
+
+export interface TaskRunTextOutput {
+  type: "text";
+  content: string;
+  basis: FieldBasis[];
+}
+
+export interface TaskRunJsonOutput {
+  type: "json";
+  content: Record<string, unknown>;
+  basis: FieldBasis[];
+  output_schema?: Record<string, unknown> | null;
+}
+
+export interface TaskRunResult {
+  run: TaskRun;
+  output: TaskRunTextOutput | TaskRunJsonOutput;
+}
+
+export interface TaskRunOptions {
+  processor?: "lite" | "base" | "core" | "pro" | "ultra" | string;
+  schema?: Record<string, unknown>;
+  inputDescription?: string;
+  enableEvents?: boolean;
+  pollIntervalMs?: number;
+  timeoutMs?: number;
+  onProgress?: (run: TaskRun) => void;
 }
 
 export async function parallelTaskRun(
   input: string | Record<string, unknown>,
-  opts: {
-    processor?: "lite" | "base" | "core" | "pro" | "ultra";
-    schema?: Record<string, unknown>;
-  } = {},
-): Promise<ParallelTaskResult> {
+  opts: TaskRunOptions = {},
+): Promise<TaskRunResult> {
   const body: Record<string, unknown> = {
     input,
     processor: opts.processor ?? "core",
   };
-  if (opts.schema) {
-    body.task_spec = {
-      output_schema: {
-        type: "json",
-        json_schema: opts.schema,
-      },
-    };
+  if (opts.schema || opts.inputDescription) {
+    const taskSpec: Record<string, unknown> = {};
+    if (opts.schema) {
+      taskSpec.output_schema = { type: "json", json_schema: opts.schema };
+    }
+    if (opts.inputDescription) {
+      taskSpec.input_schema = { type: "text", description: opts.inputDescription };
+    }
+    body.task_spec = taskSpec;
   }
-  const run = await request<ParallelTaskRun>(`${BASE_URL}/v1/tasks/runs`, {
+  if (opts.enableEvents !== undefined) body.enable_events = opts.enableEvents;
+
+  const created = await request<TaskRun>(`${BASE_URL}/v1/tasks/runs`, {
     method: "POST",
     headers: headers(),
     body,
@@ -85,35 +207,30 @@ export async function parallelTaskRun(
 
   const finished = await poll(
     () =>
-      request<ParallelTaskRun>(`${BASE_URL}/v1/tasks/runs/${run.run_id}`, {
+      request<TaskRun>(`${BASE_URL}/v1/tasks/runs/${encodeURIComponent(created.run_id)}`, {
         headers: headers(),
       }),
     (r) => !r.is_active,
-    { intervalMs: 5_000, timeoutMs: 25 * 60_000 },
+    {
+      intervalMs: opts.pollIntervalMs ?? 5_000,
+      timeoutMs: opts.timeoutMs ?? 25 * 60_000,
+      onTick: opts.onProgress,
+    },
   );
 
   if (finished.status !== "completed") {
     throw new Error(
-      `Parallel task ${finished.run_id} ended with status ${finished.status}: ${JSON.stringify(
-        finished.error ?? "(no error detail)",
-      )}`,
+      `Parallel task ${finished.run_id} ended with status=${finished.status}` +
+        (finished.error?.message ? `: ${finished.error.message}` : ""),
     );
   }
 
-  const output = await request<ParallelTaskResult["output"]>(
-    `${BASE_URL}/v1/tasks/runs/${run.run_id}/result`,
-    { headers: headers() },
+  return await request<TaskRunResult>(
+    `${BASE_URL}/v1/tasks/runs/${encodeURIComponent(created.run_id)}/result`,
+    { headers: headers(), timeoutMs: 60_000 },
   );
-
-  return { run: finished, output };
 }
 
-export async function parallelScrape(
-  url: string,
-  opts: { objective?: string } = {},
-): Promise<ParallelTaskResult> {
-  const objective =
-    opts.objective ??
-    `Visit the page at ${url} and return its full text content as clean Markdown, including any data behind login portals or paywalls.`;
-  return await parallelTaskRun(objective, { processor: "core" });
+export function summarizeRunProgress(run: TaskRun): string {
+  return `${run.status} (run_id=${run.run_id})`;
 }

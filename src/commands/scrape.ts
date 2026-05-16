@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { emit, emitText } from "../lib/output.ts";
 import { exaContents } from "../providers/exa.ts";
-import { parallelScrape } from "../providers/parallel.ts";
+import { parallelExtract } from "../providers/parallel.ts";
 import { firecrawlScrape } from "../providers/firecrawl.ts";
 
 export function registerScrapeCommand(program: Command): void {
@@ -38,25 +38,47 @@ export function registerScrapeCommand(program: Command): void {
   scrape
     .command("parallel")
     .description(
-      "Best for gated or enterprise data. Intelligent web agent that can navigate logins and paywalls.",
+      "Best for enterprise extract jobs. Hits Parallel's /v1/extract endpoint — returns clean markdown excerpts (and optional full content) plus publish dates per URL.",
     )
-    .argument("<url>", "URL to extract")
+    .argument("<urls...>", "One or more URLs to extract")
+    .option("--full", "Include full markdown content, not just excerpts", false)
     .option(
-      "--objective <text>",
-      "Custom extraction objective (default: full page text as Markdown)",
+      "-c, --chars <n>",
+      "Max characters per excerpt block",
+      (v) => parseInt(v, 10),
+    )
+    .option(
+      "--max-total <n>",
+      "Max characters total across all URLs",
+      (v) => parseInt(v, 10),
+    )
+    .option(
+      "--max-age <seconds>",
+      "Reuse cached content up to N seconds old (default: provider decides)",
+      (v) => parseInt(v, 10),
     )
     .option("--json", "Emit raw JSON response")
-    .action(async (url: string, opts) => {
-      const data = await parallelScrape(url, { objective: opts.objective });
+    .action(async (urls: string[], opts) => {
+      const data = await parallelExtract(urls, {
+        fullContent: opts.full,
+        maxCharsPerResult: opts.chars,
+        maxCharsTotal: opts.maxTotal,
+        fetchPolicy: opts.maxAge != null ? { max_age_seconds: opts.maxAge } : undefined,
+      });
       if (opts.json) {
         emit(data, { json: true });
         return;
       }
-      const content =
-        typeof data.output.content === "string"
-          ? data.output.content
-          : JSON.stringify(data.output.content, null, 2);
-      emitText(content);
+      const blocks = data.results.map((r) => {
+        const header = `# ${r.title ?? r.url}\n${r.url}` +
+          (r.publish_date ? `\npublished: ${r.publish_date}` : "");
+        const body = r.full_content ?? (r.excerpts ?? []).join("\n\n…\n\n") ?? "(no content returned)";
+        return `${header}\n\n${body}`;
+      });
+      const errors = data.errors.length
+        ? "\n\nErrors:\n" + data.errors.map((e) => `  ${e.url}: ${e.error ?? "(unknown)"}`).join("\n")
+        : "";
+      emitText(blocks.join("\n\n---\n\n") + errors);
     });
 
   scrape

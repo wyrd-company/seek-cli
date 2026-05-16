@@ -53,7 +53,7 @@ export function registerResearchCommand(program: Command): void {
           ? data.output.content
           : JSON.stringify(data.output.content, null, 2);
       const citations = (data.output.basis ?? [])
-        .flatMap((b) => b.citations.map((c) => c.url))
+        .flatMap((b) => (b.citations ?? []).map((c) => c.url))
         .filter((v, i, a) => a.indexOf(v) === i);
       emitText(content + renderCitations(citations));
     });

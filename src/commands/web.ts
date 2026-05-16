@@ -36,9 +36,9 @@ export function registerWebCommand(program: Command): void {
       emitText(
         renderSearchResults(
           data.results.map((r) => ({
-            title: r.title,
+            title: r.title ?? undefined,
             url: r.url,
-            content: r.excerpts.join("\n\n"),
+            content: (r.excerpts ?? []).join("\n\n"),
           })),
         ),
       );

@@ -20,9 +20,32 @@ registerWebCommand(program);
 registerResearchCommand(program);
 registerScrapeCommand(program);
 
+let activeCommand: Command | null = null;
+program.hook("preAction", (_thisCommand, actionCommand) => {
+  activeCommand = actionCommand;
+});
+
+function printAlternatives(cmd: Command): void {
+  const parent = cmd.parent;
+  if (!parent) return;
+  const siblings = parent.commands.filter(
+    (c) => c.name() !== cmd.name() && c.name() !== "help",
+  );
+  if (siblings.length === 0) return;
+  process.stderr.write(`\nOther \`seek ${parent.name()}\` providers you can try:\n`);
+  const width = Math.max(...siblings.map((s) => s.name().length));
+  for (const s of siblings) {
+    const pad = " ".repeat(width - s.name().length);
+    process.stderr.write(
+      `  seek ${parent.name()} ${s.name()}${pad}  — ${s.description()}\n`,
+    );
+  }
+}
+
 program.parseAsync(process.argv).catch((err: unknown) => {
   if (err instanceof MissingEnvError) {
     process.stderr.write(`error: ${err.message}\n`);
+    if (activeCommand) printAlternatives(activeCommand);
     process.exit(2);
   }
   if (err instanceof HttpError) {

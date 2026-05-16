@@ -21,9 +21,12 @@ bun run build       # -> dist/seek
 
 ## Authentication
 
-Each provider reads its own API key from the environment. Set whichever you plan to use:
+Each provider reads its own API key. `seek` resolves them in this order:
 
-| Provider    | Env var              |
+1. Process environment variable (always wins — useful for CI and one-off overrides).
+2. Config file at `$XDG_CONFIG_HOME/seek/config.json`, falling back to `~/.config/seek/config.json`.
+
+| Provider    | Env var / config key |
 | ----------- | -------------------- |
 | Parallel    | `PARALLEL_API_KEY`   |
 | Exa         | `EXA_API_KEY`        |
@@ -31,6 +34,23 @@ Each provider reads its own API key from the environment. Set whichever you plan
 | Perplexity  | `PERPLEXITY_API_KEY` |
 | Google      | `GEMINI_API_KEY`     |
 | Firecrawl   | `FIRECRAWL_API_KEY`  |
+
+To set up the config file:
+
+```sh
+seek config init        # writes a template at ~/.config/seek/config.json (mode 0600)
+seek config path        # print the resolved path
+seek config show        # show which keys are configured (values masked)
+```
+
+The config file is a flat JSON object whose keys match the env var names, so you can mix and match without learning a second schema:
+
+```json
+{
+  "EXA_API_KEY": "sk-…",
+  "PERPLEXITY_API_KEY": "pplx-…"
+}
+```
 
 ## Command map
 

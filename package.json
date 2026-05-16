@@ -1,0 +1,23 @@
+{
+  "name": "seek-cli",
+  "version": "0.1.0",
+  "description": "Agent-friendly CLI for web search, deep research, and scraping across popular APIs.",
+  "type": "module",
+  "module": "src/index.ts",
+  "bin": {
+    "seek": "./bin/seek"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --compile --outfile dist/seek",
+    "build:js": "bun build src/index.ts --target=bun --outfile dist/seek.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.5.0"
+  }
+}

@@ -2,6 +2,7 @@ import { requireEnv } from "../lib/env.ts";
 import { request, poll } from "../lib/http.ts";
 
 const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+export const DEFAULT_DEEP_RESEARCH_AGENT = "deep-research-pro-preview-12-2025";
 const API_REVISION = "2026-05-20";
 
 function headers(): Record<string, string> {
@@ -46,6 +47,7 @@ export interface Interaction {
   id: string;
   status: InteractionStatus;
   steps?: InteractionStep[];
+  outputs?: Array<{ text?: string; [key: string]: unknown }>;
   usage?: { total_tokens?: number };
   error?: { message?: string; code?: string };
 }
@@ -83,7 +85,7 @@ const TERMINAL_STATUSES: ReadonlySet<InteractionStatus> = new Set([
 ]);
 
 export interface DeepResearchOptions {
-  agent?: "deep-research-preview-04-2026" | "deep-research-max-preview-04-2026" | string;
+  agent?: typeof DEFAULT_DEEP_RESEARCH_AGENT | string;
   systemInstruction?: string;
   onProgress?: (interaction: Interaction) => void;
   pollIntervalMs?: number;
@@ -95,7 +97,7 @@ export async function googleDeepResearch(
   opts: DeepResearchOptions = {},
 ): Promise<Interaction> {
   const created = await createInteraction({
-    agent: opts.agent ?? "deep-research-preview-04-2026",
+    agent: opts.agent ?? DEFAULT_DEEP_RESEARCH_AGENT,
     input: query,
     background: true,
     system_instruction: opts.systemInstruction,
@@ -113,6 +115,13 @@ export async function googleDeepResearch(
 }
 
 export function extractReportText(interaction: Interaction): string {
+  const outputs = interaction.outputs ?? [];
+  const lastTextOutput = outputs
+    .slice()
+    .reverse()
+    .find((o) => typeof o.text === "string");
+  if (lastTextOutput?.text) return lastTextOutput.text;
+
   const steps = interaction.steps ?? [];
   const modelOutputs = steps.filter((s) => s.type === "model_output");
   if (modelOutputs.length === 0) return "";

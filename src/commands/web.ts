@@ -19,7 +19,7 @@ export function registerWebCommand(program: Command): void {
     .option("-n, --num <number>", "Max results", (v) => parseInt(v, 10), 10)
     .option("-c, --chars <number>", "Max chars per result excerpt", (v) => parseInt(v, 10), 1500)
     .option("--objective <text>", "Objective passed to the ranker (defaults to the query)")
-    .option("--processor <name>", "Processor: base | pro", "base")
+    .option("--mode <name>", "Search mode: basic | advanced")
     .option("--json", "Emit raw JSON response")
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
@@ -27,7 +27,7 @@ export function registerWebCommand(program: Command): void {
         maxResults: opts.num,
         maxCharsPerResult: opts.chars,
         objective: opts.objective,
-        processor: opts.processor,
+        mode: opts.mode,
       });
       if (opts.json) {
         emit(data, { json: true });

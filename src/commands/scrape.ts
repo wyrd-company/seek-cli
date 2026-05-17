@@ -41,6 +41,7 @@ export function registerScrapeCommand(program: Command): void {
       "Best for enterprise extract jobs. Hits Parallel's /v1/extract endpoint — returns clean markdown excerpts (and optional full content) plus publish dates per URL.",
     )
     .argument("<urls...>", "One or more URLs to extract")
+    .option("--objective <text>", "Focus excerpts on a natural-language extraction goal")
     .option("--full", "Include full markdown content, not just excerpts", false)
     .option(
       "-c, --chars <n>",
@@ -60,6 +61,7 @@ export function registerScrapeCommand(program: Command): void {
     .option("--json", "Emit raw JSON response")
     .action(async (urls: string[], opts) => {
       const data = await parallelExtract(urls, {
+        objective: opts.objective,
         fullContent: opts.full,
         maxCharsPerResult: opts.chars,
         maxCharsTotal: opts.maxTotal,

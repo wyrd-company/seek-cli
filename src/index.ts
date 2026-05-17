@@ -28,8 +28,10 @@ program.hook("preAction", (_thisCommand, actionCommand) => {
   activeCommand = actionCommand;
 });
 
-function providerHasKey(providerName: string): boolean {
-  const entry = KNOWN_KEYS.find(([, p]) => p === providerName);
+function providerHasKey(cmd: Command): boolean {
+  const scopedName = cmd.parent ? `${cmd.parent.name()}:${cmd.name()}` : cmd.name();
+  const entry = KNOWN_KEYS.find(([, p]) => p === scopedName) ??
+    KNOWN_KEYS.find(([, p]) => p === cmd.name());
   if (!entry) return true;
   const [envVar] = entry;
   if (process.env[envVar]) return true;
@@ -44,7 +46,7 @@ function printAlternatives(cmd: Command): void {
   );
   if (siblings.length === 0) return;
   const ranked = siblings
-    .map((s) => ({ cmd: s, configured: providerHasKey(s.name()) }))
+    .map((s) => ({ cmd: s, configured: providerHasKey(s) }))
     .sort((a, b) => Number(b.configured) - Number(a.configured));
   process.stderr.write(`\nOther \`seek ${parent.name()}\` providers you can try:\n`);
   const width = Math.max(...ranked.map((r) => r.cmd.name().length));

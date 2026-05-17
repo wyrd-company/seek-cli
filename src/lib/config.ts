@@ -51,7 +51,8 @@ export function resetConfigCache(): void {
 export const KNOWN_KEYS: ReadonlyArray<readonly [envVar: string, provider: string]> = [
   ["PARALLEL_API_KEY", "parallel"],
   ["EXA_API_KEY", "exa"],
-  ["BRAVE_API_KEY", "brave"],
+  ["BRAVE_SEARCH_API_KEY", "web:brave"],
+  ["BRAVE_ANSWERS_API_KEY", "research:brave"],
   ["PERPLEXITY_API_KEY", "perplexity"],
   ["GEMINI_API_KEY", "google"],
   ["FIRECRAWL_API_KEY", "firecrawl"],

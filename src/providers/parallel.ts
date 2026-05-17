@@ -12,11 +12,14 @@ function headers(): Record<string, string> {
 
 export interface ParallelSearchOptions {
   objective?: string;
-  processor?: "base" | "pro";
+  mode?: "basic" | "advanced";
   maxResults?: number;
   maxCharsPerResult?: number;
   maxCharsTotal?: number;
   sourcePolicy?: { include_domains?: string[]; exclude_domains?: string[] };
+  fetchPolicy?: { max_age_seconds?: number; timeout_seconds?: number };
+  clientModel?: string;
+  sessionId?: string;
 }
 
 export interface WebSearchResult {
@@ -40,16 +43,24 @@ export async function parallelSearch(
   const body: Record<string, unknown> = {
     objective: opts.objective ?? query,
     search_queries: [query],
-    processor: opts.processor ?? "base",
   };
-  if (opts.maxResults != null) body.max_results = opts.maxResults;
-  if (opts.maxCharsPerResult != null || opts.maxCharsTotal != null) {
-    body.excerpt_settings = {
-      ...(opts.maxCharsPerResult != null && { max_chars_per_result: opts.maxCharsPerResult }),
-      ...(opts.maxCharsTotal != null && { max_chars_total: opts.maxCharsTotal }),
+  if (opts.mode) body.mode = opts.mode;
+  if (opts.maxCharsTotal != null) body.max_chars_total = opts.maxCharsTotal;
+  if (opts.clientModel) body.client_model = opts.clientModel;
+  if (opts.sessionId) body.session_id = opts.sessionId;
+
+  const advancedSettings: Record<string, unknown> = {};
+  if (opts.maxResults != null) advancedSettings.max_results = opts.maxResults;
+  if (opts.maxCharsPerResult != null) {
+    advancedSettings.excerpt_settings = {
+      max_chars_per_result: opts.maxCharsPerResult,
     };
   }
-  if (opts.sourcePolicy) body.source_policy = opts.sourcePolicy;
+  if (opts.sourcePolicy) advancedSettings.source_policy = opts.sourcePolicy;
+  if (opts.fetchPolicy) advancedSettings.fetch_policy = opts.fetchPolicy;
+  if (Object.keys(advancedSettings).length > 0) {
+    body.advanced_settings = advancedSettings;
+  }
 
   return await request<SearchResult>(`${BASE_URL}/v1/search`, {
     method: "POST",
@@ -62,10 +73,12 @@ export async function parallelSearch(
 // ---------- Extract (POST /v1/extract) ----------
 
 export interface ParallelExtractOptions {
+  objective?: string;
+  searchQueries?: string[];
   fullContent?: boolean;
   maxCharsPerResult?: number;
   maxCharsTotal?: number;
-  fetchPolicy?: { max_age_seconds?: number; timeout_ms?: number };
+  fetchPolicy?: { max_age_seconds?: number; timeout_seconds?: number };
   sourcePolicy?: { include_domains?: string[]; exclude_domains?: string[] };
 }
 
@@ -96,14 +109,20 @@ export async function parallelExtract(
   opts: ParallelExtractOptions = {},
 ): Promise<ExtractResponse> {
   const body: Record<string, unknown> = { urls };
-  if (opts.fullContent !== undefined) body.full_content = opts.fullContent;
-  if (opts.maxCharsPerResult != null || opts.maxCharsTotal != null) {
-    body.excerpt_settings = {
-      ...(opts.maxCharsPerResult != null && { max_chars_per_result: opts.maxCharsPerResult }),
-      ...(opts.maxCharsTotal != null && { max_chars_total: opts.maxCharsTotal }),
+  if (opts.objective) body.objective = opts.objective;
+  if (opts.searchQueries) body.search_queries = opts.searchQueries;
+  if (opts.maxCharsTotal != null) body.max_chars_total = opts.maxCharsTotal;
+  const advancedSettings: Record<string, unknown> = {};
+  if (opts.fullContent !== undefined) advancedSettings.full_content = opts.fullContent;
+  if (opts.maxCharsPerResult != null) {
+    advancedSettings.excerpt_settings = {
+      max_chars_per_result: opts.maxCharsPerResult,
     };
   }
-  if (opts.fetchPolicy) body.fetch_policy = opts.fetchPolicy;
+  if (opts.fetchPolicy) advancedSettings.fetch_policy = opts.fetchPolicy;
+  if (Object.keys(advancedSettings).length > 0) {
+    body.advanced_settings = advancedSettings;
+  }
   if (opts.sourcePolicy) body.source_policy = opts.sourcePolicy;
 
   return await request<ExtractResponse>(`${BASE_URL}/v1/extract`, {

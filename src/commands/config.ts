@@ -7,6 +7,12 @@ function maskKey(value: string): string {
   return value.slice(0, 4) + "…" + value.slice(-4);
 }
 
+function providerLabel(provider: string): string {
+  if (provider === "web:brave") return "brave search";
+  if (provider === "research:brave") return "brave answers";
+  return provider;
+}
+
 export function registerConfigCommand(program: Command): void {
   const config = program
     .command("config")
@@ -60,6 +66,7 @@ export function registerConfigCommand(program: Command): void {
           provider,
           source,
           display: value ? maskKey(value) : "(unset)",
+          providerLabel: providerLabel(provider),
         };
       });
       const varWidth = Math.max(...rows.map((r) => r.envVar.length));
@@ -69,7 +76,7 @@ export function registerConfigCommand(program: Command): void {
         const pad = " ".repeat(varWidth - r.envVar.length);
         const srcPad = " ".repeat(srcWidth - r.source.length);
         process.stdout.write(
-          `  ${r.envVar}${pad}  ${r.source}${srcPad}  ${r.display}    [${r.provider}]\n`,
+          `  ${r.envVar}${pad}  ${r.source}${srcPad}  ${r.display}    [${r.providerLabel}]\n`,
         );
       }
     });

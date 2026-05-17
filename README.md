@@ -26,14 +26,15 @@ Each provider reads its own API key. `seek` resolves them in this order:
 1. Process environment variable (always wins — useful for CI and one-off overrides).
 2. Config file at `$XDG_CONFIG_HOME/seek/config.json`, falling back to `~/.config/seek/config.json`.
 
-| Provider    | Env var / config key |
-| ----------- | -------------------- |
-| Parallel    | `PARALLEL_API_KEY`   |
-| Exa         | `EXA_API_KEY`        |
-| Brave       | `BRAVE_API_KEY`      |
-| Perplexity  | `PERPLEXITY_API_KEY` |
-| Google      | `GEMINI_API_KEY`     |
-| Firecrawl   | `FIRECRAWL_API_KEY`  |
+| Provider      | Env var / config key    |
+| ------------- | ----------------------- |
+| Parallel      | `PARALLEL_API_KEY`      |
+| Exa           | `EXA_API_KEY`           |
+| Brave Search  | `BRAVE_SEARCH_API_KEY`  |
+| Brave Answers | `BRAVE_ANSWERS_API_KEY` |
+| Perplexity    | `PERPLEXITY_API_KEY`    |
+| Google        | `GEMINI_API_KEY`        |
+| Firecrawl     | `FIRECRAWL_API_KEY`     |
 
 To set up the config file:
 
@@ -63,6 +64,7 @@ seek
 │   └── perplexity     Short, conversational answer with citations
 │
 ├── research    Autonomous, multi-step deep analysis
+│   ├── brave          Grounded answers with optional multi-search research mode
 │   ├── parallel       Strict JSON output with auditable sources (B2B / data ops)
 │   ├── google         Long-horizon, Google-grounded report (corporate / scientific)
 │   └── perplexity     Polished long-form briefing with inline citations
@@ -83,9 +85,12 @@ seek web brave "latest Anthropic model release" --fresh pw
 seek web perplexity "what changed in the EU AI Act this month?"
 
 # Deep research
+seek research brave "what changed in the EU AI Act this month?" --research --citations
 seek research parallel "list the top 10 EV battery manufacturers" \
   --schema ./schema.json --processor pro
 seek research google "summarize the SEC investigation into ACME Corp"
+seek research google "map the competitive landscape for open-weight speech models" \
+  --interactive --planner perplexity
 seek research perplexity "state of the small language model market"
 
 # Scrape

@@ -6,6 +6,14 @@ Built with [Bun](https://bun.sh) + TypeScript. Each command groups providers by 
 
 ## Install
 
+With Homebrew:
+
+```sh
+brew install wyrd-company/tools/seek-cli
+```
+
+From source:
+
 ```sh
 bun install
 bun link            # exposes the `seek` binary on your PATH
@@ -60,11 +68,13 @@ seek
 ├── web         Fast, real-time context retrieval
 │   ├── parallel       Dense, LLM-ready context in one call (best for agents)
 │   ├── exa            Neural semantic search (best for conceptual queries)
-│   ├── brave          Independent global web index (best for real-time facts)
+│   ├── brave
+│   │   ├── search     Independent global web index (best for real-time facts)
+│   │   └── answers    AI-generated answers backed by verifiable sources
 │   └── perplexity     Short, conversational answer with citations
 │
 ├── research    Autonomous, multi-step deep analysis
-│   ├── brave          Grounded answers with optional multi-search research mode
+│   ├── brave          Brave Answers Deep Research
 │   ├── parallel       Strict JSON output with auditable sources (B2B / data ops)
 │   ├── google         Long-horizon, Google-grounded report (corporate / scientific)
 │   └── perplexity     Polished long-form briefing with inline citations
@@ -81,11 +91,12 @@ seek
 # Real-time search
 seek web parallel "transformer inference cost in 2026" -n 5
 seek web exa "papers on speculative decoding" --category "research paper" --text
-seek web brave "latest Anthropic model release" --fresh pw
+seek web brave search "latest Anthropic model release" --fresh pw
+seek web brave answers "what shipped in the latest Bun release?" --citations
 seek web perplexity "what changed in the EU AI Act this month?"
 
 # Deep research
-seek research brave "what changed in the EU AI Act this month?" --research --citations
+seek research brave "what changed in the EU AI Act this month?" --citations
 seek research parallel "list the top 10 EV battery manufacturers" \
   --schema ./schema.json --processor pro
 seek research google "summarize the SEC investigation into ACME Corp"
@@ -100,3 +111,21 @@ seek scrape firecrawl https://example.com -f markdown,links
 ```
 
 Every subcommand supports `--json` to emit the raw provider response — useful when piping into `jq` or another agent.
+
+## CI and release
+
+Run the same checks as CI locally:
+
+```sh
+bun run ci
+```
+
+Build release archives locally:
+
+```sh
+RUN_CI=0 bun run release
+```
+
+Pushing a `v*` tag runs the release workflow. It builds macOS/Linux ARM64 and x86_64 tarballs, publishes them to the GitHub release, then updates `Formula/seek-cli.rb` in `github.com/wyrd-company/homebrew-tools`.
+
+The tap publish job expects an SSH deploy key in the repository secret `FORMULAE_PUBLISH_KEY` with write access to `wyrd-company/homebrew-tools`.

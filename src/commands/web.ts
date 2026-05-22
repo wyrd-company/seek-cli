@@ -2,7 +2,13 @@ import { Command } from "commander";
 import { emit, emitText, renderSearchResults, renderCitations } from "../lib/output.ts";
 import { parallelSearch } from "../providers/parallel.ts";
 import { exaSearch } from "../providers/exa.ts";
-import { braveSearch } from "../providers/brave.ts";
+import { 
+  braveSearch, 
+  braveAnswers,
+  extractBraveAnswerText,
+  extractBraveCitations,
+  stripBraveAnswerTags,
+} from "../providers/brave.ts";
 import { perplexitySearch } from "../providers/perplexity.ts";
 
 export function registerWebCommand(program: Command): void {
@@ -13,7 +19,7 @@ export function registerWebCommand(program: Command): void {
   web
     .command("parallel")
     .description(
-      "Best for AI agents. Returns dense, LLM-ready context snippets in a single call — no extra scrape step.",
+      "Parallel returns relevant excerpts optimized for LLMs, replacing multiple keyword searches with a single call for broad or complex queries.",
     )
     .argument("<query...>", "Search query")
     .option("-n, --num <number>", "Max results", (v) => parseInt(v, 10), 10)
@@ -92,18 +98,24 @@ export function registerWebCommand(program: Command): void {
       );
     });
 
-  web
+  const brave = 
+    web
     .command("brave")
     .description(
       "Best for real-time consumer facts. Clean, structured snippets from an independent global web index.",
-    )
+    );
+
+  brave
+    .command("search")
+    .description("Search from a large index of web pages with optional local and rich data enrichments, with results intended for human consumption.")
+    .copyInheritedSettings(brave)
     .argument("<query...>", "Search query")
     .option("-n, --num <number>", "Number of results", (v) => parseInt(v, 10), 10)
-    .option("--country <cc>", "Two-letter country code (e.g. US, GB)")
     .option(
       "--fresh <window>",
       "Freshness window: pd (past day), pw (week), pm (month), py (year)",
     )
+    .option("--country <cc>", "Two-letter country code (e.g. US, GB)")
     .option("--json", "Emit raw JSON response")
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
@@ -122,6 +134,36 @@ export function registerWebCommand(program: Command): void {
         snippet: r.description,
       }));
       emitText(renderSearchResults(results));
+    });
+
+  brave
+    .command("answers")
+    .description("Brave Answers provides state-of-the-art AI-generated answers backed by verifiable sources from the web. ")
+    .copyInheritedSettings(brave)
+    .argument("<query...>", "Answers query")
+    .option("--language <code>", "Response language (default: en)")
+    .option("--citations", "Request provider citation tags", false)
+    .option("--entities", "Request provider entity tags", false)
+    .option("--country <cc>", "Two-letter country code (e.g. US, GB)")
+    .option("--json", "Emit raw JSON response")
+    .action(async (queryParts: string[], opts) => {
+      const query = queryParts.join(" ");
+      const data = await braveAnswers(query, {
+        country: opts.country,
+        language: opts.language,
+        enableResearch: false,
+        enableCitations: opts.citations,
+        enableEntities: opts.entities,
+      });
+      if (opts.json) {
+        emit(data, { json: true });
+        return;
+      }
+      const text = extractBraveAnswerText(data);
+      const citations = Array.isArray(data.citations)
+        ? (data.citations as string[])
+        : extractBraveCitations(text);
+      emitText(stripBraveAnswerTags(text) + renderCitations(citations));
     });
 
   web

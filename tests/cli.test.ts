@@ -59,13 +59,31 @@ describe("CLI smoke tests", () => {
     expect(result.stdout).not.toContain("(default: true)");
   });
 
-  test("research brave help documents answers-specific flags", () => {
+  test("web brave help documents search and answers subcommands", () => {
+    const result = cli(["web", "brave", "--help"]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("search [options] <query...>");
+    expect(result.stdout).toContain("answers [options] <query...>");
+  });
+
+  test("web brave answers help documents answers-specific flags", () => {
+    const result = cli(["web", "brave", "answers", "--help"]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("--citations");
+    expect(result.stdout).toContain("--entities");
+    expect(result.stdout).not.toContain("--research");
+  });
+
+  test("research brave help exposes deep research without a research toggle", () => {
     const result = cli(["research", "brave", "--help"]);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("--research");
+    expect(result.stdout).toContain("Brave Answers Deep Research");
     expect(result.stdout).toContain("--citations");
     expect(result.stdout).toContain("--entities");
+    expect(result.stdout).not.toContain("--research");
   });
 
   test("research google help documents interactive planning flags", () => {

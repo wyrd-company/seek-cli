@@ -10,55 +10,16 @@
         },
         "ghcr.io/devcontainers/features/git": {}
     },
-
-	"mounts": [
-        {
-            "source": "sccache",
-            "target": "/home/vscode/.sccache",
-            "type": "volume"
-        },
-		{
-			"source": "claude",
-			"target": "/home/vscode/.claude",
-			"type": "volume"
-		},
-		{
-			"source": "codex",
-			"target": "/home/vscode/.codex",
-			"type": "volume"
-		},
-		{
-			"source": "gemini",
-			"target": "/home/vscode/.gemini",
-			"type": "volume"
-		},
-		{
-			"source": "gemini-auth",
-			"target": "/home/vscode/.cache/google-vscode-extension",
-			"type": "volume"
-		},
-		{
-			"source": "agents",
-			"target": "/home/vscode/.agents",
-			"type": "volume"
-		}
-	],
-
 	"customizations": {
         "vscode": {
             "extensions": [
-                "rust-lang.rust-analyzer",
                 "fill-labs.dependi",
                 "github.vscode-github-actions"
             ]
         }
     },
-
-    "postCreateCommand": {
-        "own-cache": "mkdir -p /home/vscode/.cache && sudo chown -R vscode:vscode /home/vscode/.cache",
-        "claude-code": "curl -fsSL https://claude.ai/install.sh | bash",
-        "codex": "npm i -g @openai/codex",
-        "gemini": "npm install -g @google/gemini-cli",
-        "skills": "npx -y skills list"
-    }
+	"containerEnv": {
+		"DEVCONTAINER_ID": "${devcontainerId}",
+		"WORKSPACE_HOME": "${containerWorkspaceFolder}"
+	}
 }

@@ -35,12 +35,11 @@ export function registerResearchCommand(program: Command): void {
   research
     .command("brave")
     .description(
-      "Best for grounded answer generation. Uses Brave Answers with optional multi-search research mode.",
+      "[Surface] Brave Answers Deep Research",
     )
     .argument("<query...>", "Research question")
     .option("--country <cc>", "Two-letter country code for grounding (default: us)")
     .option("--language <code>", "Response language (default: en)")
-    .option("--research", "Enable multi-search research mode", false)
     .option("--citations", "Request provider citation tags", false)
     .option("--entities", "Request provider entity tags", false)
     .option("--json", "Emit raw JSON response")
@@ -49,7 +48,7 @@ export function registerResearchCommand(program: Command): void {
       const data = await braveAnswers(query, {
         country: opts.country,
         language: opts.language,
-        enableResearch: opts.research,
+        enableResearch: true,
         enableCitations: opts.citations,
         enableEntities: opts.entities,
       });
@@ -67,7 +66,7 @@ export function registerResearchCommand(program: Command): void {
   research
     .command("parallel")
     .description(
-      "Best for data ops and B2B workflows. Maps deep research into a strict JSON schema with full source tracking.",
+      "[Thorough] Parallel Deep Research (30s - 25 minutes)",
     )
     .argument("<query...>", "Research question or objective")
     .option(
@@ -76,10 +75,11 @@ export function registerResearchCommand(program: Command): void {
     )
     .option(
       "--processor <name>",
-      "Processor depth: lite | base | core | pro | ultra",
+      "Processor depth: core-fast | core | core2x-fast | core2x | pro-fast | pro | ultra-fast | ultra ",
       "core",
     )
     .option("--json", "Emit raw JSON response")
+    .addHelpText("after","\n`-fast` processors prioritize quicker results at the expense of freshness of data:\n\tcore-fast (15s-100s)\n\tpro-fast (30s-5m)\n\tultra-fast (1-10m)\n\tcore (60s-5m)\n\tcore2x (60s-10m)\n\tpro (3-9m)\n\tultra (5-25m)\n\ncore: Cross-referenced, moderately complex outputs\ncore2x: High complexity cross referenced outputs\npro: Exploratory web research\nultra: Advanced multi-source deep research")
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
       let schema: Record<string, unknown> | undefined;
@@ -108,8 +108,9 @@ export function registerResearchCommand(program: Command): void {
   research
     .command("google")
     .description(
-      "Best for corporate and scientific intelligence. Runs the Gemini Deep Research agent — autonomous, multi-step web research that returns a full report with citations.",
+      "[Comprehensive/Planning] Gemini Deep Research Agent (5 - 20 minutes)",
     )
+    .addHelpText("after", "\nThe Gemini Deep Research Agent autonomously plans, executes, and synthesizes multi-step research tasks. Powered by Gemini, it navigates complex information landscapes to produce detailed, cited reports. Research tasks involve iterative searching and reading and can take several minutes to complete.")
     .argument("<query...>", "Research question")
     .option("--agent <name>", `Override the agent id (default: ${DEFAULT_DEEP_RESEARCH_AGENT})`)
     .option(
@@ -128,7 +129,7 @@ export function registerResearchCommand(program: Command): void {
         : query;
 
       if (!opts.quiet) {
-        process.stderr.write(`Starting Gemini Deep Research (${agent}) — this typically takes 5-20 minutes.\n`);
+        process.stderr.write(`Starting Gemini Deep Research (${agent}).\n`);
       }
 
       const interaction = await googleDeepResearch(finalPrompt, {
@@ -162,7 +163,7 @@ export function registerResearchCommand(program: Command): void {
   research
     .command("perplexity")
     .description(
-      "Best for deep consumer or market briefings. Runs Sonar Deep Research as an async job (sync calls time out) and polls until the polished, inline-cited report is ready.",
+      "[Informed] Perplexity Sonar Deep Research (1 - 3 minutes)",
     )
     .argument("<query...>", "Research question")
     .option("--model <name>", "Override model (default: sonar-deep-research)")

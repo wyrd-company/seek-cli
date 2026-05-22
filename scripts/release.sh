@@ -34,9 +34,9 @@ need bun
 need tar
 
 VERSION="${VERSION:-$(bun -p "require('./package.json').version")}"
-TAG="${TAG:-${GITHUB_REF_NAME:-v${VERSION}}}"
+TAG="${TAG:-${GITHUB_REF_NAME:-${VERSION}}}"
 
-if [[ "$TAG" != "v${VERSION}" && "${ALLOW_VERSION_MISMATCH:-0}" != "1" ]]; then
+if [[ "$TAG" != "${VERSION}" && "${ALLOW_VERSION_MISMATCH:-0}" != "1" ]]; then
   echo "error: release tag ${TAG} does not match package version ${VERSION}" >&2
   echo "Set ALLOW_VERSION_MISMATCH=1 to override." >&2
   exit 1

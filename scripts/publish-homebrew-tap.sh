@@ -19,7 +19,13 @@ if [[ -z "$TAG" ]]; then
   exit 1
 fi
 
-VERSION="${VERSION:-${TAG#v}}"
+VERSION="${VERSION:-${TAG}}"
+
+if [[ "$TAG" != "${VERSION}" && "${ALLOW_VERSION_MISMATCH:-0}" != "1" ]]; then
+  echo "error: release tag ${TAG} does not match formula version ${VERSION}" >&2
+  echo "Set ALLOW_VERSION_MISMATCH=1 to override." >&2
+  exit 1
+fi
 
 sha256_file() {
   if command -v sha256sum >/dev/null 2>&1; then

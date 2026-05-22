@@ -126,6 +126,6 @@ Build release archives locally:
 RUN_CI=0 bun run release
 ```
 
-Pushing a `v*` tag runs the release workflow. It builds macOS/Linux ARM64 and x86_64 tarballs, publishes them to the GitHub release, then updates `Formula/seek-cli.rb` in `github.com/wyrd-company/homebrew-tools`.
+Pushing a version tag such as `0.1.0` runs the release workflow. It builds macOS/Linux ARM64 and x86_64 tarballs, publishes them to the GitHub release, then updates `Formula/seek-cli.rb` in `github.com/wyrd-company/homebrew-tools`.
 
 The tap publish job expects an SSH deploy key in the repository secret `FORMULAE_PUBLISH_KEY` with write access to `wyrd-company/homebrew-tools`.

@@ -82,7 +82,7 @@ jobs:
         shell: bash
         run: |
           TAG="${GITHUB_REF##*/}"
-          VERSION="${TAG#}"
+          VERSION="${TAG}"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 

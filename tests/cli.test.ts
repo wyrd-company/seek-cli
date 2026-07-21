@@ -119,6 +119,14 @@ describe("CLI smoke tests", () => {
     expect(unknown.stderr).toContain("Use: google, parallel, perplexity");
   });
 
+  test("research lifecycle accepts opaque ids beginning with a hyphen", () => {
+    const result = cli(["research", "status", "google", "--", "-opaque"]);
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stderr).toContain("Missing API key for google");
+    expect(result.stderr).not.toContain("unknown option");
+  });
+
   test("missing provider keys fail before a network request and suggest alternatives", () => {
     const result = cli(["web", "parallel", "hello"]);
 

@@ -296,8 +296,8 @@ function renderResearchJob(
     const provider = quoteShellArg(job.locator.provider);
     const jobId = quoteShellArg(job.locator.jobId);
     lines.push(
-      `Check status: seek research status ${provider} ${jobId}`,
-      `Get result: seek research get ${provider} ${jobId}`,
+      `Check status: seek research status ${provider} -- ${jobId}`,
+      `Get result: seek research get ${provider} -- ${jobId}`,
     );
   }
   return lines.join("\n");

@@ -228,11 +228,20 @@ describe("normalized research lifecycle", () => {
     expect(output).toContain("Job ID: job with 'quotes'");
     expect(output).toContain("Status: running (provider: in_progress)");
     expect(output).toContain(
-      `seek research status google 'job with '"'"'quotes'"'"''`,
+      `seek research status google -- 'job with '"'"'quotes'"'"''`,
     );
     expect(output).toContain(
-      `seek research get google 'job with '"'"'quotes'"'"''`,
+      `seek research get google -- 'job with '"'"'quotes'"'"''`,
     );
+  });
+
+  test("uses an option terminator for opaque ids beginning with a hyphen", () => {
+    const output = renderResearchSubmission(
+      snapshotGoogleJob({ id: "-opaque", status: "in_progress" }),
+    );
+
+    expect(output).toContain("seek research status google -- -opaque");
+    expect(output).toContain("seek research get google -- -opaque");
   });
 
   test("rejects synchronous and unknown providers with actionable errors", () => {

@@ -119,10 +119,10 @@ seek scrape parallel https://app.example.com/dashboard \
 seek scrape firecrawl https://example.com -f markdown,links
 ```
 
-Every leaf command supports `--json`. Existing blocking provider commands emit
-their raw provider response. Async submission, status, and result commands emit
-the normalized lifecycle envelope described below, including the raw provider
-payload.
+Provider and research-lifecycle leaf commands support `--json`. Existing
+blocking provider commands emit their raw provider response. Async submission,
+status, and result commands emit the normalized lifecycle envelope described
+below, including the raw provider payload.
 
 ## Resumable research jobs
 

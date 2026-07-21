@@ -29,6 +29,7 @@ export type NormalizedResearchStatus =
   | "running"
   | "action-required"
   | "completed"
+  | "incomplete"
   | "failed"
   | "cancelled"
   | "unknown";
@@ -95,7 +96,12 @@ export function snapshotGoogleJob(
 }
 
 export function snapshotParallelJob(run: TaskRun): ResearchJobSnapshot {
-  const details = run.error ?? run.errors;
+  const details =
+    run.error && Object.keys(run.error).length > 0
+      ? run.error
+      : run.errors && run.errors.length > 0
+        ? run.errors
+        : undefined;
   const message =
     run.error?.message ?? run.errors?.find((error) => error.message)?.message;
   return snapshot(
@@ -186,11 +192,13 @@ export function renderResearchStatus(job: ResearchJobSnapshot): string {
 
 export function renderResearchUnavailable(job: ResearchJobSnapshot): string {
   const heading =
-    job.status === "failed" || job.status === "cancelled"
-      ? "Research job did not complete successfully."
-      : job.status === "action-required"
-        ? "Research job requires action before it can complete."
-        : "Research job is not complete.";
+    job.status === "incomplete"
+      ? "Research job ended before completing."
+      : job.status === "failed" || job.status === "cancelled"
+        ? "Research job did not complete successfully."
+        : job.status === "action-required"
+          ? "Research job requires action before it can complete."
+          : "Research job is not complete.";
   return renderResearchJob(heading, job, true);
 }
 
@@ -203,8 +211,9 @@ function normalizeGoogleStatus(status: string): NormalizedResearchStatus {
     case "completed":
       return "completed";
     case "failed":
-    case "incomplete":
       return "failed";
+    case "incomplete":
+      return "incomplete";
     case "cancelled":
       return "cancelled";
     default:
@@ -266,7 +275,12 @@ function snapshot(
 }
 
 function isTerminal(status: NormalizedResearchStatus): boolean {
-  return status === "completed" || status === "failed" || status === "cancelled";
+  return (
+    status === "completed" ||
+    status === "incomplete" ||
+    status === "failed" ||
+    status === "cancelled"
+  );
 }
 
 function parallelResult(result: TaskRunResult): ResearchResult {

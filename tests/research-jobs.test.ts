@@ -205,8 +205,8 @@ describe("normalized research lifecycle", () => {
       snapshotGoogleJob({ id: "job-1", status: "completed" }).status,
     ).toBe("completed");
     expect(
-      snapshotGoogleJob({ id: "job-1", status: "incomplete" }).status,
-    ).toBe("failed");
+      snapshotGoogleJob({ id: "job-1", status: "incomplete" }),
+    ).toMatchObject({ status: "incomplete", terminal: true });
     expect(
       snapshotParallelJob({ ...taskRun("failed"), error: { message: "No result" } }),
     ).toMatchObject({
@@ -217,6 +217,20 @@ describe("normalized research lifecycle", () => {
     expect(
       snapshotGoogleJob({ id: "job-1", status: "cancelled" }),
     ).toMatchObject({ status: "cancelled", terminal: true });
+  });
+
+  test("ignores empty Parallel error containers", () => {
+    expect(
+      snapshotParallelJob({ ...taskRun("completed"), error: {}, errors: [] }),
+    ).not.toHaveProperty("failure");
+    expect(
+      snapshotParallelJob({
+        ...taskRun("failed"),
+        errors: [{ message: "Provider could not complete the job" }],
+      }),
+    ).toMatchObject({
+      failure: { message: "Provider could not complete the job" },
+    });
   });
 
   test("renders a provider-qualified locator and copyable commands", () => {

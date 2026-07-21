@@ -180,7 +180,9 @@ Async submission and `status --json` use this stable envelope:
 - `locator.provider` and `locator.jobId` form the durable, provider-qualified
   locator. Job ids are opaque and are not assumed to be globally unique.
 - `status` is one of `queued`, `running`, `action-required`, `completed`,
-  `failed`, `cancelled`, or `unknown`.
+  `incomplete`, `failed`, `cancelled`, or `unknown`. Google `incomplete` is a
+  terminal state distinct from provider failure; its raw partial payload
+  remains available in `providerPayload`.
 - `providerStatus` retains the provider's native status string.
 - `providerPayload` retains the complete status response. Failed jobs may also
   include `failure` with provider details.
@@ -189,8 +191,8 @@ Async submission and `status --json` use this stable envelope:
   endpoint.
 
 `status` exits successfully whenever lookup succeeds, including for failed
-jobs. `get` exits non-zero for queued, running, action-required, failed,
-cancelled, or unknown states and never waits for a state change.
+jobs. `get` exits non-zero for queued, running, action-required, incomplete,
+failed, cancelled, or unknown states and never waits for a state change.
 
 ## CI and release
 

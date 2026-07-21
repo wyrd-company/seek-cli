@@ -127,6 +127,22 @@ describe("CLI smoke tests", () => {
     expect(result.stderr).not.toContain("unknown option");
   });
 
+  test("google interactive planning runs before async submission", () => {
+    const result = cli([
+      "research",
+      "google",
+      "compare archival storage materials",
+      "--interactive",
+      "--planner",
+      "manual",
+      "--async",
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("--interactive requires a TTY");
+    expect(result.stderr).not.toContain("Missing API key");
+  });
+
   test("missing provider keys fail before a network request and suggest alternatives", () => {
     const result = cli(["web", "parallel", "hello"]);
 

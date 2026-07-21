@@ -4,7 +4,14 @@ import { exaContents, exaSearch } from "../../src/providers/exa.ts";
 import { firecrawlScrape, type FirecrawlScrapeOptions } from "../../src/providers/firecrawl.ts";
 import { HttpError } from "../../src/lib/http.ts";
 import { extractReportText, googleDeepResearch } from "../../src/providers/google.ts";
-import { parallelExtract, parallelSearch } from "../../src/providers/parallel.ts";
+import {
+  getParallelTaskRun,
+  getParallelTaskRunResult,
+  parallelExtract,
+  parallelSearch,
+  submitParallelTaskRun,
+  waitForParallelTaskRun,
+} from "../../src/providers/parallel.ts";
 import {
   perplexityDeepResearch,
   perplexitySearch,
@@ -197,6 +204,69 @@ describe("live provider smoke tests", () => {
     expect(data.success).toBe(true);
     expect(data.data?.markdown?.length ?? 0).toBeGreaterThan(0);
   });
+
+  longLiveTest(
+    "Parallel resumable research lifecycle returns a report",
+    "PARALLEL_API_KEY",
+    async () => {
+      const request = {
+        input: "Compare air-drying and pressing leaves in two short sentences.",
+        options: {
+          processor: "core-fast",
+          pollIntervalMs: 10_000,
+          timeoutMs: 5 * 60_000,
+        },
+      };
+      const created = await recordLiveArtifact(
+        {
+          name: "parallel-research-submit",
+          provider: "parallel",
+          operation: "research-submit",
+          request,
+        },
+        () => submitParallelTaskRun(request.input, request.options),
+      );
+      expect(created.run_id.length).toBeGreaterThan(0);
+
+      const status = await recordLiveArtifact(
+        {
+          name: "parallel-research-status",
+          provider: "parallel",
+          operation: "research-status",
+          request: { runId: created.run_id },
+        },
+        () => getParallelTaskRun(created.run_id),
+      );
+      expect(status.run_id).toBe(created.run_id);
+
+      const finished = await recordLiveArtifact(
+        {
+          name: "parallel-research-wait",
+          provider: "parallel",
+          operation: "research-wait",
+          request: { runId: created.run_id },
+        },
+        () => waitForParallelTaskRun(created.run_id, request.options),
+      );
+      expect(finished.status).toBe("completed");
+
+      const result = await recordLiveArtifact(
+        {
+          name: "parallel-research-get",
+          provider: "parallel",
+          operation: "research-get",
+          request: { runId: created.run_id },
+        },
+        () => getParallelTaskRunResult(created.run_id),
+      );
+      expect(result.run.run_id).toBe(created.run_id);
+      expect(
+        typeof result.output.content === "string"
+          ? result.output.content.length
+          : Object.keys(result.output.content).length,
+      ).toBeGreaterThan(0);
+    },
+  );
 
   longLiveTest("Google Deep Research completes a short report", "GEMINI_API_KEY", async () => {
     const request = {

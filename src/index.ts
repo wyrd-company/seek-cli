@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
+import packageMetadata from "../package.json" with { type: "json" };
 import { registerWebCommand } from "./commands/web.ts";
 import { registerResearchCommand } from "./commands/research.ts";
 import { registerScrapeCommand } from "./commands/scrape.ts";
@@ -15,7 +16,7 @@ program
   .description(
     "Agent-friendly CLI for web search, deep research, and targeted scraping across popular APIs.",
   )
-  .version("0.1.0")
+  .version(packageMetadata.version)
   .showHelpAfterError();
 
 registerWebCommand(program);

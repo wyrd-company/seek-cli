@@ -1,15 +1,11 @@
 {
 	"name": "Seek CLI",
-	"image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+	"image": "mcr.microsoft.com/devcontainers/base:noble",
 
 	"features": {
-        "ghcr.io/devcontainers-extra/features/bun:1": {},
-		"ghcr.io/devcontainers/features/common-utils": {
-            "installZsh": false,
-            "installOhMyZsh": false
-        },
-        "ghcr.io/devcontainers/features/git": {}
+        "ghcr.io/devcontainers-extra/features/bun:1": {}
     },
+
 	"customizations": {
         "vscode": {
             "extensions": [

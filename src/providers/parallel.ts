@@ -153,6 +153,7 @@ export interface TaskRun {
   created_at: string | null;
   modified_at: string | null;
   error?: { message?: string; [key: string]: unknown } | null;
+  errors?: Array<{ message?: string; [key: string]: unknown }> | null;
   warnings?: unknown;
 }
 
@@ -197,10 +198,13 @@ export interface TaskRunOptions {
   onProgress?: (run: TaskRun) => void;
 }
 
-export async function parallelTaskRun(
+export async function submitParallelTaskRun(
   input: string | Record<string, unknown>,
-  opts: TaskRunOptions = {},
-): Promise<TaskRunResult> {
+  opts: Omit<
+    TaskRunOptions,
+    "pollIntervalMs" | "timeoutMs" | "onProgress"
+  > = {},
+): Promise<TaskRun> {
   const body: Record<string, unknown> = {
     input,
     processor: opts.processor ?? "core",
@@ -217,25 +221,54 @@ export async function parallelTaskRun(
   }
   if (opts.enableEvents !== undefined) body.enable_events = opts.enableEvents;
 
-  const created = await request<TaskRun>(`${BASE_URL}/v1/tasks/runs`, {
+  return await request<TaskRun>(`${BASE_URL}/v1/tasks/runs`, {
     method: "POST",
     headers: headers(),
     body,
     timeoutMs: 60_000,
   });
+}
 
-  const finished = await poll(
-    () =>
-      request<TaskRun>(`${BASE_URL}/v1/tasks/runs/${encodeURIComponent(created.run_id)}`, {
-        headers: headers(),
-      }),
-    (r) => !r.is_active,
+export async function getParallelTaskRun(id: string): Promise<TaskRun> {
+  return await request<TaskRun>(
+    `${BASE_URL}/v1/tasks/runs/${encodeURIComponent(id)}`,
+    { headers: headers() },
+  );
+}
+
+export async function getParallelTaskRunResult(
+  id: string,
+): Promise<TaskRunResult> {
+  return await request<TaskRunResult>(
+    `${BASE_URL}/v1/tasks/runs/${encodeURIComponent(id)}/result`,
+    { headers: headers(), timeoutMs: 60_000 },
+  );
+}
+
+export async function waitForParallelTaskRun(
+  id: string,
+  opts: Pick<
+    TaskRunOptions,
+    "pollIntervalMs" | "timeoutMs" | "onProgress"
+  > = {},
+): Promise<TaskRun> {
+  return await poll(
+    () => getParallelTaskRun(id),
+    (run) => !run.is_active,
     {
       intervalMs: opts.pollIntervalMs ?? 5_000,
       timeoutMs: opts.timeoutMs ?? 25 * 60_000,
       onTick: opts.onProgress,
     },
   );
+}
+
+export async function parallelTaskRun(
+  input: string | Record<string, unknown>,
+  opts: TaskRunOptions = {},
+): Promise<TaskRunResult> {
+  const created = await submitParallelTaskRun(input, opts);
+  const finished = await waitForParallelTaskRun(created.run_id, opts);
 
   if (finished.status !== "completed") {
     throw new Error(
@@ -244,10 +277,7 @@ export async function parallelTaskRun(
     );
   }
 
-  return await request<TaskRunResult>(
-    `${BASE_URL}/v1/tasks/runs/${encodeURIComponent(created.run_id)}/result`,
-    { headers: headers(), timeoutMs: 60_000 },
-  );
+  return await getParallelTaskRunResult(created.run_id);
 }
 
 export function summarizeRunProgress(run: TaskRun): string {

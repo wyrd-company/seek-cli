@@ -84,6 +84,8 @@ describe("CLI smoke tests", () => {
     expect(result.stdout).toContain("--citations");
     expect(result.stdout).toContain("--entities");
     expect(result.stdout).not.toContain("--research");
+    expect(result.stdout).toContain("synchronous");
+    expect(result.stdout).not.toContain("\n  --async");
   });
 
   test("research google help documents interactive planning flags", () => {
@@ -92,6 +94,29 @@ describe("CLI smoke tests", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("--interactive");
     expect(result.stdout).toContain("--planner <provider>");
+    expect(result.stdout).toContain("--async");
+  });
+
+  test("research lifecycle help documents status, get, and async providers", () => {
+    const root = cli(["research", "--help"]);
+    const parallel = cli(["research", "parallel", "--help"]);
+    const perplexity = cli(["research", "perplexity", "--help"]);
+
+    expect(root.exitCode).toBe(0);
+    expect(root.stdout).toContain("status [options] <provider> <job-id>");
+    expect(root.stdout).toContain("get [options] <provider> <job-id>");
+    expect(parallel.stdout).toContain("--async");
+    expect(perplexity.stdout).toContain("--async");
+  });
+
+  test("research lifecycle rejects unsupported providers before network access", () => {
+    const brave = cli(["research", "status", "brave", "job-1"]);
+    const unknown = cli(["research", "get", "unknown", "job-1", "--json"]);
+
+    expect(brave.exitCode).toBe(1);
+    expect(brave.stderr).toContain("Brave research is synchronous");
+    expect(unknown.exitCode).toBe(1);
+    expect(unknown.stderr).toContain("Use: google, parallel, perplexity");
   });
 
   test("missing provider keys fail before a network request and suggest alternatives", () => {

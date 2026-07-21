@@ -2,12 +2,27 @@ import { Command } from "commander";
 import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { emit, emitText, renderCitations } from "../lib/output.ts";
-import { parallelTaskRun } from "../providers/parallel.ts";
+import {
+  inspectResearchJob,
+  parseAsyncResearchProvider,
+  renderResearchStatus,
+  renderResearchSubmission,
+  renderResearchUnavailable,
+  retrieveResearchJob,
+  snapshotGoogleJob,
+  snapshotParallelJob,
+  snapshotPerplexityJob,
+} from "../lib/research-jobs.ts";
+import {
+  parallelTaskRun,
+  submitParallelTaskRun,
+} from "../providers/parallel.ts";
 import {
   googleDeepResearch,
   DEFAULT_DEEP_RESEARCH_AGENT,
   extractReportText,
   extractCitations as extractGoogleCitations,
+  submitGoogleDeepResearch,
   summarizeProgress,
 } from "../providers/google.ts";
 import {
@@ -16,7 +31,11 @@ import {
   extractBraveCitations,
   stripBraveAnswerTags,
 } from "../providers/brave.ts";
-import { perplexityDeepResearch, perplexitySearch } from "../providers/perplexity.ts";
+import {
+  perplexityDeepResearch,
+  perplexitySearch,
+  submitPerplexityDeepResearch,
+} from "../providers/perplexity.ts";
 
 type PlannerProvider = "perplexity" | "brave" | "manual";
 
@@ -33,6 +52,44 @@ export function registerResearchCommand(program: Command): void {
     );
 
   research
+    .command("status")
+    .description("Inspect one resumable research job without waiting")
+    .argument("<provider>", "google | parallel | perplexity")
+    .argument("<job-id>", "Opaque provider job id")
+    .option("--json", "Emit the normalized lifecycle envelope and provider payload")
+    .action(async (providerValue: string, jobId: string, opts) => {
+      const provider = parseAsyncResearchProvider(providerValue);
+      const job = await inspectResearchJob(provider, jobId);
+      if (opts.json) {
+        emit(job, { json: true });
+        return;
+      }
+      emitText(renderResearchStatus(job));
+    });
+
+  research
+    .command("get")
+    .description("Retrieve one completed research job without waiting")
+    .argument("<provider>", "google | parallel | perplexity")
+    .argument("<job-id>", "Opaque provider job id")
+    .option("--json", "Emit the normalized result envelope and provider payload")
+    .action(async (providerValue: string, jobId: string, opts) => {
+      const provider = parseAsyncResearchProvider(providerValue);
+      const job = await retrieveResearchJob(provider, jobId);
+      if (job.status !== "completed" || !job.result) {
+        if (opts.json) emit(job, { json: true });
+        else process.stderr.write(renderResearchUnavailable(job) + "\n");
+        process.exitCode = 1;
+        return;
+      }
+      if (opts.json) {
+        emit(job, { json: true });
+        return;
+      }
+      emitText(job.result.text + renderCitations(job.result.citations));
+    });
+
+  research
     .command("brave")
     .description(
       "[Surface] Brave Answers Deep Research",
@@ -42,7 +99,11 @@ export function registerResearchCommand(program: Command): void {
     .option("--language <code>", "Response language (default: en)")
     .option("--citations", "Request provider citation tags", false)
     .option("--entities", "Request provider entity tags", false)
-    .option("--json", "Emit raw JSON response")
+    .option("--json", "Emit JSON (raw response for synchronous research)")
+    .addHelpText(
+      "after",
+      "\nBrave research is synchronous because its streaming endpoint does not expose a resumable job. --async is not supported.",
+    )
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
       const data = await braveAnswers(query, {
@@ -78,7 +139,11 @@ export function registerResearchCommand(program: Command): void {
       "Processor depth: core-fast | core | core2x-fast | core2x | pro-fast | pro | ultra-fast | ultra ",
       "core",
     )
-    .option("--json", "Emit raw JSON response")
+    .option("--async", "Submit the research job and return without polling", false)
+    .option(
+      "--json",
+      "Emit JSON (raw result when blocking; lifecycle envelope with --async)",
+    )
     .addHelpText("after","\n`-fast` processors prioritize quicker results at the expense of freshness of data:\n\tcore-fast (15s-100s)\n\tpro-fast (30s-5m)\n\tultra-fast (1-10m)\n\tcore (60s-5m)\n\tcore2x (60s-10m)\n\tpro (3-9m)\n\tultra (5-25m)\n\ncore: Cross-referenced, moderately complex outputs\ncore2x: High complexity cross referenced outputs\npro: Exploratory web research\nultra: Advanced multi-source deep research")
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
@@ -86,6 +151,16 @@ export function registerResearchCommand(program: Command): void {
       if (opts.schema) {
         const raw = readFileSync(opts.schema, "utf8");
         schema = JSON.parse(raw);
+      }
+      if (opts.async) {
+        const created = await submitParallelTaskRun(query, {
+          processor: opts.processor,
+          schema,
+        });
+        const job = snapshotParallelJob(created);
+        if (opts.json) emit(job, { json: true });
+        else emitText(renderResearchSubmission(job));
+        return;
       }
       const data = await parallelTaskRun(query, {
         processor: opts.processor,
@@ -120,13 +195,28 @@ export function registerResearchCommand(program: Command): void {
     .option("--interactive", "Review and approve a research plan before starting Deep Research", false)
     .option("--planner <provider>", "Planner for --interactive: perplexity | brave | manual", "perplexity")
     .option("--quiet", "Suppress polling progress on stderr", false)
-    .option("--json", "Emit raw JSON interaction object")
+    .option("--async", "Submit the research job and return without polling", false)
+    .option(
+      "--json",
+      "Emit JSON (raw interaction when blocking; lifecycle envelope with --async)",
+    )
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
       const agent = opts.agent ?? DEFAULT_DEEP_RESEARCH_AGENT;
       const finalPrompt = opts.interactive
         ? (await runPlanApproval(query, opts.planner)).finalPrompt
         : query;
+
+      if (opts.async) {
+        const created = await submitGoogleDeepResearch(finalPrompt, {
+          agent,
+          systemInstruction: opts.system,
+        });
+        const job = snapshotGoogleJob(created);
+        if (opts.json) emit(job, { json: true });
+        else emitText(renderResearchSubmission(job));
+        return;
+      }
 
       if (!opts.quiet) {
         process.stderr.write(`Starting Gemini Deep Research (${agent}).\n`);
@@ -173,9 +263,24 @@ export function registerResearchCommand(program: Command): void {
       "medium",
     )
     .option("--quiet", "Suppress polling progress on stderr", false)
-    .option("--json", "Emit raw JSON async job object")
+    .option("--async", "Submit the research job and return without polling", false)
+    .option(
+      "--json",
+      "Emit JSON (raw job when blocking; lifecycle envelope with --async)",
+    )
     .action(async (queryParts: string[], opts) => {
       const query = queryParts.join(" ");
+
+      if (opts.async) {
+        const created = await submitPerplexityDeepResearch(query, {
+          model: opts.model,
+          reasoningEffort: opts.effort,
+        });
+        const job = snapshotPerplexityJob(created);
+        if (opts.json) emit(job, { json: true });
+        else emitText(renderResearchSubmission(job));
+        return;
+      }
 
       if (!opts.quiet) {
         process.stderr.write("Starting Perplexity Sonar Deep Research (async).\n");

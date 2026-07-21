@@ -98,9 +98,9 @@ export interface PerplexityDeepResearchOptions extends PerplexityOptions {
 
 const ASYNC_TERMINAL = new Set(["COMPLETED", "FAILED"]);
 
-export async function perplexityDeepResearch(
+export async function submitPerplexityDeepResearch(
   query: string,
-  opts: PerplexityDeepResearchOptions = {},
+  opts: PerplexityOptions = {},
 ): Promise<PerplexityAsyncJob> {
   const body = {
     request: buildBody(query, {
@@ -110,24 +110,45 @@ export async function perplexityDeepResearch(
     }),
   };
 
-  const created = await request<PerplexityAsyncJob>(`${BASE_URL}/async/chat/completions`, {
+  return await request<PerplexityAsyncJob>(`${BASE_URL}/v1/async/sonar`, {
     method: "POST",
     headers: authHeaders(),
     body,
     timeoutMs: 60_000,
   });
+}
 
+export async function getPerplexityDeepResearch(
+  id: string,
+): Promise<PerplexityAsyncJob> {
+  return await request<PerplexityAsyncJob>(
+    `${BASE_URL}/v1/async/sonar/${encodeURIComponent(id)}`,
+    { headers: authHeaders(), timeoutMs: 60_000 },
+  );
+}
+
+export async function waitForPerplexityDeepResearch(
+  id: string,
+  opts: Pick<
+    PerplexityDeepResearchOptions,
+    "pollIntervalMs" | "timeoutMs" | "onProgress"
+  > = {},
+): Promise<PerplexityAsyncJob> {
   return await poll(
-    () =>
-      request<PerplexityAsyncJob>(
-        `${BASE_URL}/async/chat/completions/${encodeURIComponent(created.id)}`,
-        { headers: authHeaders(), timeoutMs: 60_000 },
-      ),
-    (j) => ASYNC_TERMINAL.has(j.status),
+    () => getPerplexityDeepResearch(id),
+    (job) => ASYNC_TERMINAL.has(job.status),
     {
       intervalMs: opts.pollIntervalMs ?? 10_000,
       timeoutMs: opts.timeoutMs ?? 30 * 60_000,
       onTick: opts.onProgress,
     },
   );
+}
+
+export async function perplexityDeepResearch(
+  query: string,
+  opts: PerplexityDeepResearchOptions = {},
+): Promise<PerplexityAsyncJob> {
+  const created = await submitPerplexityDeepResearch(query, opts);
+  return await waitForPerplexityDeepResearch(created.id, opts);
 }

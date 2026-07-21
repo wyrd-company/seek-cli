@@ -18,7 +18,8 @@ export type InteractionStatus =
   | "requires_action"
   | "completed"
   | "failed"
-  | "cancelled";
+  | "cancelled"
+  | "incomplete";
 
 export interface InteractionContentBlock {
   type: string;
@@ -82,6 +83,7 @@ const TERMINAL_STATUSES: ReadonlySet<InteractionStatus> = new Set([
   "completed",
   "failed",
   "cancelled",
+  "incomplete",
 ]);
 
 export interface DeepResearchOptions {
@@ -92,26 +94,46 @@ export interface DeepResearchOptions {
   timeoutMs?: number;
 }
 
-export async function googleDeepResearch(
+export async function submitGoogleDeepResearch(
   query: string,
-  opts: DeepResearchOptions = {},
+  opts: Pick<DeepResearchOptions, "agent" | "systemInstruction"> = {},
 ): Promise<Interaction> {
-  const created = await createInteraction({
+  return await createInteraction({
     agent: opts.agent ?? DEFAULT_DEEP_RESEARCH_AGENT,
     input: query,
     background: true,
     system_instruction: opts.systemInstruction,
   });
+}
 
+export async function getGoogleDeepResearch(id: string): Promise<Interaction> {
+  return await getInteraction(id);
+}
+
+export async function waitForGoogleDeepResearch(
+  id: string,
+  opts: Pick<
+    DeepResearchOptions,
+    "pollIntervalMs" | "timeoutMs" | "onProgress"
+  > = {},
+): Promise<Interaction> {
   return await poll(
-    () => getInteraction(created.id),
-    (i) => TERMINAL_STATUSES.has(i.status),
+    () => getGoogleDeepResearch(id),
+    (interaction) => TERMINAL_STATUSES.has(interaction.status),
     {
       intervalMs: opts.pollIntervalMs ?? 10_000,
       timeoutMs: opts.timeoutMs ?? 30 * 60_000,
       onTick: opts.onProgress,
     },
   );
+}
+
+export async function googleDeepResearch(
+  query: string,
+  opts: DeepResearchOptions = {},
+): Promise<Interaction> {
+  const created = await submitGoogleDeepResearch(query, opts);
+  return await waitForGoogleDeepResearch(created.id, opts);
 }
 
 export function extractReportText(interaction: Interaction): string {

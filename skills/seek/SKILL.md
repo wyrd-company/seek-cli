@@ -51,12 +51,23 @@ submit without polling, then use `seek research status <provider> <job-id>` and
 `seek research get <provider> <job-id>`. Brave remains synchronous because its
 streaming endpoint does not expose a resumable job id.
 
+Treat each job id as opaque and retain it with its provider. Lifecycle JSON
+uses `locator.provider`, `locator.jobId`, `status`, `providerStatus`, `terminal`,
+and `providerPayload`; failed jobs may add `failure`, and completed results add
+`result` (`text` and `citations`). Parallel results may also add
+`providerResult`. Normalized status is `queued`, `running`, `action-required`,
+`completed`, `incomplete`, `failed`, `cancelled`, or `unknown`. Google
+`incomplete` is terminal but is not provider failure. `status` performs one
+lookup and exits successfully when lookup succeeds; `get` performs one lookup,
+never waits, and exits non-zero unless the job is completed.
+
 For `research parallel`, `--processor` controls depth: `core-fast` (15-100s) →
 `core` (default) → `core2x` → `pro` (3-9m) → `ultra` (5-25m). `-fast`
 variants prioritize speed over freshness.
 
 For `research google`, `--interactive --planner perplexity` lets you review and
-approve the plan before the deep run begins.
+approve the plan before submission. Combining it with `--async` returns the
+accepted interaction locator after approval instead of polling.
 
 ### `seek scrape` — pull content from known URLs
 

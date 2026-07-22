@@ -147,7 +147,7 @@ seek research google "compare insulation materials for a small workshop" \
 | Option                | Description                                                  |
 | --------------------- | ----------------------------------------------------------- |
 | `--agent <name>`      | Override the Deep Research agent id                          |
-| `--system <text>`     | Optional system instruction (e.g. "act as an equity analyst")|
+| `--system <text>`     | Instruction incorporated into the Deep Research input         |
 | `--interactive`       | Review and approve a research plan before starting           |
 | `--planner <provider>`| Planner for `--interactive`: `perplexity` \| `brave` \| `manual` (default `perplexity`) |
 | `--quiet`             | Suppress polling progress on stderr                          |
@@ -157,6 +157,12 @@ seek research google "compare insulation materials for a small workshop" \
 `--interactive` requires a TTY; it proposes a plan you can approve, revise, or
 quit before submission. With `--async`, `seek` returns the accepted interaction
 locator after plan approval instead of polling.
+
+`--system` keeps the instruction distinct from the research question while
+incorporating both into the Deep Research input. In interactive mode, the
+planner receives the research question without this instruction. After plan
+approval, the final Deep Research input contains the instruction and approved
+plan once each.
 
 Output: report text with a citations list appended.
 

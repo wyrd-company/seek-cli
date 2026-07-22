@@ -19,7 +19,7 @@ Relevant excerpts optimized for LLMs — one call replaces several keyword
 searches for broad or complex queries.
 
 ```bash
-seek web parallel "transformer inference cost in 2026" -n 5
+seek web parallel "compare common roof materials" -n 5
 ```
 
 | Option              | Description                                      |
@@ -37,7 +37,8 @@ Output: ranked list of title, URL, and excerpt text.
 Neural semantic search — finds pages by meaning, best for conceptual queries.
 
 ```bash
-seek web exa "papers on speculative decoding" --category "research paper" --text
+seek web exa "papers on archival paper longevity" \
+  --category "research paper" --text
 ```
 
 | Option               | Description                                                         |
@@ -59,7 +60,7 @@ Clean, structured snippets from an independent global web index — best for
 real-time facts. Uses `BRAVE_SEARCH_API_KEY`.
 
 ```bash
-seek web brave search "latest Anthropic model release" --fresh pw
+seek web brave search "seasonal garden preparation guidance" --fresh pw
 ```
 
 | Option              | Description                                            |
@@ -76,7 +77,7 @@ Output: list of title, URL, and snippet.
 AI-generated answers backed by verifiable sources. Uses `BRAVE_ANSWERS_API_KEY`.
 
 ```bash
-seek web brave answers "what shipped in the latest Bun release?" --citations
+seek web brave answers "compare common bookbinding stitches" --citations
 ```
 
 | Option              | Description                          |
@@ -94,7 +95,7 @@ Output: answer text with a citations list appended.
 Synthesizes the web into a short, conversational answer with citations.
 
 ```bash
-seek web perplexity "what changed in the EU AI Act this month?"
+seek web perplexity "compare natural fibers for basket weaving"
 ```
 
 | Option                 | Description                                              |

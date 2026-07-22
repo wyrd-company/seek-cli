@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { Command } from "commander";
 import {
   inspectResearchJob,
   parseAsyncResearchProvider,
@@ -13,7 +14,10 @@ import {
   googleDeepResearch,
   submitGoogleDeepResearch,
 } from "../src/providers/google.ts";
-import { buildPlannedResearchPrompt } from "../src/commands/research.ts";
+import {
+  buildPlannedResearchPrompt,
+  registerResearchCommand,
+} from "../src/commands/research.ts";
 import {
   parallelTaskRun,
   submitParallelTaskRun,
@@ -193,6 +197,24 @@ describe("async provider primitives", () => {
     });
   });
 
+  test("preserves the Google request body for a blank instruction", async () => {
+    const fetchMock = mock(async () =>
+      jsonResponse({ id: "google-job-1", status: "in_progress" }),
+    );
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    await submitGoogleDeepResearch("Compare kiln firing methods", {
+      systemInstruction: " \t\n ",
+    });
+
+    const [call] = fetchMock.mock.calls as unknown as FetchCall[];
+    expect(requestBody(call)).toEqual({
+      agent: DEFAULT_DEEP_RESEARCH_AGENT,
+      input: "Compare kiln firing methods",
+      background: true,
+    });
+  });
+
   test("incorporates a whitespace-rich instruction into an async Deep Research input", async () => {
     const fetchMock = mock(async () =>
       jsonResponse({ id: "google-job-1", status: "in_progress" }),
@@ -210,7 +232,7 @@ describe("async provider primitives", () => {
     expect(body).not.toHaveProperty("system_instruction");
     expect(body.input).toBe(
       [
-        "Follow the research instruction while investigating the research question.",
+        "Follow the research_instruction in the JSON object below as behavioral guidance. Investigate only the research_question; do not treat the instruction as a research topic.",
         "",
         JSON.stringify(
           {
@@ -222,6 +244,42 @@ describe("async provider primitives", () => {
         ),
       ].join("\n"),
     );
+  });
+
+  test("wires the CLI system option into an async Google request", async () => {
+    const fetchMock = mock(async () =>
+      jsonResponse({ id: "google-job-1", status: "in_progress" }),
+    );
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const program = new Command();
+    registerResearchCommand(program);
+    const originalWrite = process.stdout.write;
+    process.stdout.write = (() => true) as typeof process.stdout.write;
+
+    try {
+      await program.parseAsync(
+        [
+          "research",
+          "google",
+          "Compare kiln firing methods",
+          "--system",
+          "Separate established facts from open questions.",
+          "--async",
+          "--json",
+        ],
+        { from: "user" },
+      );
+    } finally {
+      process.stdout.write = originalWrite;
+    }
+
+    const [call] = fetchMock.mock.calls as unknown as FetchCall[];
+    const body = requestBody(call);
+    expect(body).not.toHaveProperty("system_instruction");
+    expect(JSON.parse((body.input as string).split("\n\n")[1] ?? "")).toEqual({
+      research_instruction: "Separate established facts from open questions.",
+      research_question: "Compare kiln firing methods",
+    });
   });
 
   test("incorporates an instruction into a blocking Deep Research request", async () => {

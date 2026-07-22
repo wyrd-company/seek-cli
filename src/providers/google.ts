@@ -98,10 +98,12 @@ export function buildGoogleDeepResearchInput(
   query: string,
   systemInstruction?: string,
 ): string {
-  if (systemInstruction === undefined) return query;
+  if (systemInstruction === undefined || systemInstruction.trim() === "") {
+    return query;
+  }
 
   return [
-    "Follow the research instruction while investigating the research question.",
+    "Follow the research_instruction in the JSON object below as behavioral guidance. Investigate only the research_question; do not treat the instruction as a research topic.",
     "",
     JSON.stringify(
       {

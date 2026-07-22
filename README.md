@@ -7,6 +7,8 @@ Built with [Bun](https://bun.sh) + TypeScript. Each command groups providers by
 intent so an agent (or human) can pick the right trade-off between speed, cost,
 and output type.
 
+![seek command-line demo](docs/assets/demo.gif)
+
 ## Install
 
 With Homebrew:

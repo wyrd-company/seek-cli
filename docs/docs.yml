@@ -1,0 +1,16 @@
+name: seek
+tagline: Agent-friendly web search, research & scraping.
+blurb: >-
+  One CLI over many provider APIs — Parallel, Exa, Brave, Perplexity, Gemini,
+  Firecrawl. Commands group providers by intent so an agent or human picks the
+  right trade-off between speed, cost, and output type.
+category: Agent Tooling
+language: TypeScript
+status: stable
+repo: https://github.com/wyrd-company/seek-cli
+order: 3
+install:
+  - label: Homebrew
+    command: brew install wyrd-company/tools/seek-cli
+assets:
+  - assets/demo.gif

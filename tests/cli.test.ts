@@ -95,6 +95,10 @@ describe("CLI smoke tests", () => {
     expect(result.stdout).toContain("--interactive");
     expect(result.stdout).toContain("--planner <provider>");
     expect(result.stdout).toContain("--async");
+    expect(result.stdout).toContain(
+      "Instruction incorporated into the Deep Research input",
+    );
+    expect(result.stdout).not.toContain("Optional system instruction");
   });
 
   test("research lifecycle help documents status, get, and async providers", () => {

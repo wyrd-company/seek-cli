@@ -94,15 +94,34 @@ export interface DeepResearchOptions {
   timeoutMs?: number;
 }
 
+export function buildGoogleDeepResearchInput(
+  query: string,
+  systemInstruction?: string,
+): string {
+  if (systemInstruction === undefined) return query;
+
+  return [
+    "Follow the research instruction while investigating the research question.",
+    "",
+    JSON.stringify(
+      {
+        research_instruction: systemInstruction,
+        research_question: query,
+      },
+      null,
+      2,
+    ),
+  ].join("\n");
+}
+
 export async function submitGoogleDeepResearch(
   query: string,
   opts: Pick<DeepResearchOptions, "agent" | "systemInstruction"> = {},
 ): Promise<Interaction> {
   return await createInteraction({
     agent: opts.agent ?? DEFAULT_DEEP_RESEARCH_AGENT,
-    input: query,
+    input: buildGoogleDeepResearchInput(query, opts.systemInstruction),
     background: true,
-    system_instruction: opts.systemInstruction,
   });
 }
 

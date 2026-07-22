@@ -190,7 +190,7 @@ export function registerResearchCommand(program: Command): void {
     .option("--agent <name>", `Override the agent id (default: ${DEFAULT_DEEP_RESEARCH_AGENT})`)
     .option(
       "--system <text>",
-      "Optional system instruction (e.g. \"act as an equity research analyst\")",
+      "Instruction incorporated into the Deep Research input",
     )
     .option("--interactive", "Review and approve a research plan before starting Deep Research", false)
     .option("--planner <provider>", "Planner for --interactive: perplexity | brave | manual", "perplexity")
@@ -411,7 +411,7 @@ function planPrompt(query: string): string {
   ].join("\n");
 }
 
-function buildPlannedResearchPrompt(query: string, plan: string): string {
+export function buildPlannedResearchPrompt(query: string, plan: string): string {
   return [
     query,
     "",

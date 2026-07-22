@@ -9,9 +9,11 @@ import {
   snapshotPerplexityJob,
 } from "../src/lib/research-jobs.ts";
 import {
+  DEFAULT_DEEP_RESEARCH_AGENT,
   googleDeepResearch,
   submitGoogleDeepResearch,
 } from "../src/providers/google.ts";
+import { buildPlannedResearchPrompt } from "../src/commands/research.ts";
 import {
   parallelTaskRun,
   submitParallelTaskRun,
@@ -33,6 +35,12 @@ function jsonResponse(data: unknown): Response {
     status: 200,
     headers: { "content-type": "application/json" },
   });
+}
+
+function requestBody(call: FetchCall): Record<string, unknown> {
+  const body = call[1]?.body;
+  expect(typeof body).toBe("string");
+  return JSON.parse(body as string) as Record<string, unknown>;
 }
 
 function taskRun(
@@ -167,6 +175,102 @@ describe("async provider primitives", () => {
       ).status,
     ).toBe("COMPLETED");
     expect(fetchMock).toHaveBeenCalledTimes(7);
+  });
+
+  test("preserves the Google Deep Research request body when no instruction is supplied", async () => {
+    const fetchMock = mock(async () =>
+      jsonResponse({ id: "google-job-1", status: "in_progress" }),
+    );
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    await submitGoogleDeepResearch("Compare kiln firing methods");
+
+    const [call] = fetchMock.mock.calls as unknown as FetchCall[];
+    expect(requestBody(call)).toEqual({
+      agent: DEFAULT_DEEP_RESEARCH_AGENT,
+      input: "Compare kiln firing methods",
+      background: true,
+    });
+  });
+
+  test("incorporates a whitespace-rich instruction into an async Deep Research input", async () => {
+    const fetchMock = mock(async () =>
+      jsonResponse({ id: "google-job-1", status: "in_progress" }),
+    );
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const systemInstruction =
+      "  Prioritize primary sources; note gaps, conflicts & uncertainty!  ";
+
+    await submitGoogleDeepResearch("Compare kiln firing methods", {
+      systemInstruction,
+    });
+
+    const [call] = fetchMock.mock.calls as unknown as FetchCall[];
+    const body = requestBody(call);
+    expect(body).not.toHaveProperty("system_instruction");
+    expect(body.input).toBe(
+      [
+        "Follow the research instruction while investigating the research question.",
+        "",
+        JSON.stringify(
+          {
+            research_instruction: systemInstruction,
+            research_question: "Compare kiln firing methods",
+          },
+          null,
+          2,
+        ),
+      ].join("\n"),
+    );
+  });
+
+  test("incorporates an instruction into a blocking Deep Research request", async () => {
+    const responses = [
+      { id: "google-job-1", status: "in_progress" },
+      { id: "google-job-1", status: "completed", outputs: [{ text: "Report" }] },
+    ];
+    const fetchMock = mock(async () => jsonResponse(responses.shift()));
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    await googleDeepResearch("Compare fabric dye methods", {
+      systemInstruction: "Separate established facts from open questions.",
+      pollIntervalMs: 0,
+    });
+
+    const [createCall] = fetchMock.mock.calls as unknown as FetchCall[];
+    const body = requestBody(createCall);
+    expect(body).not.toHaveProperty("system_instruction");
+    expect(JSON.parse((body.input as string).split("\n\n")[1] ?? "")).toEqual({
+      research_instruction: "Separate established facts from open questions.",
+      research_question: "Compare fabric dye methods",
+    });
+  });
+
+  test("represents the approved plan and instruction once in interactive async input", async () => {
+    const fetchMock = mock(async () =>
+      jsonResponse({ id: "google-job-1", status: "in_progress" }),
+    );
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    const question = "Compare methods for cataloguing a stamp collection";
+    const plan =
+      "1. Define comparison criteria.\n2. Compare authoritative references.";
+    const systemInstruction = "State assumptions; preserve useful punctuation!";
+    const plannedPrompt = buildPlannedResearchPrompt(question, plan);
+
+    await submitGoogleDeepResearch(plannedPrompt, { systemInstruction });
+
+    const [call] = fetchMock.mock.calls as unknown as FetchCall[];
+    const body = requestBody(call);
+    expect(body).not.toHaveProperty("system_instruction");
+    const envelope = JSON.parse(
+      ((body.input as string).split("\n\n")[1] ?? ""),
+    ) as Record<string, string>;
+    expect(envelope).toEqual({
+      research_instruction: systemInstruction,
+      research_question: plannedPrompt,
+    });
+    expect(envelope.research_question.split(question)).toHaveLength(2);
+    expect(envelope.research_question.split(plan)).toHaveLength(2);
   });
 });
 

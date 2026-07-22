@@ -3,7 +3,11 @@ import { braveAnswers, braveSearch, extractBraveAnswerText } from "../../src/pro
 import { exaContents, exaSearch } from "../../src/providers/exa.ts";
 import { firecrawlScrape, type FirecrawlScrapeOptions } from "../../src/providers/firecrawl.ts";
 import { HttpError } from "../../src/lib/http.ts";
-import { extractReportText, googleDeepResearch } from "../../src/providers/google.ts";
+import {
+  extractReportText,
+  googleDeepResearch,
+  submitGoogleDeepResearch,
+} from "../../src/providers/google.ts";
 import {
   getParallelTaskRun,
   getParallelTaskRunResult,
@@ -299,6 +303,32 @@ describe("live provider smoke tests", () => {
     expect(interaction.status).toBe("completed");
     expect(extractReportText(interaction).length).toBeGreaterThan(0);
   });
+
+  liveTest(
+    "Google Deep Research accepts an input-incorporated instruction",
+    "GEMINI_API_KEY",
+    async () => {
+      const request = {
+        query: "Briefly compare two common methods for storing postage stamps.",
+        options: {
+          systemInstruction:
+            "Use two concise sentences; distinguish facts from uncertainty.",
+        },
+      };
+      const interaction = await recordLiveArtifact(
+        {
+          name: "google-deep-research-instructed-submit",
+          provider: "google",
+          operation: "deep-research-submit",
+          request,
+        },
+        () => submitGoogleDeepResearch(request.query, request.options),
+      );
+
+      expect(interaction.id.length).toBeGreaterThan(0);
+      expect(interaction.status).toBe("in_progress");
+    },
+  );
 
   longLiveTest("Perplexity Deep Research completes a short report", "PERPLEXITY_API_KEY", async () => {
     const request = {

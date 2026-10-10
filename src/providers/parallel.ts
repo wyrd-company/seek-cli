@@ -1,11 +1,10 @@
-import { requireEnv } from "../lib/env.ts";
+import { upstreamAuthHeaders, upstreamBaseUrl } from "../lib/upstreams.ts";
 import { request, poll } from "../lib/http.ts";
 
-const BASE_URL = "https://api.parallel.ai";
+const baseUrl = () => upstreamBaseUrl("parallel");
 
 function headers(): Record<string, string> {
-  const key = requireEnv("PARALLEL_API_KEY", "parallel");
-  return { "x-api-key": key };
+  return upstreamAuthHeaders("parallel");
 }
 
 // ---------- Search (POST /v1/search) ----------
@@ -62,7 +61,7 @@ export async function parallelSearch(
     body.advanced_settings = advancedSettings;
   }
 
-  return await request<SearchResult>(`${BASE_URL}/v1/search`, {
+  return await request<SearchResult>(`${baseUrl()}/v1/search`, {
     method: "POST",
     headers: headers(),
     body,
@@ -125,7 +124,7 @@ export async function parallelExtract(
   }
   if (opts.sourcePolicy) body.source_policy = opts.sourcePolicy;
 
-  return await request<ExtractResponse>(`${BASE_URL}/v1/extract`, {
+  return await request<ExtractResponse>(`${baseUrl()}/v1/extract`, {
     method: "POST",
     headers: headers(),
     body,
@@ -221,7 +220,7 @@ export async function submitParallelTaskRun(
   }
   if (opts.enableEvents !== undefined) body.enable_events = opts.enableEvents;
 
-  return await request<TaskRun>(`${BASE_URL}/v1/tasks/runs`, {
+  return await request<TaskRun>(`${baseUrl()}/v1/tasks/runs`, {
     method: "POST",
     headers: headers(),
     body,
@@ -231,7 +230,7 @@ export async function submitParallelTaskRun(
 
 export async function getParallelTaskRun(id: string): Promise<TaskRun> {
   return await request<TaskRun>(
-    `${BASE_URL}/v1/tasks/runs/${encodeURIComponent(id)}`,
+    `${baseUrl()}/v1/tasks/runs/${encodeURIComponent(id)}`,
     { headers: headers() },
   );
 }
@@ -240,7 +239,7 @@ export async function getParallelTaskRunResult(
   id: string,
 ): Promise<TaskRunResult> {
   return await request<TaskRunResult>(
-    `${BASE_URL}/v1/tasks/runs/${encodeURIComponent(id)}/result`,
+    `${baseUrl()}/v1/tasks/runs/${encodeURIComponent(id)}/result`,
     { headers: headers(), timeoutMs: 60_000 },
   );
 }

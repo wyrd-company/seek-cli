@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { chmodSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { configDir, configPath, KNOWN_KEYS, loadConfig, resetConfigCache } from "../lib/config.ts";
+import { remoteServer } from "../lib/upstreams.ts";
 
 function maskKey(value: string): string {
   if (value.length <= 8) return "********";
@@ -71,7 +72,15 @@ export function registerConfigCommand(program: Command): void {
       });
       const varWidth = Math.max(...rows.map((r) => r.envVar.length));
       const srcWidth = Math.max(...rows.map((r) => r.source.length));
-      process.stdout.write(`config: ${configPath()}\n\n`);
+      process.stdout.write(`config: ${configPath()}\n`);
+      const remote = remoteServer();
+      if (remote) {
+        process.stdout.write(
+          `server: ${remote.url} (token: ${remote.token ? maskKey(remote.token) : "(unset)"})\n` +
+            "  Provider calls go through the server; local keys below are not used.\n",
+        );
+      }
+      process.stdout.write("\n");
       for (const r of rows) {
         const pad = " ".repeat(varWidth - r.envVar.length);
         const srcPad = " ".repeat(srcWidth - r.source.length);

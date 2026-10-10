@@ -1,20 +1,17 @@
-import { requireEnv } from "../lib/env.ts";
+import { upstreamAuthHeaders, upstreamBaseUrl } from "../lib/upstreams.ts";
 import { request } from "../lib/http.ts";
 
-const BASE_URL = "https://api.search.brave.com/res/v1";
 
 function searchHeaders(): Record<string, string> {
-  const key = requireEnv("BRAVE_SEARCH_API_KEY", "brave search");
   return {
-    "X-Subscription-Token": key,
+    ...upstreamAuthHeaders("brave-search"),
     Accept: "application/json",
   };
 }
 
 function answersHeaders(): Record<string, string> {
-  const key = requireEnv("BRAVE_ANSWERS_API_KEY", "brave answers");
   return {
-    "X-Subscription-Token": key,
+    ...upstreamAuthHeaders("brave-answers"),
     "content-type": "application/json",
     Accept: "application/json",
   };
@@ -42,7 +39,7 @@ export async function braveSearch(
   params.set("count", String(opts.count ?? 10));
   if (opts.country) params.set("country", opts.country);
   if (opts.freshness) params.set("freshness", opts.freshness);
-  return await request(`${BASE_URL}/web/search?${params.toString()}`, {
+  return await request(`${upstreamBaseUrl("brave-search")}/web/search?${params.toString()}`, {
     headers: searchHeaders(),
     timeoutMs: 30_000,
   });
@@ -102,7 +99,7 @@ async function streamBraveAnswers(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(`${BASE_URL}/chat/completions`, {
+    const res = await fetch(`${upstreamBaseUrl("brave-answers")}/chat/completions`, {
       method: "POST",
       headers: answersHeaders(),
       body: JSON.stringify(body),

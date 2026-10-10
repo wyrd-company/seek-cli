@@ -11,6 +11,8 @@ const API_KEY_ENV_VARS = [
   "PERPLEXITY_API_KEY",
   "GEMINI_API_KEY",
   "FIRECRAWL_API_KEY",
+  "SEEK_SERVER_URL",
+  "SEEK_SERVER_TOKEN",
 ];
 
 interface CliResult {

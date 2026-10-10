@@ -122,6 +122,26 @@ describe("seek serve proxy", () => {
     expect(res.headers.get("retry-after")).toBe("7");
   });
 
+  test("strips connection-nominated and proxy authentication headers", async () => {
+    const res = await fetch(`${base}/v1/proxy/exa/search`, {
+      headers: {
+        authorization: "Bearer client-token",
+        connection: "X-Private-Hop, x-second-hop",
+        "x-private-hop": "first-hop-value",
+        "x-second-hop": "second-hop-value",
+        "proxy-authenticate": "Basic realm=test",
+        "x-end-to-end": "preserved",
+      },
+    });
+    expect(res.status).toBe(200);
+    expect(seen).toHaveLength(1);
+    expect(seen[0]!.headers["x-private-hop"]).toBeUndefined();
+    expect(seen[0]!.headers["x-second-hop"]).toBeUndefined();
+    expect(seen[0]!.headers["proxy-authenticate"]).toBeUndefined();
+    expect(seen[0]!.headers["x-end-to-end"]).toBe("preserved");
+    expect(seen[0]!.headers["x-api-key"]).toBe("server-exa-key");
+  });
+
   test("returns 503 when the server has no key for a provider", async () => {
     const res = await fetch(`${base}/v1/proxy/parallel/v1/search`, {
       method: "POST",

@@ -24,6 +24,7 @@ const STRIPPED_REQUEST_HEADERS = new Set([
   "host",
   "keep-alive",
   "proxy-authorization",
+  "proxy-authenticate",
   "te",
   "trailer",
   "transfer-encoding",
@@ -97,10 +98,13 @@ export function createHandler(opts: ServerOptions): (req: Request) => Promise<Re
       });
     }
 
+    const connectionHeaders = new Set(
+      (req.headers.get("connection") ?? "").split(",").map((name) => name.trim().toLowerCase()),
+    );
     const headers = new Headers();
     req.headers.forEach((value, name) => {
       const lower = name.toLowerCase();
-      if (STRIPPED_REQUEST_HEADERS.has(lower) || providerAuthHeaders.has(lower) || lower.startsWith("x-forwarded-")) return;
+      if (STRIPPED_REQUEST_HEADERS.has(lower) || connectionHeaders.has(lower) || providerAuthHeaders.has(lower) || lower.startsWith("x-forwarded-")) return;
       headers.set(name, value);
     });
     for (const [name, value] of Object.entries(spec.authHeaders(key))) headers.set(name, value);

@@ -1,11 +1,10 @@
-import { requireEnv } from "../lib/env.ts";
+import { upstreamAuthHeaders, upstreamBaseUrl } from "../lib/upstreams.ts";
 import { request, poll } from "../lib/http.ts";
 
-const BASE_URL = "https://api.exa.ai";
+const baseUrl = () => upstreamBaseUrl("exa");
 
 function headers(): Record<string, string> {
-  const key = requireEnv("EXA_API_KEY", "exa");
-  return { "x-api-key": key };
+  return upstreamAuthHeaders("exa");
 }
 
 export type ExaSearchType =
@@ -81,7 +80,7 @@ export async function exaSearch(
   if (opts.additionalQueries) body.additionalQueries = opts.additionalQueries;
   if (opts.userLocation) body.userLocation = opts.userLocation;
 
-  return await request<ExaSearchResponse>(`${BASE_URL}/search`, {
+  return await request<ExaSearchResponse>(`${baseUrl()}/search`, {
     method: "POST",
     headers: headers(),
     body,
@@ -119,7 +118,7 @@ export async function exaContents(
   if (opts.livecrawl) body.livecrawl = opts.livecrawl;
   if (opts.maxAgeHours != null) body.maxAgeHours = opts.maxAgeHours;
 
-  return await request<ExaContentsResponse>(`${BASE_URL}/contents`, {
+  return await request<ExaContentsResponse>(`${baseUrl()}/contents`, {
     method: "POST",
     headers: headers(),
     body,
@@ -162,7 +161,7 @@ export async function exaResearch(
   };
   if (opts.outputSchema) body.outputSchema = opts.outputSchema;
 
-  const created = await request<ExaResearchTask>(`${BASE_URL}/research/v1`, {
+  const created = await request<ExaResearchTask>(`${baseUrl()}/research/v1`, {
     method: "POST",
     headers: headers(),
     body,
@@ -172,7 +171,7 @@ export async function exaResearch(
   return await poll(
     () =>
       request<ExaResearchTask>(
-        `${BASE_URL}/research/v1/${encodeURIComponent(created.research_id)}`,
+        `${baseUrl()}/research/v1/${encodeURIComponent(created.research_id)}`,
         { headers: headers(), timeoutMs: 60_000 },
       ),
     (t) => RESEARCH_TERMINAL.has(t.status),

@@ -1,14 +1,13 @@
-import { requireEnv } from "../lib/env.ts";
+import { upstreamAuthHeaders, upstreamBaseUrl } from "../lib/upstreams.ts";
 import { request, poll } from "../lib/http.ts";
 
-const BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+const baseUrl = () => upstreamBaseUrl("google");
 export const DEFAULT_DEEP_RESEARCH_AGENT = "deep-research-pro-preview-12-2025";
 const API_REVISION = "2026-05-20";
 
 function headers(): Record<string, string> {
-  const key = requireEnv("GEMINI_API_KEY", "google");
   return {
-    "x-goog-api-key": key,
+    ...upstreamAuthHeaders("google"),
     "Api-Revision": API_REVISION,
   };
 }
@@ -64,7 +63,7 @@ export interface InteractionCreateBody {
 }
 
 export async function createInteraction(body: InteractionCreateBody): Promise<Interaction> {
-  return await request<Interaction>(`${BASE_URL}/interactions`, {
+  return await request<Interaction>(`${baseUrl()}/interactions`, {
     method: "POST",
     headers: headers(),
     body,
@@ -74,7 +73,7 @@ export async function createInteraction(body: InteractionCreateBody): Promise<In
 
 export async function getInteraction(id: string): Promise<Interaction> {
   return await request<Interaction>(
-    `${BASE_URL}/interactions/${encodeURIComponent(id)}`,
+    `${baseUrl()}/interactions/${encodeURIComponent(id)}`,
     { headers: headers(), timeoutMs: 60_000 },
   );
 }

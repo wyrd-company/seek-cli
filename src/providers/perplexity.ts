@@ -1,11 +1,10 @@
-import { requireEnv } from "../lib/env.ts";
+import { upstreamAuthHeaders, upstreamBaseUrl } from "../lib/upstreams.ts";
 import { request, poll } from "../lib/http.ts";
 
-const BASE_URL = "https://api.perplexity.ai";
+const baseUrl = () => upstreamBaseUrl("perplexity");
 
 function authHeaders(): Record<string, string> {
-  const key = requireEnv("PERPLEXITY_API_KEY", "perplexity");
-  return { Authorization: `Bearer ${key}` };
+  return upstreamAuthHeaders("perplexity");
 }
 
 export type SearchRecency = "hour" | "day" | "week" | "month";
@@ -68,7 +67,7 @@ export async function perplexitySearch(
   query: string,
   opts: PerplexityOptions = {},
 ): Promise<PerplexityResponse> {
-  return await request(`${BASE_URL}/chat/completions`, {
+  return await request(`${baseUrl()}/chat/completions`, {
     method: "POST",
     headers: authHeaders(),
     body: buildBody(query, { ...opts, model: opts.model ?? "sonar" }),
@@ -110,7 +109,7 @@ export async function submitPerplexityDeepResearch(
     }),
   };
 
-  return await request<PerplexityAsyncJob>(`${BASE_URL}/v1/async/sonar`, {
+  return await request<PerplexityAsyncJob>(`${baseUrl()}/v1/async/sonar`, {
     method: "POST",
     headers: authHeaders(),
     body,
@@ -122,7 +121,7 @@ export async function getPerplexityDeepResearch(
   id: string,
 ): Promise<PerplexityAsyncJob> {
   return await request<PerplexityAsyncJob>(
-    `${BASE_URL}/v1/async/sonar/${encodeURIComponent(id)}`,
+    `${baseUrl()}/v1/async/sonar/${encodeURIComponent(id)}`,
     { headers: authHeaders(), timeoutMs: 60_000 },
   );
 }

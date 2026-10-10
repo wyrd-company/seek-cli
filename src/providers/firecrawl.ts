@@ -1,11 +1,10 @@
-import { requireEnv } from "../lib/env.ts";
+import { upstreamAuthHeaders, upstreamBaseUrl } from "../lib/upstreams.ts";
 import { request } from "../lib/http.ts";
 
-const BASE_URL = "https://api.firecrawl.dev";
+const baseUrl = () => upstreamBaseUrl("firecrawl");
 
 function headers(): Record<string, string> {
-  const key = requireEnv("FIRECRAWL_API_KEY", "firecrawl");
-  return { Authorization: `Bearer ${key}` };
+  return upstreamAuthHeaders("firecrawl");
 }
 
 export type FirecrawlFormatName =
@@ -94,7 +93,7 @@ export async function firecrawlScrape(
   if (opts.removeBase64Images !== undefined) body.removeBase64Images = opts.removeBase64Images;
   if (opts.fastMode !== undefined) body.fastMode = opts.fastMode;
 
-  return await request<FirecrawlScrapeResponse>(`${BASE_URL}/v2/scrape`, {
+  return await request<FirecrawlScrapeResponse>(`${baseUrl()}/v2/scrape`, {
     method: "POST",
     headers: headers(),
     body,

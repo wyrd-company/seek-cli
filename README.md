@@ -67,6 +67,20 @@ you can mix and match without learning a second schema:
 }
 ```
 
+## Server mode
+
+To keep provider keys out of devcontainers and other client machines, run
+`seek serve` (or the `ghcr.io/wyrd-company/seek-server` image) somewhere
+central and point the CLI at it:
+
+```sh
+export SEEK_SERVER_URL=https://seek.internal
+export SEEK_SERVER_TOKEN=...
+```
+
+The server adds the real API keys, which it reads from its environment, its
+config file, or Vault/OpenBao. See [docs/server.md](docs/server.md).
+
 ## Command map
 
 ```text

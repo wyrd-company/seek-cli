@@ -37,6 +37,9 @@ export PARALLEL_API_KEY=…
 export EXA_API_KEY=…
 ```
 
+If `SEEK_SERVER_URL` is set, local keys are ignored and provider calls go
+through a seek server instead. See [Server mode](server.md).
+
 ## Config file
 
 The config path is resolved as:

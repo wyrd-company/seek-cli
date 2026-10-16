@@ -75,7 +75,6 @@ cat >"${TAP_DIR}/Formula/${FORMULA_NAME}.rb" <<EOF
 class SeekCli < Formula
   desc "Agent-friendly CLI for web search, deep research, and scraping"
   homepage "https://github.com/${REPOSITORY}"
-  version "${VERSION}"
 
   on_macos do
     on_arm do
@@ -124,7 +123,7 @@ if git diff --cached --quiet -- "Formula/${FORMULA_NAME}.rb"; then
   exit 0
 fi
 
-git commit -m "${FORMULA_NAME} ${VERSION}"
+git commit -m "${FORMULA_NAME} ${TAG}"
 
 if [[ "${PUSH_TAP:-1}" == "1" ]]; then
   git push origin HEAD

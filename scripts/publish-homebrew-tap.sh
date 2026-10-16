@@ -123,7 +123,7 @@ if git diff --cached --quiet -- "Formula/${FORMULA_NAME}.rb"; then
   exit 0
 fi
 
-git commit -m "${FORMULA_NAME} ${VERSION}"
+git commit -m "${FORMULA_NAME} ${TAG}"
 
 if [[ "${PUSH_TAP:-1}" == "1" ]]; then
   git push origin HEAD

@@ -75,7 +75,6 @@ cat >"${TAP_DIR}/Formula/${FORMULA_NAME}.rb" <<EOF
 class SeekCli < Formula
   desc "Agent-friendly CLI for web search, deep research, and scraping"
   homepage "https://github.com/${REPOSITORY}"
-  version "${VERSION}"
 
   on_macos do
     on_arm do

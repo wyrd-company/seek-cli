@@ -3,7 +3,7 @@
 
 # Build on the native platform and cross-compile, so multi-arch images don't
 # need emulation.
-FROM --platform=$BUILDPLATFORM oven/bun:1.3.12 AS build
+FROM --platform=$BUILDPLATFORM oven/bun:1.4.4 AS build
 ARG TARGETARCH
 WORKDIR /src
 COPY package.json bun.lock ./

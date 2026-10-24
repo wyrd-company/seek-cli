@@ -218,16 +218,34 @@ Run the same checks as CI locally:
 bun run ci
 ```
 
-Build release archives locally:
+Build release archives locally (no tag, publish, or version change):
 
 ```sh
 RUN_CI=0 bun run release
 ```
 
-Pushing a version tag such as `0.1.0` runs the release workflow. It builds
-macOS/Linux ARM64 and x86_64 tarballs, publishes them to the GitHub release,
-then updates `Formula/seek-cli.rb` in
-`github.com/wyrd-company/homebrew-tools`.
+### Versioning and releasing
+
+[Intentional](https://github.com/wyrd-company/intentional) is the only version
+and release mechanism for this repo. Do not edit `version` in `package.json` by
+hand and do not create release tags by hand. `package.json` is a committed
+projection of the release version; the release version itself lives in bare
+`X.Y.Z` Git tags (no `v` prefix).
+
+1. `intentional add --release-unit seek-cli:<major|minor|patch> --message "..."`
+   records an intent with each user-visible change. Commit it with the change.
+2. `intentional status` shows pending intents and the computed next version.
+3. `intentional plan > release-plan.json` emits the digest-bound release plan.
+4. `intentional apply` bumps `package.json`, writes `CHANGELOG.md`, and consumes
+   the included intents. Commit the result.
+5. `intentional tag --plan release-plan.json` creates the annotated release tag
+   on that commit. `intentional check` validates configuration and intents.
+
+Pushing the tag runs the release workflow. It builds macOS/Linux ARM64 and
+x86_64 tarballs, publishes them to the GitHub release, then updates
+`Formula/seek-cli.rb` in `github.com/wyrd-company/homebrew-tools`.
+`scripts/release.sh` only builds and publishes artifacts. It reads the version
+from `package.json` and refuses to run when the pushed tag differs from it.
 
 The tap publish job expects an SSH deploy key in the repository secret
 `FORMULAE_PUBLISH_KEY` with write access to

@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/icon-dark.svg">
+    <img src="docs/assets/icon-light.svg" alt="seek icon" width="160">
+  </picture>
+</p>
+
 # Seek CLI (`seek`)
 
 Agent-friendly CLI for web search, deep research, and targeted scraping across

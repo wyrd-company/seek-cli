@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="40 40 944 944" role="img" aria-labelledby="title">
+  <title id="title">seek</title>
+  <defs><mask id="s-ring" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M891.6 373.8A404 130 -20 0 1 132.4 650.2M132.4 650.2A404 130 -20 0 1 891.6 373.8" fill="none" stroke="#000" stroke-width="58"/><path d="M670.4 718.5L731.2 779.3A34 34 0 0 0 779.3 731.2L718.5 670.4A34 34 0 0 0 670.4 718.5Z" fill="#000" stroke="#000" stroke-width="58"/><path d="M615.9 615.9L663.3 663.3" stroke="#000" stroke-width="58"/><path d="M512 196V250M512 828V774M512 274V292M512 750V732M512 316V367M512 708V657" stroke="#000" stroke-width="58"/><circle cx="783.8" cy="327.9" r="51" fill="#000"/><circle cx="205.5" cy="692.7" r="51" fill="#000"/></mask><mask id="s-axis" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M891.6 373.8A404 130 -20 0 1 132.4 650.2M132.4 650.2A404 130 -20 0 1 891.6 373.8" fill="none" stroke="#000" stroke-width="58"/><circle cx="512" cy="512" r="165" fill="#000"/></mask><mask id="s-back" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><circle cx="512" cy="512" r="165" fill="#000"/><circle cx="783.8" cy="327.9" r="22" fill="#000"/><circle cx="205.5" cy="692.7" r="22" fill="#000"/></mask><mask id="s-front" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><circle cx="783.8" cy="327.9" r="22" fill="#000"/><circle cx="205.5" cy="692.7" r="22" fill="#000"/></mask><mask id="s-lens" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M891.6 373.8A404 130 -20 0 1 132.4 650.2" fill="none" stroke="#000" stroke-width="58"/></mask></defs>
+  <g fill="none" stroke="#13213C" stroke-width="26" stroke-linecap="round" stroke-linejoin="round">
+    <circle mask="url(#s-ring)" cx="512" cy="512" r="292"/>
+    <path mask="url(#s-axis)" d="M512 196V250M512 828V774M512 274V292M512 750V732M512 316V367M512 708V657" stroke-linecap="butt"/>
+    <path mask="url(#s-back)" d="M132.4 650.2A404 130 -20 0 1 891.6 373.8"/>
+    <g mask="url(#s-lens)">
+      <circle cx="512" cy="512" r="136"/>
+      <path d="M615.9 615.9L663.3 663.3" stroke-linecap="butt"/>
+      <path d="M670.4 718.5L731.2 779.3A34 34 0 0 0 779.3 731.2L718.5 670.4A34 34 0 0 0 670.4 718.5Z" stroke-width="22.1"/>
+    </g>
+    <path mask="url(#s-front)" d="M891.6 373.8A404 130 -20 0 1 132.4 650.2"/>
+    <circle cx="783.8" cy="327.9" r="22" stroke-width="20.8"/><circle cx="205.5" cy="692.7" r="22" stroke-width="20.8"/>
+  </g>
+  <g fill="#13213C">
+    <path d="M512 34C512 92.8 529.4 118 570 118C529.4 118 512 143.2 512 202C512 143.2 494.6 118 454 118C494.6 118 512 92.8 512 34Z"/>
+    <path d="M512 822C512 880.8 529.4 906 570 906C529.4 906 512 931.2 512 990C512 931.2 494.6 906 454 906C494.6 906 512 880.8 512 822Z"/>
+    <path d="M512 436C512 489.2 529.4 512 570 512C529.4 512 512 534.8 512 588C512 534.8 494.6 512 454 512C494.6 512 512 489.2 512 436Z"/>
+  </g>
+</svg>

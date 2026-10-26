@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/icon-dark.svg">
-    <img src="docs/assets/icon-light.svg" alt="seek icon" width="160">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/user/assets/logo-dark.svg">
+    <img src="docs/user/assets/logo.svg" alt="seek icon" width="160">
   </picture>
 </p>
 
@@ -14,7 +14,7 @@ Built with [Bun](https://bun.sh) + TypeScript. Each command groups providers by
 intent so an agent (or human) can pick the right trade-off between speed, cost,
 and output type.
 
-![seek command-line demo](docs/assets/demo.gif)
+![seek command-line demo](docs/user/assets/demo.gif)
 
 ## Install
 
@@ -86,7 +86,7 @@ export SEEK_SERVER_TOKEN=...
 ```
 
 The server adds the real API keys, which it reads from its environment, its
-config file, or Vault/OpenBao. See [docs/server.md](docs/server.md).
+config file, or Vault/OpenBao. See [docs/user/server.md](docs/user/server.md).
 
 ## Command map
 
@@ -257,3 +257,21 @@ from `package.json` and refuses to run when the pushed tag differs from it.
 The tap publish job expects an SSH deploy key in the repository secret
 `FORMULAE_PUBLISH_KEY` with write access to
 `wyrd-company/homebrew-tools`.
+
+### Public docs
+
+The public docs are `docs/user/` (`docs.yml` and the pages), and they publish to
+[wyrd.foo](https://wyrd.foo/tools/seek/). They release as their own Intentional
+unit, `seek-docs`, which depends on `seek-cli`. `seek-docs` writes
+`docs-version` into `docs/user/docs.yml`, and `seek-cli` writes `version`; do not
+edit either by hand. A docs-only change takes a `seek-docs` intent:
+
+```sh
+intentional add --release-unit seek-docs:patch --message "..."
+```
+
+The `Publish docs` workflow calls the wyrd.foo reusable workflow. It runs when
+the `Release` workflow succeeds for a pushed release tag, when a
+`seek-docs@X.Y.Z` tag is pushed, and on manual dispatch with a `ref`. A plain
+push to `main` does not publish. The `Release` and `Server image` workflows run
+only for `X.Y.Z` tags, so a docs tag does not start a release.

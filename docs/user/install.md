@@ -1,12 +1,12 @@
 ---
-docs: true
 title: Installation
 order: 2
 install: true
+product: seek
 ---
 
-Install the native binary with Homebrew, or run from source with Bun during
-development.
+Install the native binary with Homebrew or a release archive, or run from
+source with Bun during development.
 
 ## Homebrew
 
@@ -16,6 +16,18 @@ brew install wyrd-company/tools/seek-cli
 
 This installs a prebuilt single-file `seek` binary on your `PATH`. No Bun
 runtime is required.
+
+## Release archives
+
+Each release attaches a `seek` binary for macOS and Linux, on arm64 and x86_64,
+as `seek-<os>-<arch>.tar.gz` (`macos` or `linux`; `arm64` or `x86_64`). For
+Linux x86_64:
+
+```bash
+curl -LO https://github.com/wyrd-company/seek-cli/releases/latest/download/seek-linux-x86_64.tar.gz
+tar -xzf seek-linux-x86_64.tar.gz
+sudo install seek /usr/local/bin/seek
+```
 
 ## From source (Bun)
 

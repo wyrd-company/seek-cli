@@ -1,7 +1,7 @@
 ---
-docs: true
 title: Providers
 order: 4
+product: seek
 ---
 
 seek is a thin, uniform layer over several provider APIs. Commands are grouped

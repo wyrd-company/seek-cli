@@ -1,7 +1,7 @@
 ---
-docs: true
 title: scrape
 order: 7
+product: seek
 ---
 
 Targeted page extraction — clean text, Markdown, or JSON from URLs you already

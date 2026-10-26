@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
+  <title id="title">seek</title>
+  <defs><mask id="f-b" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><circle cx="462" cy="462" r="261"/><path d="M622.5 622.5L858 858" stroke="#000" stroke-width="180"/></mask><mask id="f-l" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M830.4 327.9A392 140 -20 0 1 93.6 596.1" fill="none" stroke="#000" stroke-width="110"/></mask></defs>
+  <rect width="1024" height="1024" rx="200" fill="#13213C"/>
+  <g fill="none" stroke="#E6ECF5" stroke-linecap="round"><path mask="url(#f-b)" d="M93.6 596.1A392 140 -20 0 1 830.4 327.9" stroke-width="50"/><g mask="url(#f-l)"><circle cx="462" cy="462" r="196" stroke-width="70"/><path d="M622.5 622.5L858 858" stroke-width="120"/></g><path d="M830.4 327.9A392 140 -20 0 1 93.6 596.1" stroke-width="50"/></g><path fill="#E6ECF5" d="M462 346C462 427.2 488.4 462 550 462C488.4 462 462 496.8 462 578C462 496.8 435.6 462 374 462C435.6 462 462 427.2 462 346Z"/>
+</svg>

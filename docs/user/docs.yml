@@ -1,0 +1,98 @@
+# yaml-language-server: $schema=https://wyrd.foo/schemas/docs/v1.json
+# ---
+# relationships:
+#   publishes-to: wyrd-foo
+# ---
+schemaVersion: 1
+assets:
+  - assets/demo.gif
+  - assets/logo.svg
+  - assets/logo-dark.svg
+  - assets/favicon.svg
+  - assets/social-image.png
+products:
+  seek:
+    name: seek
+    version: 0.3.0
+    docs-version: 0.1.0
+    release-unit: seek-cli
+    tagline: Agent-friendly web search, research & scraping.
+    blurb: >-
+      One CLI over many provider APIs — Parallel, Exa, Brave, Perplexity,
+      Gemini, Firecrawl. Commands group providers by intent so an agent or
+      human picks the right trade-off between speed, cost, and output type.
+    status: stable
+    category: Agent Tooling
+    order: 3
+    logo: assets/logo.svg
+    logo-dark: assets/logo-dark.svg
+    favicon: assets/favicon.svg
+    social-image: assets/social-image.png
+    # DRAFT highlights, pending Bob's approval.
+    highlights:
+      - >-
+        Groups providers under three intent-shaped commands: web search,
+        research and scrape.
+      - >-
+        Searches the web in real time through Parallel, Exa, Brave Search,
+        Brave Answers or Perplexity.
+      - >-
+        Runs autonomous deep research that browses, verifies and compiles a
+        cited report, and lets you check on a running job later.
+      - >-
+        Extracts clean text, Markdown or JSON from URLs you already have, with
+        Parallel, Exa or Firecrawl.
+      - >-
+        Returns rendered results, or raw JSON with --json for an agent to
+        parse.
+      - >-
+        Runs as a back-end with seek serve, so provider API keys stay on one
+        server, and ships as a single native binary or a container image.
+    media:
+      - src: assets/demo.gif
+        caption: seek runs a web search and prints the results.
+        alt: >-
+          Terminal recording of the seek command running a web search and
+          printing the results.
+    kinds:
+      - kind: cli
+        install:
+          - method: homebrew
+            os: [ macos, linux ]
+            default: true
+            command: brew install wyrd-company/tools/seek-cli
+          - method: archive
+            os: [ linux ]
+            label: Linux x86_64
+            command: |
+              curl -LO https://github.com/wyrd-company/seek-cli/releases/latest/download/seek-linux-x86_64.tar.gz
+              tar -xzf seek-linux-x86_64.tar.gz
+              sudo install seek /usr/local/bin/seek
+          - method: archive
+            os: [ linux ]
+            label: Linux arm64
+            command: |
+              curl -LO https://github.com/wyrd-company/seek-cli/releases/latest/download/seek-linux-arm64.tar.gz
+              tar -xzf seek-linux-arm64.tar.gz
+              sudo install seek /usr/local/bin/seek
+          - method: archive
+            os: [ macos ]
+            label: macOS arm64
+            command: |
+              curl -LO https://github.com/wyrd-company/seek-cli/releases/latest/download/seek-macos-arm64.tar.gz
+              tar -xzf seek-macos-arm64.tar.gz
+              sudo install seek /usr/local/bin/seek
+          - method: archive
+            os: [ macos ]
+            label: macOS x86_64
+            command: |
+              curl -LO https://github.com/wyrd-company/seek-cli/releases/latest/download/seek-macos-x86_64.tar.gz
+              tar -xzf seek-macos-x86_64.tar.gz
+              sudo install seek /usr/local/bin/seek
+          - method: docker
+            label: Server image
+            command: >-
+              docker run --rm -p 8787:8787
+              -e SEEK_SERVER_TOKEN="$(openssl rand -hex 32)"
+              -e EXA_API_KEY="$EXA_API_KEY"
+              ghcr.io/wyrd-company/seek-server:latest

@@ -1,7 +1,7 @@
 ---
-docs: true
 title: research
 order: 6
+product: seek
 ---
 
 Autonomous deep research — multi-step investigation that browses, verifies, and

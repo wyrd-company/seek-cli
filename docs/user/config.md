@@ -1,7 +1,7 @@
 ---
-docs: true
 title: Configuration
 order: 3
+product: seek
 ---
 
 Each provider reads its own API key. You only need keys for the providers you
@@ -38,7 +38,7 @@ export EXA_API_KEY=…
 ```
 
 If `SEEK_SERVER_URL` is set, local keys are ignored and provider calls go
-through a seek server instead. See [Server mode](server.md).
+through a seek server instead. See [Server mode](server).
 
 ## Config file
 

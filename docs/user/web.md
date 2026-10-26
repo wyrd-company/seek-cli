@@ -1,7 +1,7 @@
 ---
-docs: true
 title: web
 order: 5
+product: seek
 ---
 
 Real-time web search — fast, low-cost context for prompts and chatbots. Pick a

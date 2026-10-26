@@ -15,7 +15,27 @@ release-units:
     - adapter: npm
       file: package.json
       mode: committed
+    # The wyrd.foo product page shows the installed version.
+    - adapter: yaml
+      file: /docs/user/docs.yml
+      pointer: /products/seek/version
+      mode: committed
     tags:
       primary:
         role: primary
         template: '{version}'
+  # The public docs release on their own, so the docs footer can say which
+  # docs describe which seek version. Docs units are tag-only.
+  seek-docs:
+    path: docs/user
+    depends-on:
+    - seek-cli
+    projections:
+    - adapter: yaml
+      file: /docs/user/docs.yml
+      pointer: /products/seek/docs-version
+      mode: committed
+    tags:
+      primary:
+        role: primary
+        template: '{id}@{version}'

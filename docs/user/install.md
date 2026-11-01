@@ -31,8 +31,8 @@ sudo install seek /usr/local/bin/seek
 
 ## From source (Bun)
 
-seek is a [Bun](https://bun.sh) + TypeScript project. Bun is the only
-prerequisite for running from source.
+seek is a [Bun](https://bun.sh) + TypeScript project. Bun 1.4.4 or later is
+the only prerequisite for running from source.
 
 ```bash
 git clone https://github.com/wyrd-company/seek-cli

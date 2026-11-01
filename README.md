@@ -24,7 +24,7 @@ With Homebrew:
 brew install wyrd-company/tools/seek-cli
 ```
 
-From source:
+From source with Bun 1.4.4 or later:
 
 ```sh
 bun install

@@ -47,17 +47,15 @@ describe("command-line.yml", () => {
   const tree = walk(createProgram()).filter(([path]) => path.length > 0);
 
   test("names every command in the tree, and only those", () => {
-    const paragraph = spec.description.split("\n\n").find((p) => p.startsWith("The tree has"))!;
-    const named = new Set([...paragraph.matchAll(/`([^`]+)`/g)].map((m) => m[1]!).filter((t) => !t.startsWith("-")));
-    const paths = tree.map(([path]) => path);
-    for (const path of paths) {
-      const last = path.at(-1)!;
-      const lastTwo = path.slice(-2).join(" ");
-      expect(named.has(last) || named.has(lastTwo)).toBe(true);
+    const paragraph = spec.description.split("\n\n").find((p) => p.startsWith("The root commands are"));
+    if (!paragraph) throw new Error("The command-line specification is missing its command tree paragraph");
+    const names = (list: string) => [...list.matchAll(/`([^`]+)`/g)].map((match) => match[1]!);
+    const [root] = paragraph.split(".");
+    const documentedPaths = names(root!);
+    for (const [, parent, children] of paragraph.matchAll(/Under `([^`]+)` are ([^.]+)\./g)) {
+      documentedPaths.push(...names(children!).map((name) => `${parent} ${name}`));
     }
-    for (const token of named) {
-      expect(paths.some((path) => path.at(-1) === token || path.slice(-2).join(" ") === token)).toBe(true);
-    }
+    expect(documentedPaths.sort()).toEqual(tree.map(([path]) => path.join(" ")).sort());
   });
 
   test("every provider command takes --json", () => {

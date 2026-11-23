@@ -10,14 +10,13 @@ description: >-
   rules that hold across commands.
 
 
-  The tree has three intent groups of provider commands, `web`, `research` and
-  `scrape`, and three other commands: `config` with `path`, `init` and `show`,
-  `serve`, and `skill`. The root also takes `--version` (`-V`). Under `web`
-  are `parallel`, `exa`, `brave search`, `brave answers` and `perplexity`.
-  Under `research` are `brave`, `parallel`, `google`, `perplexity`, `status`
-  and `get`. Under `scrape` are `exa`, `parallel` and `firecrawl`. Every
-  command takes `-h` and `--help`, and a parse error prints the error and then
-  the command's help.
+  The root commands are `web`, `research`, `scrape`, `config`, `serve` and
+  `skill`. Under `web` are `parallel`, `exa`, `brave` and `perplexity`.
+  Under `web brave` are `search` and `answers`. Under `research` are `brave`,
+  `parallel`, `google`, `perplexity`, `status` and `get`. Under `scrape` are
+  `exa`, `parallel` and `firecrawl`. Under `config` are `path`, `init` and
+  `show`. The root also takes `--version` (`-V`). Every command takes `-h`
+  and `--help`, and a parse error prints the error and then the command's help.
 
 
   A provider command's text arguments are variadic and joined with single

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
+import Ajv2020 from "ajv/dist/2020.js";
 import {
   ASYNC_RESEARCH_PROVIDERS,
   retrieveResearchJob,
@@ -114,6 +115,7 @@ describe("research-job-envelope.schema.json", () => {
 });
 
 describe("research job envelopes conform to research-job-envelope.schema.json", () => {
+  const validate = new Ajv2020({ strict: true }).compile(schema);
   const originalFetch = globalThis.fetch;
   const savedServer = process.env.SEEK_SERVER_URL;
   const keys = ["GEMINI_API_KEY", "PARALLEL_API_KEY", "PERPLEXITY_API_KEY"];
@@ -131,35 +133,28 @@ describe("research job envelopes conform to research-job-envelope.schema.json", 
     globalThis.fetch = (async () => Response.json(bodies.shift())) as unknown as typeof fetch;
   }
 
-  function expectConforms(envelope: Record<string, unknown>): void {
-    for (const key of Object.keys(envelope)) expect(Object.keys(schema.properties)).toContain(key);
-    expect(envelope.terminal).toBe(terminalStatuses.includes(envelope.status as string));
-    if ("result" in envelope) expect(envelope.status).toBe("completed");
-    if ("providerResult" in envelope) {
-      expect("result" in envelope).toBe(true);
-      expect((envelope.locator as { provider: string }).provider).toBe("parallel");
-    }
-    for (const key of Object.keys(envelope.locator as object)) expect(["provider", "jobId"]).toContain(key);
+  function expectConforms(envelope: Awaited<ReturnType<typeof retrieveResearchJob>>): void {
+    expect(validate(envelope), JSON.stringify(validate.errors)).toBe(true);
   }
 
   test("for completed and unfinished jobs of each provider", async () => {
     const run = { run_id: "synthetic-run", status: "completed", is_active: false };
     respond(run, { run, output: { type: "text", content: "synthetic", basis: [] } });
-    expectConforms({ ...(await retrieveResearchJob("parallel", "synthetic-run")) });
+    expectConforms(await retrieveResearchJob("parallel", "synthetic-run"));
 
     respond({ id: "synthetic-interaction", status: "completed", outputs: [{ text: "synthetic" }] });
-    expectConforms({ ...(await retrieveResearchJob("google", "synthetic-interaction")) });
+    expectConforms(await retrieveResearchJob("google", "synthetic-interaction"));
 
     respond({ id: "synthetic-job", status: "COMPLETED", response: { choices: [] } });
-    expectConforms({ ...(await retrieveResearchJob("perplexity", "synthetic-job")) });
+    expectConforms(await retrieveResearchJob("perplexity", "synthetic-job"));
 
     respond({ id: "synthetic-interaction", status: "failed", error: { message: "synthetic failure" } });
-    expectConforms({ ...(await retrieveResearchJob("google", "synthetic-interaction")) });
+    expectConforms(await retrieveResearchJob("google", "synthetic-interaction"));
 
     respond({ ...run, status: "running", is_active: true, errors: [{ message: "synthetic warning" }] });
-    expectConforms({ ...(await retrieveResearchJob("parallel", "synthetic-run")) });
+    expectConforms(await retrieveResearchJob("parallel", "synthetic-run"));
 
     respond({ id: "synthetic-job", status: "FAILED", error_message: "synthetic failure" });
-    expectConforms({ ...(await retrieveResearchJob("perplexity", "synthetic-job")) });
+    expectConforms(await retrieveResearchJob("perplexity", "synthetic-job"));
   });
 });

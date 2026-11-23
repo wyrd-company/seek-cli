@@ -37,7 +37,7 @@ export function loadConfig(): Record<string, string> {
     return cached;
   } catch (err) {
     process.stderr.write(
-      `warning: failed to read ${path}: ${(err as Error).message}\n`,
+      `warning: failed to read ${path}: ${err instanceof SyntaxError ? "invalid JSON" : (err as Error).message}\n`,
     );
     cached = {};
     return cached;

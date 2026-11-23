@@ -525,6 +525,11 @@ const MUTATIONS: Mutation[] = [
     expect: "links to a design document: https://github.com/wyrd-company/seek-cli/blob/main/docs/concepts/seek.yml",
   },
   {
+    name: "the publisher autolinks a bare www address to a design document",
+    apply: (c) => edit(c, "docs/user/web.md", "(providers.md)", "(providers.md)\n\nwww.github.com/wyrd-company/seek-cli/blob/main/docs/concepts/seek.yml"),
+    expect: "links to a design document: http://www.github.com/wyrd-company/seek-cli/blob/main/docs/concepts/seek.yml",
+  },
+  {
     name: "a listed asset is used by no page and named by no product field",
     apply: (c) => {
       writeFileSync(join(c, "docs/user/assets/unused.png"), "synthetic");

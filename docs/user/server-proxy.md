@@ -28,8 +28,9 @@ upstream names one provider API with its own base URL and key:
 For example, Exa's `POST /search` is `POST /v1/proxy/exa/search`. The URL
 parser resolves `.` and `..` segments before the server reads the path. The
 server appends the remaining path and query string to the upstream's fixed
-base URL. It returns redirects to the client. Brave has two upstreams
-because Search and Answers use separate keys.
+base URL. For an upstream redirect, the client receives the status, and the
+response header allowlist drops `Location`. Brave has two upstreams because
+Search and Answers use separate keys.
 
 ## What the server changes
 

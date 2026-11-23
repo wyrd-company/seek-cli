@@ -97,9 +97,10 @@ export function links(body: string, firstLine = 1): Link[] {
   // The publisher renders bare URLs as links, in addition to CommonMark autolinks.
   Bun.markdown.render(body, {
     link: (_children, { href }) => {
-      if (!found.some((link) => link.target === href && !link.image)) {
+      const target = /^www\./i.test(href) ? `http://${href}` : href;
+      if (!found.some((link) => !link.image && (link.target === href || link.target === target))) {
         const index = text.indexOf(href);
-        found.push({ target: href, line: index < 0 ? firstLine : lineOf(index), image: false });
+        found.push({ target, line: index < 0 ? firstLine : lineOf(index), image: false });
       }
       return null;
     },

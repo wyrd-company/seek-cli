@@ -53,19 +53,21 @@ description: >-
   `r` or `q` before it starts Deep Research.
 
 
-  Exit status 0 means the command completed. Exit status 2 means a provider
-  key is not set in direct mode: the message names the variable and the
-  configuration file, and the other commands of the same group follow, those
-  with a key first and the rest tagged `(no key set)`. Exit status 1 means any
-  other failure. That covers a parse error; an HTTP error, printed as `error:
-  HTTP <status> <status text> from <URL>: <body>`, where Brave Answers names
-  itself in place of the URL, the body is cut at 500 characters, and the
-  request's bearer token is replaced by `[redacted]` wherever it appears;
-  research that ends without completing; `research get` for a job that has not
-  completed; a Firecrawl response with `success: false` in rendered mode;
-  `config init` when the file exists and `--force` is absent; and `research
-  brave --citations`, which seek rejects before any request because Brave
-  research does not take citations. Other errors print as `error: <message>`.
+  `EXIT_STATUSES` in `src/lib/exit-status.ts` defines the exit statuses, and
+  every exit in the source takes its code from it. Exit status 0 means the
+  command completed. Exit status 2 means a provider key is not set in direct
+  mode: the message names the variable and the configuration file, and the
+  other commands of the same group follow, those with a key first and the rest
+  tagged `(no key set)`. Exit status 1 means any other failure. That covers a
+  parse error; an HTTP error, printed as `error: HTTP <status> <status text>
+  from <URL>: <body>`, where Brave Answers names itself in place of the URL,
+  the body is cut at 500 characters, and the request's bearer token is
+  replaced by `[redacted]` wherever it appears; research that ends without
+  completing; `research get` for a job that has not completed; a Firecrawl
+  response with `success: false` in rendered mode; `config init` when the file
+  exists and `--force` is absent; and `research brave --citations`, which seek
+  rejects before any request because Brave research does not take citations.
+  Other errors print as `error: <message>`.
 
 
   `seek skill` prints the bundled skill, `skills/seek/SKILL.md` as it was when
@@ -76,11 +78,12 @@ format: cli
 validation-criteria: >-
   `tests/program.test.ts` renders the help of every command that
   `createProgram()` builds and requires it to equal the CLI's own `--help`
-  output, so the importable program is the one the CLI runs.
-  `tests/cli.test.ts` runs the CLI from source and checks help content, the
-  bundled skill, parse boundaries, provider validation before network access,
-  and the missing-key exit status with its alternatives. `scripts/ci.sh`
-  compiles the binary and checks its version and skill output. Published
-  command reference is generated from `createProgram()`, as the
+  output, so the importable program is the one the CLI runs. It also requires
+  every exit in the source to use `EXIT_STATUSES` and checks three exits
+  against it. `tests/cli.test.ts` runs the CLI from source and checks help
+  content, the bundled skill, parse boundaries, provider validation before
+  network access, and the missing-key exit status with its alternatives.
+  `scripts/ci.sh` compiles the binary and checks its version and skill output.
+  Published command reference is generated from `createProgram()`, as the
   `documentation` technical design describes, so it cannot disagree with
   `--help`.

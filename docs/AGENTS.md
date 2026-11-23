@@ -19,7 +19,7 @@ A design document is an immediate `docs/<folder>/<slug>.yml` file whose name has
 
 | Contract | Definition | Bound to the code by |
 |---|---|---|
-| Command line | `createProgram()` in `src/program.ts`, from the Commander declarations in `src/commands/` | `tests/program.test.ts`, `tests/cli.test.ts` |
+| Command line | `createProgram()` in `src/program.ts`, from the Commander declarations in `src/commands/`, and `EXIT_STATUSES` in `src/lib/exit-status.ts` | `tests/program.test.ts`, `tests/cli.test.ts` |
 | HTTP API | `specifications/http-api.openapi.yml` | `tests/http-api.test.ts` |
 | Configuration | `specifications/configuration.file.schema.json`, `specifications/configuration.environment.schema.json` | `tests/configuration.test.ts` |
 | Research job envelope | `specifications/research-job-envelope.schema.json` | `tests/research-job-envelope.test.ts` |

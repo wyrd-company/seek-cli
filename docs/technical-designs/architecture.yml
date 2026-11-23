@@ -62,11 +62,12 @@ proposed-design:
       routing. `src/lib/http.ts`: `request()`, `poll()` and `HttpError`.
       `src/lib/config.ts`: the configuration file's path, its cached contents
       and `KNOWN_KEYS`, the provider key variables. `src/lib/env.ts`:
-      `requireEnv()` and `MissingEnvError`. `src/lib/output.ts`: JSON output
-      and the text renderers. `src/lib/research-jobs.ts`: the research job
-      lifecycle. `src/server/server.ts`: the proxy handler.
-      `src/server/secrets.ts`: `SecretResolver`. `src/server/vault.ts`: the
-      Vault and OpenBao client.
+      `requireEnv()` and `MissingEnvError`. `src/lib/exit-status.ts`:
+      `EXIT_STATUSES`, each exit code with its name and meaning, and `EXIT`,
+      the codes by name. `src/lib/output.ts`: JSON output and the text
+      renderers. `src/lib/research-jobs.ts`: the research job lifecycle.
+      `src/server/server.ts`: the proxy handler. `src/server/secrets.ts`:
+      `SecretResolver`. `src/server/vault.ts`: the Vault and OpenBao client.
   upstream-routing:
     >-
       `UPSTREAMS` holds, for each of the seven upstream IDs, a label for
@@ -91,12 +92,15 @@ proposed-design:
       calls, and raises an error once its time limit has passed.
   errors-and-exit-status:
     >-
-      An action reports failure by throwing or by setting `process.exitCode`.
-      `src/index.ts` prints a thrown error as `error: <message>` on stderr and
-      exits 1, except for `MissingEnvError`, which exits 2 after it lists the
-      sibling commands of the failed command, those whose key resolves first
-      and the others tagged `(no key set)`. Commander handles parse errors
-      itself: it prints the error and the command's help, and exits 1.
+      An action reports failure by throwing or by setting `process.exitCode`
+      to `EXIT.failure`. `src/index.ts` prints a thrown error as `error:
+      <message>` on stderr and exits with `EXIT.failure`, 1, except for
+      `MissingEnvError`, which exits with `EXIT.missingProviderKey`, 2, after
+      it lists the sibling commands of the failed command, those whose key
+      resolves first and the others tagged `(no key set)`. Commander handles
+      parse errors itself: it prints the error and the command's help, and
+      exits 1, the code `EXIT.failure` names. Every exit code in the source
+      comes from `EXIT`.
   output:
     >-
       Results go to stdout through `emit()`, which prints JSON with two-space

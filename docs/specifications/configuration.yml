@@ -1,0 +1,63 @@
+$schema: https://refinery.systems/ontology/specification
+title: seek configuration
+description: >-
+  The settings seek reads, and where it reads them from. Two JSON Schema
+  2020-12 definitions beside this document define them:
+  `configuration.file.schema.json` defines the configuration file, and
+  `configuration.environment.schema.json` defines the environment variables.
+  The file's keys are also the field names of a Vault or OpenBao secret, so
+  the file schema defines that secret's data as well.
+
+
+  The configuration file is a JSON object at
+  `$XDG_CONFIG_HOME/seek/config.json`, or `~/.config/seek/config.json` when
+  `XDG_CONFIG_HOME` is empty or unset. Its keys are seek's variable names: the
+  seven provider keys, `SEEK_SERVER_URL` and `SEEK_SERVER_TOKEN`. seek reads
+  string values and ignores other keys and non-string values. A file that is
+  missing contributes no values. A file that is not valid JSON, or not a JSON
+  object, produces one warning on stderr and contributes no values. `seek
+  config init` writes the file with an empty string for each provider key, in
+  a directory created with mode 0700 and a file with mode 0600, and refuses to
+  replace an existing file without `--force`.
+
+
+  Each setting resolves from the first source that has a value. A provider
+  key, in direct mode, resolves from the environment and then the file.
+  `SEEK_SERVER_URL` resolves from the environment and then the file, and when
+  it resolves, the CLI is in server mode. A client's `SEEK_SERVER_TOKEN`
+  resolves from the environment, then the Vault secret when `SEEK_VAULT_PATH`
+  is set, then the file. `seek serve` resolves every provider key and
+  `SEEK_SERVER_TOKEN` from the environment, then the Vault secret when
+  `SEEK_VAULT_PATH` is set, then the file. `seek config show` reports each
+  provider key's source as `env`, `config` or `—`, and in server mode the
+  client token's source as `env`, `Vault/OpenBao configured`, `config` or
+  `(unset)`, without reading Vault. It prints a provider key as its first four
+  and last four characters around an ellipsis, and a value of eight characters
+  or fewer as eight asterisks. It prints no part of the client token.
+
+
+  The Vault settings are environment variables only. `SEEK_VAULT_PATH` turns
+  Vault on and names one KV secret. An address is then required, and one
+  credential: an AppRole role ID with a secret ID, a token file, or a token,
+  in that order of precedence. The server reads the secret at startup and
+  exits when that read fails. A client reads it when it first needs the client
+  token, and the request fails when that read fails. Both read the secret
+  again once the refresh interval has passed, and keep the values they hold
+  when a later read fails.
+
+
+  A provider key that is not set stops a direct-mode command before it calls
+  that provider, with exit status 2 and a message that names the variable and
+  the configuration file.
+format: json-schema
+validation-criteria: >-
+  Both schemas compile under Ajv 8.20.0 in strict mode with the 2020-12
+  dialect and ajv-formats 3.0.1. Valid examples validate and invalid examples
+  are rejected: a non-string value, an unknown KV version, and a port that is
+  not a number. `tests/configuration.test.ts` binds the schemas to the code.
+  The file schema's keys are exactly the provider keys in `src/lib/config.ts`
+  and the two server keys, and the template that `seek config init` writes has
+  only those keys, with string values. The environment schema's keys are
+  exactly the variables the source reads. A key in both schemas has the same
+  definition, apart from the environment's extra sentence on
+  `SEEK_SERVER_URL`. The documented defaults are those the code applies.

@@ -6,6 +6,8 @@ import { UPSTREAMS, type UpstreamId, type UpstreamSpec } from "../src/lib/upstre
 import { SecretResolver } from "../src/server/secrets.ts";
 import { startServer } from "../src/server/server.ts";
 import { compileDefinitions, EXAMPLES, validateExample } from "../scripts/docs/validate.ts";
+import { createProgram } from "../src/program.ts";
+import type { Command } from "commander";
 import { createPracticeServer, practiceResponse, practiceState } from "../docs/user/examples/practice-server.mjs";
 
 // The published walkthroughs, run as written against the practice server and
@@ -306,6 +308,55 @@ describe("Set up provider keys and use a server", () => {
     const step = await seek("seek skill", cleanEnv());
     expect(step.stdout).toBe(readFileSync(join(ROOT, "skills/seek/SKILL.md"), "utf8"));
     expectPageShows("agent-skill.md", "seek skill", step.stdout.split("\n").slice(0, 4).join("\n"));
+  });
+});
+
+describe("command lines in the pages", () => {
+  /** Each `seek …` command in a page's sh blocks, cut at the shell syntax that ends it. */
+  function seekCommands(markdown: string): string[] {
+    const found: string[] = [];
+    for (const block of blocks(markdown).filter((b) => b.language === "sh")) {
+      const text = block.content.replace(/\\\n\s*/g, " ");
+      // A command starts a line, a command substitution, or follows a shell keyword or operator.
+      for (const match of text.matchAll(/(?:^[ \t]*|\$\(|(?:until|if|then|do|&&|\||;)[ \t]+)(seek(?=\s|$)[^|;&)>\n]*)/gm)) {
+        found.push(match[1]!.replace(/<<<.*$/, "").trim());
+      }
+    }
+    return found;
+  }
+
+  function parser(): Command {
+    const program = createProgram();
+    const walk = (command: Command) => {
+      command.exitOverride().configureOutput({ writeOut: () => {}, writeErr: () => {} });
+      if (command.commands.length === 0) command.action(() => {});
+      command.commands.forEach(walk);
+    };
+    walk(program);
+    return program;
+  }
+
+  test("every seek command a page shows parses with seek's own definitions", () => {
+    const pages = [...new Bun.Glob("**/*.md").scanSync(join(ROOT, "docs/user"))].filter((f) => !f.startsWith("reference/"));
+    const problems: string[] = [];
+    let count = 0;
+    for (const file of pages) {
+      for (const command of seekCommands(page(file))) {
+        count++;
+        try {
+          parser().parse(words(command).slice(1), { from: "user" });
+        } catch (error) {
+          const code = (error as { code?: string }).code;
+          if (code !== "commander.helpDisplayed" && code !== "commander.version") problems.push(`${file}: ${command}: ${(error as Error).message}`);
+        }
+      }
+    }
+    expect(problems).toEqual([]);
+    expect(count).toBeGreaterThanOrEqual(30);
+  });
+
+  test("a command with an option seek does not have fails", () => {
+    expect(() => parser().parse(["web", "exa", "query", "--no-such-option"], { from: "user" })).toThrow("unknown option");
   });
 });
 

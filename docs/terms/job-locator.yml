@@ -1,0 +1,6 @@
+$schema: https://refinery.systems/ontology/term
+title: Job locator
+description: >-
+  The provider and job ID that together identify a research job, given to
+  `seek research status` and `seek research get` as two arguments and printed
+  as `locator` in the research job envelope.

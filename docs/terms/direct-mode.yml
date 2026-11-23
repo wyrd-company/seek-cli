@@ -1,0 +1,5 @@
+$schema: https://refinery.systems/ontology/term
+title: Direct mode
+description: >-
+  How the CLI runs when `SEEK_SERVER_URL` is not set: each provider command
+  calls its provider's API with the local provider key.

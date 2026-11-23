@@ -1,0 +1,6 @@
+$schema: https://refinery.systems/ontology/term
+title: Seek server
+description: >-
+  A `seek serve` process, or the `ghcr.io/wyrd-company/seek-server` image that
+  runs one. It holds the provider keys, accepts requests that carry a client
+  token, and forwards each to its upstream with the upstream's provider key.

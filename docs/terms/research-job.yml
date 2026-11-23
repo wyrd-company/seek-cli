@@ -1,0 +1,6 @@
+$schema: https://refinery.systems/ontology/term
+title: Research job
+description: >-
+  A deep research run that a provider holds and identifies by a job ID, so
+  that its status and result can be read in later invocations. Google,
+  Parallel and Perplexity research runs as research jobs.

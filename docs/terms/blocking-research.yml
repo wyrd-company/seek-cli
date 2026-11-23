@@ -1,0 +1,5 @@
+$schema: https://refinery.systems/ontology/term
+title: Blocking research
+description: >-
+  A research command run without `--async`: it submits the research, polls
+  until the job ends or the wait limit passes, and prints the report.

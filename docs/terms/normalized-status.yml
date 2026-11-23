@@ -1,0 +1,8 @@
+$schema: https://refinery.systems/ontology/term
+title: Normalized status
+description: >-
+  A research job's state in seek's own terms, the same for every provider:
+  `queued`, `running`, `action-required`, `completed`, `incomplete`, `failed`,
+  `cancelled` or `unknown`. `completed`, `incomplete`, `failed` and
+  `cancelled` are terminal: the job has ended. seek shows the normalized
+  status beside the provider's own.

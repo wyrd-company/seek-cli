@@ -1,0 +1,6 @@
+$schema: https://refinery.systems/ontology/term
+title: Client token
+description: >-
+  The bearer token a client presents to a seek server, held in
+  `SEEK_SERVER_TOKEN`. A client holds one token; the server accepts each token
+  in its own comma-separated `SEEK_SERVER_TOKEN`.

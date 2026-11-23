@@ -1,0 +1,18 @@
+{
+  "locator": {
+    "provider": "parallel",
+    "jobId": "trun_practice_1"
+  },
+  "status": "queued",
+  "providerStatus": "queued",
+  "terminal": false,
+  "providerPayload": {
+    "run_id": "trun_practice_1",
+    "interaction_id": "interaction_practice_1",
+    "status": "queued",
+    "is_active": true,
+    "processor": "core",
+    "created_at": "2026-01-01T00:00:00Z",
+    "modified_at": "2026-01-01T00:00:00Z"
+  }
+}

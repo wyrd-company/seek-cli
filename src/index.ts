@@ -1,39 +1,12 @@
 #!/usr/bin/env bun
-import { Command } from "commander";
-import skill from "../skills/seek/SKILL.md" with { type: "text" };
-import packageMetadata from "../package.json" with { type: "json" };
-import { registerWebCommand } from "./commands/web.ts";
-import { registerResearchCommand } from "./commands/research.ts";
-import { registerScrapeCommand } from "./commands/scrape.ts";
-import { registerConfigCommand } from "./commands/config.ts";
-import { registerServeCommand } from "./commands/serve.ts";
+import type { Command } from "commander";
+import { createProgram } from "./program.ts";
 import { HttpError } from "./lib/http.ts";
 import { MissingEnvError } from "./lib/env.ts";
 import { KNOWN_KEYS, loadConfig } from "./lib/config.ts";
 import { remoteServerUrl } from "./lib/upstreams.ts";
 
-const program = new Command();
-
-program
-  .name("seek")
-  .description(
-    "Agent-friendly CLI for web search, deep research, and targeted scraping across popular APIs.",
-  )
-  .version(packageMetadata.version)
-  .showHelpAfterError();
-
-program
-  .command("skill")
-  .description("Print the bundled Seek skill")
-  .action(() => {
-    process.stdout.write(skill);
-  });
-
-registerWebCommand(program);
-registerResearchCommand(program);
-registerScrapeCommand(program);
-registerConfigCommand(program);
-registerServeCommand(program);
+const program = createProgram();
 
 let activeCommand: Command | null = null;
 program.hook("preAction", (_thisCommand, actionCommand) => {

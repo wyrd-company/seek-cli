@@ -3,10 +3,6 @@ import { request } from "../lib/http.ts";
 
 const baseUrl = () => upstreamBaseUrl("firecrawl");
 
-function headers(): Record<string, string> {
-  return upstreamAuthHeaders("firecrawl");
-}
-
 export type FirecrawlFormatName =
   | "markdown"
   | "html"
@@ -95,7 +91,7 @@ export async function firecrawlScrape(
 
   return await request<FirecrawlScrapeResponse>(`${baseUrl()}/v2/scrape`, {
     method: "POST",
-    headers: headers(),
+    headers: await upstreamAuthHeaders("firecrawl"),
     body,
     timeoutMs: opts.timeout != null ? opts.timeout + 5_000 : 120_000,
   });

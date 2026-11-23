@@ -9,7 +9,7 @@ import { registerServeCommand } from "./commands/serve.ts";
 import { HttpError } from "./lib/http.ts";
 import { MissingEnvError } from "./lib/env.ts";
 import { KNOWN_KEYS, loadConfig } from "./lib/config.ts";
-import { remoteServer } from "./lib/upstreams.ts";
+import { remoteServerUrl } from "./lib/upstreams.ts";
 
 const program = new Command();
 
@@ -38,7 +38,7 @@ function providerHasKey(cmd: Command): boolean {
     KNOWN_KEYS.find(([, p]) => p === cmd.name());
   if (!entry) return true;
   // A seek server holds the keys; assume every provider is available.
-  if (remoteServer()) return true;
+  if (remoteServerUrl() !== null) return true;
   const [envVar] = entry;
   if (process.env[envVar]) return true;
   return Boolean(loadConfig()[envVar]);

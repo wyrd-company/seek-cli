@@ -8,7 +8,13 @@ export interface HttpOptions {
 export class HttpError extends Error {
   status: number;
   body: string;
-  constructor(status: number, statusText: string, body: string, url: string) {
+  constructor(status: number, statusText: string, body: string, url: string, headers?: Record<string, string>) {
+    const authorization = headers?.Authorization;
+    if (authorization?.startsWith("Bearer ")) {
+      const token = authorization.slice("Bearer ".length);
+      statusText = statusText.replaceAll(token, "[redacted]");
+      body = body.replaceAll(token, "[redacted]");
+    }
     super(`HTTP ${status} ${statusText} from ${url}: ${truncate(body, 500)}`);
     this.name = "HttpError";
     this.status = status;
@@ -42,7 +48,7 @@ export async function request<T = unknown>(url: string, opts: HttpOptions = {}):
     const res = await fetch(url, init);
     const text = await res.text();
     if (!res.ok) {
-      throw new HttpError(res.status, res.statusText, text, url);
+      throw new HttpError(res.status, res.statusText, text, url, opts.headers);
     }
     if (!text) return undefined as T;
     try {

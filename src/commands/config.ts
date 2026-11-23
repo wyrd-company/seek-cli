@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { chmodSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { configDir, configPath, KNOWN_KEYS, loadConfig, resetConfigCache } from "../lib/config.ts";
-import { remoteServer } from "../lib/upstreams.ts";
+import { remoteServerUrl } from "../lib/upstreams.ts";
 
 function maskKey(value: string): string {
   if (value.length <= 8) return "********";
@@ -73,10 +73,14 @@ export function registerConfigCommand(program: Command): void {
       const varWidth = Math.max(...rows.map((r) => r.envVar.length));
       const srcWidth = Math.max(...rows.map((r) => r.source.length));
       process.stdout.write(`config: ${configPath()}\n`);
-      const remote = remoteServer();
-      if (remote) {
+      const remote = remoteServerUrl();
+      if (remote !== null) {
+        let source = "(unset)";
+        if (process.env.SEEK_SERVER_TOKEN?.trim()) source = "env";
+        else if (process.env.SEEK_VAULT_PATH?.trim()) source = "Vault/OpenBao configured";
+        else if (fromConfig.SEEK_SERVER_TOKEN?.trim()) source = "config";
         process.stdout.write(
-          `server: ${remote.url} (token: ${remote.token ? maskKey(remote.token) : "(unset)"})\n` +
+          `server: ${remote} (token: ${source})\n` +
             "  Provider calls go through the server; local keys below are not used.\n",
         );
       }

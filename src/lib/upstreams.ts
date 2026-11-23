@@ -1,3 +1,5 @@
+import { SecretResolver } from "../server/secrets.ts";
+import { VaultSecretSource, vaultConfigFromEnv } from "../server/vault.ts";
 import { loadConfig } from "./config.ts";
 import { requireEnv } from "./env.ts";
 
@@ -77,32 +79,37 @@ export function isUpstreamId(value: string): value is UpstreamId {
   return Object.hasOwn(UPSTREAMS, value);
 }
 
-export interface RemoteServer {
-  url: string;
-  token?: string;
-}
-
-/**
- * Returns the seek server the CLI should route provider calls through, or
- * null when the CLI should call providers directly with local API keys.
- */
-export function remoteServer(): RemoteServer | null {
+export function remoteServerUrl(): string | null {
   const config = loadConfig();
   const url = (process.env.SEEK_SERVER_URL || config.SEEK_SERVER_URL || "").trim();
-  if (!url) return null;
-  const token = (process.env.SEEK_SERVER_TOKEN || config.SEEK_SERVER_TOKEN || "").trim();
-  return { url: url.replace(/\/+$/, ""), ...(token ? { token } : {}) };
+  return url ? url.replace(/\/+$/, "") : null;
 }
 
+// A CLI invocation may poll a job several times. Share the KV cache, but only
+// configure it once a remote request actually needs the Vault credential.
+let clientVault: VaultSecretSource | undefined;
+const clientSecrets = new SecretResolver({
+  async get(name) {
+    if (!clientVault) {
+      const config = vaultConfigFromEnv();
+      if (!config) return undefined;
+      clientVault = new VaultSecretSource(config);
+    }
+    return clientVault.get(name);
+  },
+});
+
 export function upstreamBaseUrl(id: UpstreamId): string {
-  const remote = remoteServer();
-  return remote ? `${remote.url}/v1/proxy/${id}` : UPSTREAMS[id].baseUrl;
+  const remote = remoteServerUrl();
+  return remote !== null ? `${remote}/v1/proxy/${id}` : UPSTREAMS[id].baseUrl;
 }
 
 /** Auth headers for a provider call: the provider key locally, the server token remotely. */
-export function upstreamAuthHeaders(id: UpstreamId): Record<string, string> {
-  const remote = remoteServer();
-  if (remote) return remote.token ? bearer(remote.token) : {};
+export async function upstreamAuthHeaders(id: UpstreamId): Promise<Record<string, string>> {
+  if (remoteServerUrl() !== null) {
+    const token = await clientSecrets.get("SEEK_SERVER_TOKEN");
+    return token ? bearer(token) : {};
+  }
   const spec = UPSTREAMS[id];
   return spec.authHeaders(requireEnv(spec.envVar, spec.label));
 }

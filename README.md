@@ -85,6 +85,24 @@ export SEEK_SERVER_URL=https://seek.internal
 export SEEK_SERVER_TOKEN=...
 ```
 
+To read the client token from Vault or OpenBao, set `SEEK_VAULT_PATH` to a KV
+path containing a single client token under `SEEK_SERVER_TOKEN`. For example,
+a client using OpenBao token authentication can set:
+
+```sh
+export SEEK_SERVER_URL=https://seek.internal
+unset SEEK_SERVER_TOKEN
+export BAO_ADDR=https://bao.internal
+export SEEK_VAULT_PATH=clients/my-seek-cli
+# Supply BAO_TOKEN through your environment.
+seek web exa "papers on archival paper longevity"
+```
+
+The client checks the environment token first, then the Vault field, then the
+token in the seek config file. A failed first Vault read stops the request.
+Token files, AppRole, namespaces, and KV v1/v2 use the same environment
+settings documented for the server.
+
 The server adds the real API keys, which it reads from its environment, its
 config file, or Vault/OpenBao. See [docs/user/server.md](docs/user/server.md).
 

@@ -1,17 +1,17 @@
 import { upstreamAuthHeaders, upstreamBaseUrl } from "../lib/upstreams.ts";
-import { request } from "../lib/http.ts";
+import { HttpError, request } from "../lib/http.ts";
 
 
-function searchHeaders(): Record<string, string> {
+async function searchHeaders(): Promise<Record<string, string>> {
   return {
-    ...upstreamAuthHeaders("brave-search"),
+    ...await upstreamAuthHeaders("brave-search"),
     Accept: "application/json",
   };
 }
 
-function answersHeaders(): Record<string, string> {
+async function answersHeaders(): Promise<Record<string, string>> {
   return {
-    ...upstreamAuthHeaders("brave-answers"),
+    ...await upstreamAuthHeaders("brave-answers"),
     "content-type": "application/json",
     Accept: "application/json",
   };
@@ -40,7 +40,7 @@ export async function braveSearch(
   if (opts.country) params.set("country", opts.country);
   if (opts.freshness) params.set("freshness", opts.freshness);
   return await request(`${upstreamBaseUrl("brave-search")}/web/search?${params.toString()}`, {
-    headers: searchHeaders(),
+    headers: await searchHeaders(),
     timeoutMs: 30_000,
   });
 }
@@ -96,18 +96,19 @@ async function streamBraveAnswers(
   body: Record<string, unknown>,
   timeoutMs: number,
 ): Promise<BraveAnswersResponse> {
+  const headers = await answersHeaders();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(`${upstreamBaseUrl("brave-answers")}/chat/completions`, {
       method: "POST",
-      headers: answersHeaders(),
+      headers,
       body: JSON.stringify(body),
       signal: controller.signal,
     });
     const text = await res.text();
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} ${res.statusText} from Brave Answers: ${text}`);
+      throw new HttpError(res.status, res.statusText, text, "Brave Answers", headers);
     }
 
     const chunks = parseServerSentEvents(text);

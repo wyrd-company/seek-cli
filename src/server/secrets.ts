@@ -2,12 +2,12 @@ import { loadConfig } from "../lib/config.ts";
 import type { VaultSecretSource } from "./vault.ts";
 
 /**
- * Resolves secrets for the server: process env first (matching the CLI), then
+ * Resolves Seek secrets: process env first, then
  * Vault/OpenBao when configured, then the seek config file.
  */
 export class SecretResolver {
   constructor(
-    private readonly vault: VaultSecretSource | null = null,
+    private readonly vault: Pick<VaultSecretSource, "get"> | null = null,
     private readonly env: Record<string, string | undefined> = process.env,
     private readonly config: () => Record<string, string> = loadConfig,
   ) {}

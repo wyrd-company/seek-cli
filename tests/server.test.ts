@@ -191,7 +191,7 @@ describe("SecretResolver", () => {
   test("prefers env, then vault, then config", async () => {
     const vault = { get: async (name: string) => ({ A: "vault-a", B: "vault-b" })[name] };
     const resolver = new SecretResolver(
-      vault as never,
+      vault,
       { A: "env-a" },
       () => ({ A: "cfg-a", B: "cfg-b", C: "cfg-c" }),
     );

@@ -1,0 +1,49 @@
+$schema: https://refinery.systems/ontology/specification
+title: Seek server HTTP API
+description: >-
+  The HTTP surface of `seek serve`, which seek clients call in server mode.
+  `http-api.openapi.yml` beside this document defines it in OpenAPI 3.1: the
+  health path, the proxy route for each upstream that seek's commands call,
+  the client-token security scheme, and the errors seek returns itself.
+
+
+  The server proxies to seven upstreams, each a provider API with a fixed base
+  URL and one provider key: `parallel`, `exa`, `brave-search`,
+  `brave-answers`, `perplexity`, `google` and `firecrawl`. A request to
+  `/v1/proxy/<upstream>/<provider path>?<query>` goes to the upstream's base
+  URL followed by the provider path and the query, with the same method and
+  body. Every method and provider path is forwarded; the definition lists the
+  routes seek's commands use. The provider's status, status text and body
+  return unchanged with four of its headers, and bodies stream in both
+  directions.
+
+
+  Requests are checked in this order, and the first rule that applies answers:
+  `/healthz` returns 200 for any method without a token; a path outside
+  `/v1/proxy/` returns 404; a request without an accepted token returns 401,
+  unless the server runs with `--no-auth`; an unknown upstream returns 404; an
+  upstream without a provider key returns 503; a provider that cannot be
+  reached returns 502. Each of these errors is a JSON object with one `error`
+  string. The URL parser resolves dot segments before this order is applied,
+  so a forwarded path never climbs above an upstream's base URL. Measured with
+  Bun 1.4.5: `/v1/proxy/exa/a/../b` forwards `/b` to Exa, and
+  `/v1/proxy/exa/%2e%2e/b` routes to the unknown upstream `b`.
+
+
+  The client token travels as `Authorization: Bearer <token>`. The server
+  never forwards it. It removes the credential, hop-by-hop and forwarding
+  headers listed in the definition, removes every header an upstream uses for
+  its key, and then adds the upstream's own key header.
+format: openapi
+validation-criteria: >-
+  `http-api.openapi.yml` validates against the OpenAPI 3.1 schema with
+  `@seriousme/openapi-schema-validator` 2.12.0 (`validate-api`), and passes
+  `@redocly/cli` 2.82.0 `lint --extends recommended` with two accepted
+  warnings: the repository has no licence for `info.license` to name, and
+  `/healthz` has no 4XX response because it always returns 200.
+  `tests/http-api.test.ts` binds the definition to the code in both
+  directions. Each provider call that seek's commands make, run in server
+  mode, matches one documented route and method, and each documented route is
+  called. The tag of each upstream names its base URL and key header from
+  `src/lib/upstreams.ts`. The server's own responses match the documented
+  statuses, headers and example bodies.

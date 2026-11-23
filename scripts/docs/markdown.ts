@@ -94,13 +94,16 @@ export function links(body: string, firstLine = 1): Link[] {
   for (const match of text.matchAll(/<(a|img|source)\b[^>]*?\s(href|src|srcset)\s*=\s*"([^"]+)"/gi)) {
     found.push({ target: match[3]!, line: lineOf(match.index), image: match[1]!.toLowerCase() !== "a" });
   }
-  for (const match of text.matchAll(/<(https?:\/\/[^<>\s]+)>/gi)) {
-    const target = match[1]!;
-    const line = lineOf(match.index);
-    if (!found.some((link) => link.target === target && link.line === line)) {
-      found.push({ target, line, image: false });
-    }
-  }
+  // The publisher renders bare URLs as links, in addition to CommonMark autolinks.
+  Bun.markdown.render(body, {
+    link: (_children, { href }) => {
+      if (!found.some((link) => link.target === href && !link.image)) {
+        const index = text.indexOf(href);
+        found.push({ target: href, line: index < 0 ? firstLine : lineOf(index), image: false });
+      }
+      return null;
+    },
+  }, { autolinks: { url: true, www: true } });
   return found;
 }
 

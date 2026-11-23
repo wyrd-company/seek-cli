@@ -8,7 +8,7 @@ Install the seek skill, the instructions that teach a coding agent when and
 how to run seek, from the seek binary you have. The skill comes with seek, so
 it always matches the installed version.
 
-![Terminal recording: seek skill prints the skill's front matter and decision guide, and the saved copy matches the binary's.](assets/agent-skill.gif)
+![Terminal recording: seek skill prints the front matter and opening lines, then a comparison verifies the saved copy.](assets/agent-skill.gif)
 
 ## 1. Print the skill
 

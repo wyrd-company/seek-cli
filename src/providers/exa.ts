@@ -3,10 +3,6 @@ import { request, poll } from "../lib/http.ts";
 
 const baseUrl = () => upstreamBaseUrl("exa");
 
-function headers(): Record<string, string> {
-  return upstreamAuthHeaders("exa");
-}
-
 export type ExaSearchType =
   | "auto"
   | "fast"
@@ -82,7 +78,7 @@ export async function exaSearch(
 
   return await request<ExaSearchResponse>(`${baseUrl()}/search`, {
     method: "POST",
-    headers: headers(),
+    headers: await upstreamAuthHeaders("exa"),
     body,
     timeoutMs: 90_000,
   });
@@ -120,7 +116,7 @@ export async function exaContents(
 
   return await request<ExaContentsResponse>(`${baseUrl()}/contents`, {
     method: "POST",
-    headers: headers(),
+    headers: await upstreamAuthHeaders("exa"),
     body,
     timeoutMs: 120_000,
   });
@@ -163,16 +159,16 @@ export async function exaResearch(
 
   const created = await request<ExaResearchTask>(`${baseUrl()}/research/v1`, {
     method: "POST",
-    headers: headers(),
+    headers: await upstreamAuthHeaders("exa"),
     body,
     timeoutMs: 60_000,
   });
 
   return await poll(
-    () =>
+    async () =>
       request<ExaResearchTask>(
         `${baseUrl()}/research/v1/${encodeURIComponent(created.research_id)}`,
-        { headers: headers(), timeoutMs: 60_000 },
+        { headers: await upstreamAuthHeaders("exa"), timeoutMs: 60_000 },
       ),
     (t) => RESEARCH_TERMINAL.has(t.status),
     {

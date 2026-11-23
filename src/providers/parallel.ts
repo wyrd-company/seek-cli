@@ -3,10 +3,6 @@ import { request, poll } from "../lib/http.ts";
 
 const baseUrl = () => upstreamBaseUrl("parallel");
 
-function headers(): Record<string, string> {
-  return upstreamAuthHeaders("parallel");
-}
-
 // ---------- Search (POST /v1/search) ----------
 
 export interface ParallelSearchOptions {
@@ -63,7 +59,7 @@ export async function parallelSearch(
 
   return await request<SearchResult>(`${baseUrl()}/v1/search`, {
     method: "POST",
-    headers: headers(),
+    headers: await upstreamAuthHeaders("parallel"),
     body,
     timeoutMs: 90_000,
   });
@@ -126,7 +122,7 @@ export async function parallelExtract(
 
   return await request<ExtractResponse>(`${baseUrl()}/v1/extract`, {
     method: "POST",
-    headers: headers(),
+    headers: await upstreamAuthHeaders("parallel"),
     body,
     timeoutMs: 120_000,
   });
@@ -222,7 +218,7 @@ export async function submitParallelTaskRun(
 
   return await request<TaskRun>(`${baseUrl()}/v1/tasks/runs`, {
     method: "POST",
-    headers: headers(),
+    headers: await upstreamAuthHeaders("parallel"),
     body,
     timeoutMs: 60_000,
   });
@@ -231,7 +227,7 @@ export async function submitParallelTaskRun(
 export async function getParallelTaskRun(id: string): Promise<TaskRun> {
   return await request<TaskRun>(
     `${baseUrl()}/v1/tasks/runs/${encodeURIComponent(id)}`,
-    { headers: headers() },
+    { headers: await upstreamAuthHeaders("parallel") },
   );
 }
 
@@ -240,7 +236,7 @@ export async function getParallelTaskRunResult(
 ): Promise<TaskRunResult> {
   return await request<TaskRunResult>(
     `${baseUrl()}/v1/tasks/runs/${encodeURIComponent(id)}/result`,
-    { headers: headers(), timeoutMs: 60_000 },
+    { headers: await upstreamAuthHeaders("parallel"), timeoutMs: 60_000 },
   );
 }
 

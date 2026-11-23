@@ -15,7 +15,7 @@ const PROXY_PREFIX = "/v1/proxy/";
 
 // Headers never forwarded upstream: hop-by-hop, client credentials, and
 // anything fetch recomputes. Provider auth headers are added by the server.
-const STRIPPED_REQUEST_HEADERS = new Set([
+export const STRIPPED_REQUEST_HEADERS: ReadonlySet<string> = new Set([
   "authorization",
   "connection",
   "content-length",
@@ -32,7 +32,7 @@ const STRIPPED_REQUEST_HEADERS = new Set([
   "accept-encoding",
 ]);
 
-const FORWARDED_RESPONSE_HEADERS = ["content-type", "cache-control", "retry-after", "x-request-id"];
+export const FORWARDED_RESPONSE_HEADERS: readonly string[] = ["content-type", "cache-control", "retry-after", "x-request-id"];
 
 function json(status: number, data: unknown, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(data), {

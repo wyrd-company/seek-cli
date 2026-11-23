@@ -5,9 +5,9 @@ const baseUrl = () => upstreamBaseUrl("google");
 export const DEFAULT_DEEP_RESEARCH_AGENT = "deep-research-pro-preview-12-2025";
 const API_REVISION = "2026-05-20";
 
-function headers(): Record<string, string> {
+async function headers(): Promise<Record<string, string>> {
   return {
-    ...upstreamAuthHeaders("google"),
+    ...await upstreamAuthHeaders("google"),
     "Api-Revision": API_REVISION,
   };
 }
@@ -65,7 +65,7 @@ export interface InteractionCreateBody {
 export async function createInteraction(body: InteractionCreateBody): Promise<Interaction> {
   return await request<Interaction>(`${baseUrl()}/interactions`, {
     method: "POST",
-    headers: headers(),
+    headers: await headers(),
     body,
     timeoutMs: 60_000,
   });
@@ -74,7 +74,7 @@ export async function createInteraction(body: InteractionCreateBody): Promise<In
 export async function getInteraction(id: string): Promise<Interaction> {
   return await request<Interaction>(
     `${baseUrl()}/interactions/${encodeURIComponent(id)}`,
-    { headers: headers(), timeoutMs: 60_000 },
+    { headers: await headers(), timeoutMs: 60_000 },
   );
 }
 

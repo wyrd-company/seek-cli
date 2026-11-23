@@ -12,6 +12,9 @@ bun run typecheck
 echo "Running tests..."
 bun run test
 
+echo "Checking documentation..."
+bun run docs:check
+
 echo "Building native binary..."
 bun run build
 
@@ -23,3 +26,6 @@ if [[ "$actual_version" != "$expected_version" ]]; then
   exit 1
 fi
 echo "$actual_version"
+
+echo "Checking bundled skill..."
+./dist/seek skill | cmp - skills/seek/SKILL.md

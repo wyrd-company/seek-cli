@@ -1,0 +1,6 @@
+$schema: https://refinery.systems/ontology/term
+title: Intent group
+description: >-
+  One of the three command groups that hold seek's provider commands, named by
+  what the caller wants: `web` for real-time search and answers, `research`
+  for multi-step research reports, and `scrape` for the content of known URLs.

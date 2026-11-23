@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { emit, emitText } from "../lib/output.ts";
+import { EXIT } from "../lib/exit-status.ts";
 import { exaContents } from "../providers/exa.ts";
 import { parallelExtract } from "../providers/parallel.ts";
 import { firecrawlScrape } from "../providers/firecrawl.ts";
@@ -138,7 +139,7 @@ export function registerScrapeCommand(program: Command): void {
       }
       if (!data.success) {
         process.stderr.write(`Firecrawl error: ${data.error ?? "(unknown)"}\n`);
-        process.exitCode = 1;
+        process.exitCode = EXIT.failure;
         return;
       }
       const d = data.data ?? {};

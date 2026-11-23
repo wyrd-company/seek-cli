@@ -1,0 +1,122 @@
+$schema: https://refinery.systems/ontology/technical-design
+title: seek research jobs
+relationships:
+  related-to:
+    - architecture
+objective: >-
+  Run deep research from four providers through one command group, either
+  waiting for the report or as a resumable job that later invocations check
+  and collect, and report every provider's job in one envelope with one set of
+  statuses.
+design-challenges:
+  providers-disagree-on-state:
+    >-
+      Google, Parallel and Perplexity name their job states differently and
+      Google distinguishes an incomplete job from a failed one. One normalize
+      function per provider maps the provider's status to the eight normalized
+      statuses, and maps any status it does not know to `unknown` instead of
+      failing, so a provider that adds a state does not break `status` or
+      `get`. The envelope keeps the provider's status and complete payload
+      beside the normalized one.
+  opaque-ids-on-a-command-line:
+    >-
+      Job IDs are opaque and can begin with a hyphen or hold characters a
+      shell interprets. The job ID is a positional argument after the
+      provider, and the copyable commands that seek prints pass it after `--`,
+      single-quoted when it holds anything outside letters, digits and
+      `_./:@+-`. Provider calls percent-encode the ID as one path segment.
+  no-hidden-waiting:
+    >-
+      An agent that resumes a job needs each call to return promptly. `status`
+      and `get` each read the job once and never poll. Submission with
+      `--async` returns once the provider accepts the job.
+  brave-has-no-job:
+    >-
+      Brave research arrives on one streaming response with no job ID. seek
+      runs it synchronously, offers no `--async` for it, and rejects `brave`
+      in `status` and `get` with a message that points to `seek research
+      brave`.
+proposed-design:
+  high-level-overview:
+    >-
+      Each resumable provider module offers three primitives: submit, read the
+      job, and, for Parallel, read the result. `src/lib/research-jobs.ts`
+      turns a provider's job into a `ResearchJobSnapshot`, the envelope the
+      `research-job-envelope` specification defines, and implements
+      `inspectResearchJob()` and `retrieveResearchJob()` over the read
+      primitives. The commands in `src/commands/research.ts` call submit for
+      `--async`, the snapshot functions for `status` and `get`, and a blocking
+      wrapper otherwise.
+  primitives:
+    >-
+      Google: `POST /interactions` with the agent, the input and `background:
+      true`, and `GET /interactions/<id>`, each with the `Api-Revision:
+      2026-05-20` header; the default agent is
+      `deep-research-pro-preview-12-2025`. Parallel: `POST /v1/tasks/runs`
+      with the input, the processor, `core` by default, and an optional output
+      JSON schema; `GET /v1/tasks/runs/<id>`; and `GET
+      /v1/tasks/runs/<id>/result`. Perplexity: `POST /v1/async/sonar` with a
+      chat request for `sonar-deep-research` and a reasoning effort, `medium`
+      by default, and `GET /v1/async/sonar/<id>`.
+  normalization:
+    >-
+      Google maps `in_progress` to `running`, `requires_action` to
+      `action-required`, and `completed`, `failed`, `incomplete` and
+      `cancelled` to themselves. Parallel maps `queued` to `queued`, `running`
+      and `cancelling` to `running`, `action_required` to `action-required`,
+      and `completed`, `failed` and `cancelled` to themselves. Perplexity maps
+      `CREATED` to `queued`, `IN_PROGRESS` to `running`, `COMPLETED` to
+      `completed` and `FAILED` to `failed`, ignoring case. `completed`,
+      `incomplete`, `failed` and `cancelled` are terminal. A failure report
+      comes from Google's `error`, from Parallel's `error` when it is not
+      empty or else its `errors` list, or from Perplexity's `error_message`.
+  results:
+    >-
+      `retrieveResearchJob()` reads the job and adds a result only when its
+      normalized status is `completed`. Google's report is the last text
+      output, or else the text of the last model output step, and its
+      citations are every string beginning `http://` or `https://` in the
+      steps' content blocks and citation lists, without duplicates. Parallel's
+      result comes from the result endpoint: text content as it is, JSON
+      content serialized with two-space indentation, and the citation URLs of
+      every field basis without duplicates; the result response is kept as
+      `providerResult`. Perplexity's report is the first choice's message and
+      its citations the response's `citations`.
+  blocking-research:
+    >-
+      Without `--async`, Parallel submits and polls every 5 seconds for up to
+      25 minutes until the run is inactive, raises an error unless it
+      completed, and reads the result. Google and Perplexity submit and poll
+      every 10 seconds for up to 30 minutes until the status is terminal,
+      writing a progress line to stderr on each poll unless `--quiet` is
+      given, and exit 1 with the final status when the job did not complete.
+      Brave sends one streaming request with research enabled and a
+      five-minute timeout.
+  google-input:
+    >-
+      `--system` adds an instruction to Google research by wrapping the
+      question: a fixed sentence that tells the agent to treat the instruction
+      as guidance and investigate only the question, followed by a JSON object
+      with `research_instruction` and `research_question`. Without an
+      instruction, or with one that is only whitespace, the input is the
+      question alone.
+  interactive-planning:
+    >-
+      `--interactive` requires a terminal on stdin and stdout and runs before
+      submission, with or without `--async`. The planner drafts the plan:
+      Perplexity with `sonar` and at most 900 tokens, or Brave Answers in
+      research mode, each asked for four to seven numbered steps, or `manual`,
+      which returns a fixed four-step outline. The person approves with `a` or
+      an empty line, revises with `r` and an instruction, or quits with `q`,
+      which stops with an error before research starts. The approved plan
+      follows the question in the research input, with a sentence that asks
+      the agent to follow it and report deviations.
+  brave-answers-stream:
+    >-
+      Brave Answers responses arrive as server-sent events. The Brave module
+      reads the whole stream, joins the content of every event, and takes the
+      final answer from the last `<answer>` tag when there is one, or else
+      strips Brave's tags from the text. It collects citations from
+      `<citation>` tags and returns the answer, the citations and the raw
+      events in one response object. Brave research rejects citation requests
+      before sending, because research mode does not accept them.

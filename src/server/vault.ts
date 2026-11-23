@@ -47,7 +47,7 @@ export function vaultConfigFromEnv(env: Env = process.env): VaultConfig | null {
 
   const kvVersion = first(env, "SEEK_VAULT_KV_VERSION") ?? "2";
   if (kvVersion !== "1" && kvVersion !== "2") {
-    throw new Error(`SEEK_VAULT_KV_VERSION must be 1 or 2, got '${kvVersion}'.`);
+    throw new Error("SEEK_VAULT_KV_VERSION must be 1 or 2.");
   }
 
   const refreshSeconds = Number(first(env, "SEEK_VAULT_REFRESH_SECONDS") ?? "300");
@@ -198,11 +198,15 @@ export class VaultSecretSource {
       ...(payload !== undefined ? { body: JSON.stringify(payload) } : {}),
       signal: AbortSignal.timeout(15_000),
     });
-    const text = await res.text();
     if (!res.ok) {
-      // Vault error bodies carry messages, never secret values.
-      throw new VaultHttpError(res.status, `vault ${method} ${path} failed: HTTP ${res.status} ${text.slice(0, 300)}`);
+      await res.body?.cancel();
+      throw new VaultHttpError(res.status, `vault ${method} ${path} failed: HTTP ${res.status}`);
     }
-    return text ? JSON.parse(text) : {};
+    const text = await res.text();
+    try {
+      return text ? JSON.parse(text) : {};
+    } catch {
+      throw new Error(`vault ${method} ${path} returned invalid JSON`);
+    }
   }
 }

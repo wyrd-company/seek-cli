@@ -1,0 +1,6 @@
+$schema: https://refinery.systems/ontology/term
+title: Planner
+description: >-
+  What drafts and revises the research plan for `seek research google
+  --interactive`: Perplexity, Brave Answers, or `manual`, a fixed outline that
+  revisions annotate.

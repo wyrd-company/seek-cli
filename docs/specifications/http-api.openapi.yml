@@ -1,0 +1,475 @@
+openapi: 3.1.1
+info:
+  title: Seek server HTTP API
+  version: "1"
+  summary: Authenticated proxy from seek clients to provider APIs.
+  description: >-
+    `seek serve` holds provider API keys and forwards seek client requests to
+    the provider APIs. A client calls a provider through
+    `/v1/proxy/{upstream}/{provider path}` with a client token. The server
+    checks the token, replaces the client's credentials with the provider key,
+    and forwards the request to the upstream's fixed base URL. The provider's
+    response comes back unchanged: its status, status text, body and the
+    `Content-Type`, `Cache-Control`, `Retry-After` and `X-Request-Id` headers.
+    The server buffers request bodies before forwarding and omits them for
+    GET and HEAD. Response bodies stream, so Brave Answers server-sent events
+    reach the client as they arrive.
+
+
+    The server forwards every method and every path under an upstream's
+    prefix. The paths below are the routes seek's own commands call. Request
+    and response bodies on those routes are the provider's formats.
+
+
+    Before forwarding, the server removes these request headers:
+    `Authorization`, `Proxy-Authorization`, `Proxy-Authenticate`, `Cookie`,
+    `Host`, `Connection` and the headers it nominates, `Keep-Alive`, `TE`,
+    `Trailer`, `Transfer-Encoding`, `Upgrade`, `Content-Length`,
+    `Accept-Encoding`, `Forwarded`, every `X-Forwarded-*` header, and every
+    header any upstream uses for its key (`X-Api-Key`, `X-Subscription-Token`,
+    `X-Goog-Api-Key`). All other request headers and the query string pass
+    through.
+
+
+    Errors that seek itself returns are JSON objects with one `error` field. A
+    provider's response passes through with its own status, which can be a
+    status seek also uses. A path outside `/healthz` and `/v1/proxy/` returns
+    404 with `{"error":"not found"}` and needs no token. Under `/v1/proxy/`,
+    the server checks the token before it reads the upstream, so a request
+    without a valid token returns 401 for any upstream name. With a valid
+    token, an upstream name the server does not know returns 404 with
+    `{"error":"unknown provider '<name>'"}`. The server resolves `.` and `..`
+    path segments, including percent-encoded ones, before routing.
+servers:
+  - url: http://127.0.0.1:8787
+    description: The address `seek serve` binds by default.
+security:
+  - clientToken: []
+tags:
+  - name: health
+    description: Liveness of the server.
+  - name: parallel
+    description: >-
+      Forwards to https://api.parallel.ai and adds the `x-api-key` header from
+      `PARALLEL_API_KEY`.
+  - name: exa
+    description: >-
+      Forwards to https://api.exa.ai and adds the `x-api-key` header from
+      `EXA_API_KEY`.
+  - name: brave-search
+    description: >-
+      Forwards to https://api.search.brave.com/res/v1 and adds the
+      `X-Subscription-Token` header from `BRAVE_SEARCH_API_KEY`.
+  - name: brave-answers
+    description: >-
+      Forwards to https://api.search.brave.com/res/v1 and adds the
+      `X-Subscription-Token` header from `BRAVE_ANSWERS_API_KEY`.
+  - name: perplexity
+    description: >-
+      Forwards to https://api.perplexity.ai and adds the `Authorization:
+      Bearer` header from `PERPLEXITY_API_KEY`.
+  - name: google
+    description: >-
+      Forwards to https://generativelanguage.googleapis.com/v1beta and adds
+      the `x-goog-api-key` header from `GEMINI_API_KEY`.
+  - name: firecrawl
+    description: >-
+      Forwards to https://api.firecrawl.dev and adds the `Authorization:
+      Bearer` header from `FIRECRAWL_API_KEY`.
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      operationId: getHealth
+      summary: Check that the server is running
+      description: >-
+        Returns 200 without authentication. The server answers this path for
+        every method.
+      security: []
+      responses:
+        "200":
+          description: The server is running.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+              example:
+                status: ok
+  /v1/proxy/parallel/v1/search:
+    post:
+      tags: [parallel]
+      operationId: parallelSearch
+      summary: Parallel web search
+      description: Called by `seek web parallel`.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/parallel/v1/extract:
+    post:
+      tags: [parallel]
+      operationId: parallelExtract
+      summary: Parallel extract
+      description: Called by `seek scrape parallel`.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/parallel/v1/tasks/runs:
+    post:
+      tags: [parallel]
+      operationId: parallelCreateTaskRun
+      summary: Create a Parallel task run
+      description: Called by `seek research parallel`, with and without `--async`.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/parallel/v1/tasks/runs/{jobId}:
+    get:
+      tags: [parallel]
+      operationId: parallelGetTaskRun
+      summary: Read a Parallel task run
+      description: >-
+        Called by `seek research parallel` while it waits, and by `seek
+        research status parallel` and `seek research get parallel`.
+      parameters:
+        - $ref: "#/components/parameters/ProviderJobId"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/parallel/v1/tasks/runs/{jobId}/result:
+    get:
+      tags: [parallel]
+      operationId: parallelGetTaskRunResult
+      summary: Read a Parallel task run result
+      description: >-
+        Called by `seek research parallel` when the run completes, and by
+        `seek research get parallel`.
+      parameters:
+        - $ref: "#/components/parameters/ProviderJobId"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/exa/search:
+    post:
+      tags: [exa]
+      operationId: exaSearch
+      summary: Exa search
+      description: Called by `seek web exa`.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/exa/contents:
+    post:
+      tags: [exa]
+      operationId: exaContents
+      summary: Exa contents
+      description: Called by `seek scrape exa`.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/brave-search/web/search:
+    get:
+      tags: [brave-search]
+      operationId: braveWebSearch
+      summary: Brave web search
+      description: >-
+        Called by `seek web brave search`. The query string is Brave's and
+        passes through unchanged.
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/brave-answers/chat/completions:
+    post:
+      tags: [brave-answers]
+      operationId: braveAnswersChatCompletions
+      summary: Brave Answers chat completion
+      description: >-
+        Called by `seek web brave answers`, `seek research brave` and the
+        Brave planner of `seek research google --interactive`. seek requests a
+        stream, and the server passes the server-sent events through as they
+        arrive.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/perplexity/chat/completions:
+    post:
+      tags: [perplexity]
+      operationId: perplexityChatCompletions
+      summary: Perplexity chat completion
+      description: >-
+        Called by `seek web perplexity` and the Perplexity planner of `seek
+        research google --interactive`.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/perplexity/v1/async/sonar:
+    post:
+      tags: [perplexity]
+      operationId: perplexityCreateAsyncSonar
+      summary: Create a Perplexity asynchronous research job
+      description: Called by `seek research perplexity`, with and without `--async`.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/perplexity/v1/async/sonar/{jobId}:
+    get:
+      tags: [perplexity]
+      operationId: perplexityGetAsyncSonar
+      summary: Read a Perplexity asynchronous research job
+      description: >-
+        Called by `seek research perplexity` while it waits, and by `seek
+        research status perplexity` and `seek research get perplexity`.
+      parameters:
+        - $ref: "#/components/parameters/ProviderJobId"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/google/interactions:
+    post:
+      tags: [google]
+      operationId: googleCreateInteraction
+      summary: Create a Gemini Deep Research interaction
+      description: >-
+        Called by `seek research google`, with and without `--async`. seek
+        sends the `Api-Revision` header, which passes through.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/google/interactions/{jobId}:
+    get:
+      tags: [google]
+      operationId: googleGetInteraction
+      summary: Read a Gemini Deep Research interaction
+      description: >-
+        Called by `seek research google` while it waits, and by `seek research
+        status google` and `seek research get google`. seek sends the
+        `Api-Revision` header, which passes through.
+      parameters:
+        - $ref: "#/components/parameters/ProviderJobId"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+  /v1/proxy/firecrawl/v2/scrape:
+    post:
+      tags: [firecrawl]
+      operationId: firecrawlScrape
+      summary: Firecrawl scrape
+      description: Called by `seek scrape firecrawl`.
+      requestBody:
+        $ref: "#/components/requestBodies/ProviderJson"
+      responses:
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+        "503":
+          $ref: "#/components/responses/NoProviderKey"
+        default:
+          $ref: "#/components/responses/ProviderResponse"
+components:
+  securitySchemes:
+    clientToken:
+      type: http
+      scheme: bearer
+      description: >-
+        A client token the server accepts, sent as `Authorization: Bearer
+        <token>`. The scheme name is case-insensitive. The server accepts each
+        entry of its comma-separated `SEEK_SERVER_TOKEN`. A server started
+        with `--no-auth` accepts requests without a token.
+  parameters:
+    ProviderJobId:
+      name: jobId
+      in: path
+      required: true
+      description: The provider's opaque job identifier, percent-encoded as one path segment.
+      schema:
+        type: string
+  requestBodies:
+    ProviderJson:
+      required: false
+      description: The provider's request body, forwarded unchanged.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ProviderBody"
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          const: ok
+    Error:
+      type: object
+      description: An error seek returns itself.
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: What failed, naming the provider or variable involved.
+    ProviderBody:
+      description: A body in the provider's own format, passed through unchanged.
+  headers:
+    CacheControl:
+      description: The provider's `Cache-Control` header, when it sent one.
+      schema:
+        type: string
+    RetryAfter:
+      description: The provider's `Retry-After` header, when it sent one.
+      schema:
+        type: string
+    RequestId:
+      description: The provider's `X-Request-Id` header, when it sent one.
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: The client token is missing or the server does not accept it.
+      headers:
+        WWW-Authenticate:
+          description: Always `Bearer`.
+          schema:
+            type: string
+            const: Bearer
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: missing or invalid seek server token
+    BadGateway:
+      description: The server could not reach the provider.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: upstream request to exa failed
+    NoProviderKey:
+      description: The server has no API key for the upstream.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: seek server has no API key configured for exa (EXA_API_KEY)
+    ProviderResponse:
+      description: >-
+        The provider's response, passed through with its status and status
+        text. Bodies stream; Brave Answers sends `text/event-stream`.
+      headers:
+        Cache-Control:
+          $ref: "#/components/headers/CacheControl"
+        Retry-After:
+          $ref: "#/components/headers/RetryAfter"
+        X-Request-Id:
+          $ref: "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ProviderBody"
+        text/event-stream:
+          schema:
+            type: string

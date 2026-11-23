@@ -136,6 +136,16 @@ describe("VaultSecretSource", () => {
     }
   });
 
+  test("keeps Vault response contents out of errors", async () => {
+    for (const status of [403, 200]) {
+      const { fetch } = fakeFetch(() => new Response("private-response-content", { status }));
+      const source = new VaultSecretSource(config(), fetch);
+      const expected = status === 403 ? "failed: HTTP 403" : "returned invalid JSON";
+      await expect(source.refresh()).rejects.toThrow(`vault GET /v1/secret/data/seek ${expected}`);
+      await expect(source.refresh()).rejects.not.toThrow("private-response-content");
+    }
+  });
+
   test("throws when the first read fails", async () => {
     const { fetch } = fakeFetch(() => new Response('{"errors":["permission denied"]}', { status: 403 }));
     const source = new VaultSecretSource(config(), fetch);

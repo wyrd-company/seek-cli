@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "seek research job envelope",
+  "description": "The JSON that `seek research <provider> --async --json`, `seek research status --json` and `seek research get --json` print for a resumable research job. It wraps the provider's own response with a provider-qualified locator and a normalized status. `get --json` adds the result when the job has completed.",
+  "type": "object",
+  "required": ["locator", "status", "providerStatus", "terminal", "providerPayload"],
+  "properties": {
+    "locator": {
+      "description": "Identifies the job. The job ID has meaning only together with its provider.",
+      "type": "object",
+      "required": ["provider", "jobId"],
+      "properties": {
+        "provider": {
+          "description": "The provider that owns the job.",
+          "type": "string",
+          "enum": ["google", "parallel", "perplexity"]
+        },
+        "jobId": {
+          "description": "The provider's opaque job ID: a Google interaction ID, a Parallel run ID or a Perplexity job ID.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "description": "The job's state, normalized across providers. A provider status seek does not map is `unknown`.",
+      "oneOf": [
+        { "const": "queued", "description": "Accepted and not started. Parallel `queued`; Perplexity `CREATED`." },
+        { "const": "running", "description": "In progress. Google `in_progress`; Parallel `running`, `cancelling`; Perplexity `IN_PROGRESS`." },
+        { "const": "action-required", "description": "Waiting for action by the provider's user before it can continue. Google `requires_action`; Parallel `action_required`." },
+        { "const": "completed", "description": "Finished with a result. Terminal. Google `completed`; Parallel `completed`; Perplexity `COMPLETED`." },
+        { "const": "incomplete", "description": "Ended before it completed, without a provider failure. Terminal. Google `incomplete`." },
+        { "const": "failed", "description": "Ended in a provider failure. Terminal. Google `failed`; Parallel `failed`; Perplexity `FAILED`." },
+        { "const": "cancelled", "description": "Cancelled. Terminal. Google `cancelled`; Parallel `cancelled`." },
+        { "const": "unknown", "description": "A provider status seek does not map. Not terminal." }
+      ]
+    },
+    "providerStatus": {
+      "description": "The provider's own status string, unchanged. Perplexity statuses map case-insensitively.",
+      "type": "string"
+    },
+    "terminal": {
+      "description": "Whether the normalized status is final: true for `completed`, `incomplete`, `failed` and `cancelled`.",
+      "type": "boolean"
+    },
+    "failure": {
+      "description": "The provider's failure report, present when the provider reported one: Google's `error`, Parallel's non-empty `error` or `errors`, or Perplexity's `error_message`.",
+      "type": "object",
+      "properties": {
+        "message": {
+          "description": "The provider's failure message, when it gave one.",
+          "type": "string"
+        },
+        "details": {
+          "description": "The provider's failure object, list or message, unchanged."
+        }
+      },
+      "additionalProperties": false
+    },
+    "providerPayload": {
+      "description": "The provider's complete response to the submission or status request, unchanged."
+    },
+    "result": {
+      "description": "The report of a completed job, present only in `seek research get --json` output.",
+      "type": "object",
+      "required": ["text", "citations"],
+      "properties": {
+        "text": {
+          "description": "The report text. A Parallel JSON result is serialized with two-space indentation.",
+          "type": "string"
+        },
+        "citations": {
+          "description": "Source URLs in the order seek found them, without duplicates for Google and Parallel.",
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "providerResult": {
+      "description": "Parallel's response from its separate result endpoint, unchanged. Present only with `result` for a Parallel job."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "enum": ["completed", "incomplete", "failed", "cancelled"] } }
+      },
+      "then": { "properties": { "terminal": { "const": true } } },
+      "else": { "properties": { "terminal": { "const": false } } }
+    }
+  ],
+  "dependentRequired": {
+    "providerResult": ["result"]
+  },
+  "dependentSchemas": {
+    "result": {
+      "properties": { "status": { "const": "completed" } }
+    },
+    "providerResult": {
+      "properties": { "locator": { "type": "object", "properties": { "provider": { "const": "parallel" } } } }
+    }
+  }
+}

@@ -1,131 +1,115 @@
 ---
-title: Server mode
-order: 8
+title: Run a seek server
 product: seek
+order: 8
 ---
 
-`seek serve` runs seek as a back-end that holds the provider API keys. Point
-the CLI at it and provider calls go through the server, so the machines
-running the CLI (devcontainers, CI runners, agent sandboxes) never need
-provider keys. They only need the server URL and a client token that you can
-revoke.
+Run `seek serve`, or its container image, on a machine that holds the
+provider keys, so that CLIs elsewhere call providers through it with a client
+token. [How the seek server proxies provider calls](server-proxy.md) explains
+what the server does with each request.
 
-```text
-seek CLI ──(SEEK_SERVER_TOKEN)──▶ seek serve ──(provider API key)──▶ provider API
-                                     ▲
-                                     └── keys from env, config file, or Vault/OpenBao
-```
+![Terminal recording: seek serve starts with a synthetic client token, prints its address and the providers it has keys for, and curl reads its health check.](assets/server.gif)
 
-The server is a narrow authenticated proxy. It only forwards to the fixed
-provider hosts seek already uses. It removes the client's credentials and adds
-the provider key. Requests, responses, and streaming (Brave Answers) pass
-through unchanged, so every command, `--json` output, and the resumable
-research lifecycle work the same way in either mode.
+## 1. Choose a client token
 
-## Using a server from the CLI
-
-Set these in the environment or in the config file:
-
-| Env var / config key | Meaning                                            |
-| -------------------- | -------------------------------------------------- |
-| `SEEK_SERVER_URL`    | Base URL of the server, e.g. `https://seek.internal` |
-| `SEEK_SERVER_TOKEN`  | Client token the server accepts                    |
+Clients send this token with every request. Generate one:
 
 ```sh
-export SEEK_SERVER_URL=https://seek.internal
-export SEEK_SERVER_TOKEN=...
-seek web exa "papers on archival paper longevity"
-seek config show        # shows the server and notes local keys are ignored
+openssl rand -hex 32
 ```
 
-When `SEEK_SERVER_URL` is set, local provider keys are ignored. If the server
-has no key for a provider, the command fails with HTTP 503 and the message
-names the missing variable.
+To rotate tokens without downtime, give the server a comma-separated list,
+such as `<new-token>,<old-token>`, then remove the old one when no client
+uses it.
 
-## Running the server
+## 2. Give the server its keys
+
+The server reads each provider key and `SEEK_SERVER_TOKEN` from its
+environment, then from a Vault or OpenBao KV secret when `SEEK_VAULT_PATH` is
+set, then from its configuration file. Use whichever source you keep secrets
+in:
+
+- **Environment:** set `SEEK_SERVER_TOKEN` and the provider keys. Replace the
+  example values with your secrets.
+
+  ```sh
+  export SEEK_SERVER_TOKEN='<client-token>'
+  export EXA_API_KEY='<exa-api-key>'
+  ```
+- **Configuration file:** the same keys in `~/.config/seek/config.json` (see
+  [Set up provider keys](config.md)).
+- **Vault or OpenBao:** store the keys as fields of one KV secret, then point
+  the server at it. This example uses an OpenBao CLI already authenticated to
+  write to the secret path.
+
+  ```sh
+  export BAO_ADDR=https://bao.internal.example
+  bao kv put secret/seek EXA_API_KEY='<exa-api-key>' SEEK_SERVER_TOKEN='<client-token>'
+  export SEEK_VAULT_PATH=seek
+  export SEEK_VAULT_ROLE_ID='<role-id>'
+  export SEEK_VAULT_SECRET_ID_FILE=/run/secrets/seek-secret-id
+  ```
+
+  With the Vault CLI, set `VAULT_ADDR` and use `vault kv put`. For either
+  service, keep the provider keys and `SEEK_SERVER_TOKEN` out of the server's
+  environment so the server reads them from the secret you configured.
+
+  The server authenticates with AppRole (`SEEK_VAULT_ROLE_ID` and a secret
+  ID), a token file (`SEEK_VAULT_TOKEN_FILE`, which suits a Vault Agent that
+  rotates the token) or a token (`VAULT_TOKEN` or `BAO_TOKEN`), in that
+  order. It reads the secret before it starts and stops if that read fails;
+  later reads, every 300 seconds unless `SEEK_VAULT_REFRESH_SECONDS` says
+  otherwise, keep the last values when they fail. For a private certificate
+  authority, set `NODE_EXTRA_CA_CERTS` to its bundle. The
+  [configuration reference](reference/configuration.md) lists every
+  `SEEK_VAULT_*` variable.
+
+## 3. Start the server
 
 ```sh
-SEEK_SERVER_TOKEN=$(openssl rand -hex 32) \
-EXA_API_KEY=... \
 seek serve --host 0.0.0.0 --port 8787
 ```
 
-| Option / env var                       | Default     |
-| -------------------------------------- | ----------- |
-| `--host` / `SEEK_SERVER_HOST`          | `127.0.0.1` (`0.0.0.0` in the image) |
-| `--port` / `SEEK_SERVER_PORT`          | `8787`      |
-| `--no-auth`                            | off         |
-
-The server will not start without a `SEEK_SERVER_TOKEN` unless you pass
-`--no-auth`. `SEEK_SERVER_TOKEN` can be a comma-separated list, so you can
-rotate tokens without downtime. Clients send it as `Authorization: Bearer
-<token>`.
-
-The server speaks plain HTTP. Put it behind TLS (a reverse proxy, ingress, or
-service mesh) whenever clients reach it over a network.
-
-Endpoints:
-
-- `GET /healthz` returns `{"status":"ok"}` without authentication.
-- `/v1/proxy/<provider>/<path>` forwards to the provider. `<provider>` is one of
-  `parallel`, `exa`, `brave-search`, `brave-answers`, `perplexity`, `google`,
-  or `firecrawl`.
-
-Each request is logged to stderr (method, provider, path, status, duration).
-Keys and tokens are never logged.
-
-## Where the server finds keys
-
-For every secret, including `SEEK_SERVER_TOKEN`, the server checks in order:
-
-1. Process environment.
-2. Vault / OpenBao, when configured.
-3. The seek config file (`$XDG_CONFIG_HOME/seek/config.json`).
-
-### Vault / OpenBao
-
-Vault and OpenBao share the same API, so either works. The server reads one
-KV path whose keys match seek's variable names (`EXA_API_KEY`,
-`SEEK_SERVER_TOKEN`, …):
-
-```sh
-bao kv put secret/seek EXA_API_KEY=... PERPLEXITY_API_KEY=... SEEK_SERVER_TOKEN=...
+```text
+seek serve: listening on http://0.0.0.0:8787
+seek serve: providers with keys: exa
 ```
 
-| Env var                       | Meaning                                                   |
-| ----------------------------- | --------------------------------------------------------- |
-| `SEEK_VAULT_PATH`             | Secret path within the mount, e.g. `seek`. Setting it turns Vault on. |
-| `VAULT_ADDR` / `BAO_ADDR`     | Server address (`SEEK_VAULT_ADDR` overrides both)         |
-| `SEEK_VAULT_MOUNT`            | KV mount, default `secret`                                |
-| `SEEK_VAULT_KV_VERSION`       | `2` (default) or `1`                                      |
-| `VAULT_NAMESPACE` / `BAO_NAMESPACE` | Namespace, if any                                   |
-| `SEEK_VAULT_REFRESH_SECONDS`  | How long to cache secrets before re-reading, default `300` |
+The server binds `127.0.0.1:8787` unless `--host` and `--port`, or
+`SEEK_SERVER_HOST` and `SEEK_SERVER_PORT`, say otherwise. It does not start
+without a client token unless you pass `--no-auth`, which only a trusted
+network should use. It logs each request on stderr, without keys or tokens.
 
-Authentication uses the first of these that is configured:
+The server speaks plain HTTP. Put it behind TLS, such as a reverse proxy, an
+ingress or a service mesh, whenever clients reach it over a network.
 
-1. **AppRole:** `SEEK_VAULT_ROLE_ID` plus `SEEK_VAULT_SECRET_ID` or
-   `SEEK_VAULT_SECRET_ID_FILE`. Set `SEEK_VAULT_APPROLE_MOUNT` if the mount is
-   not `approle`. The server logs in again when its token is rejected.
-2. **Token file:** `SEEK_VAULT_TOKEN_FILE`. The file is re-read on every
-   refresh, which suits a Vault Agent sidecar that rotates the token.
-3. **Token:** `VAULT_TOKEN` / `BAO_TOKEN`.
+## Or run the container image
 
-The server reads Vault at startup and exits if the read fails. After that, a
-failed refresh logs a warning and the server keeps using the last secrets it
-read. For a private CA, set `NODE_EXTRA_CA_CERTS` to the CA bundle path.
-
-## Container image
-
-The server ships as `ghcr.io/wyrd-company/seek-server`, built for
-`linux/amd64` and `linux/arm64` and tagged with each release version.
+The image `ghcr.io/wyrd-company/seek-server` runs `seek serve` for
+`linux/amd64` and `linux/arm64`, tagged with each release version. It binds
+`0.0.0.0:8787`, runs as a non-root user and reads an optional configuration
+file at `/config/seek/config.json`.
 
 ```sh
 docker run --rm -p 8787:8787 \
-  -e VAULT_ADDR=https://vault.internal \
-  -e SEEK_VAULT_PATH=seek \
-  -e SEEK_VAULT_ROLE_ID=... -e SEEK_VAULT_SECRET_ID=... \
+  -e SEEK_SERVER_TOKEN='<client-token>' \
+  -e EXA_API_KEY='<exa-api-key>' \
   ghcr.io/wyrd-company/seek-server:latest
 ```
 
-The image runs as a non-root user on a distroless base. It reads an optional
-config file from `/config/seek/config.json`.
+## Check that it works
+
+From a client machine:
+
+```sh
+curl -s 'http://<server-host>:8787/healthz'
+```
+
+```text
+{"status":"ok"}
+```
+
+Then point a CLI at it, as [Use a seek server from the CLI](connect-to-a-server.md)
+describes. A request for a provider the server has no key for returns HTTP
+503 and names the variable to set.

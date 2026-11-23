@@ -10,6 +10,29 @@ assets:
   - assets/logo-dark.svg
   - assets/favicon.svg
   - assets/social-image.png
+  - assets/first-search.gif
+  - assets/install.gif
+  - assets/config.gif
+  - assets/web-search.gif
+  - assets/research-job.gif
+  - assets/scrape.gif
+  - assets/connect.gif
+  - assets/server.gif
+  - assets/agent-skill.gif
+  - assets/server-client.gif
+  - assets/script-research-jobs.gif
+  - examples/practice-server.mjs
+  - examples/server-client.mjs
+  - examples/config.json
+  - examples/client-config.json
+  - examples/research-job-submitted.json
+  - examples/research-job-result.json
+  - examples/health.response.json
+  - examples/unauthorized.response.json
+  - reference/http-api.openapi.yml
+  - reference/configuration.file.schema.json
+  - reference/configuration.environment.schema.json
+  - reference/research-job-envelope.schema.json
 products:
   seek:
     name: seek
@@ -49,10 +72,66 @@ products:
         server, and ships as a single native binary or a container image.
     media:
       - src: assets/demo.gif
-        caption: seek runs a web search and prints the results.
+        caption: seek searches the web, starts a research job and extracts a page.
         alt: >-
-          Terminal recording of the seek command running a web search and
-          printing the results.
+          Terminal recording of seek, against its practice server, printing
+          two search results, accepting a research job and reporting its
+          status, and printing the text of a page.
+    nav:
+      - section: Users
+        groups:
+          - group: Tutorials
+            pages: [first-search]
+          - group: How-to guides
+            pages:
+              - install
+              - config
+              - web
+              - research
+              - scrape
+              - connect-to-a-server
+              - server
+              - agent-skill
+          - group: Explanation
+            pages: [overview, providers, credentials, research-jobs]
+          - group: Reference
+            pages:
+              - seek
+              - seek-skill
+              - seek-web
+              - seek-web-parallel
+              - seek-web-exa
+              - seek-web-brave
+              - seek-web-brave-search
+              - seek-web-brave-answers
+              - seek-web-perplexity
+              - seek-research
+              - seek-research-status
+              - seek-research-get
+              - seek-research-brave
+              - seek-research-parallel
+              - seek-research-google
+              - seek-research-perplexity
+              - seek-scrape
+              - seek-scrape-exa
+              - seek-scrape-parallel
+              - seek-scrape-firecrawl
+              - seek-config
+              - seek-config-path
+              - seek-config-init
+              - seek-config-show
+              - seek-serve
+              - configuration
+      - section: Developers
+        groups:
+          - group: Tutorials
+            pages: [server-client]
+          - group: How-to guides
+            pages: [script-research-jobs]
+          - group: Explanation
+            pages: [server-proxy]
+          - group: Reference
+            pages: [http-api, research-job-envelope]
     kinds:
       - kind: cli
         install:

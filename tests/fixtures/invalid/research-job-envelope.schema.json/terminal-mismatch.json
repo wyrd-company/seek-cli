@@ -1,0 +1,7 @@
+{
+  "locator": { "provider": "parallel", "jobId": "trun_synthetic_1" },
+  "status": "completed",
+  "providerStatus": "completed",
+  "terminal": false,
+  "providerPayload": {}
+}

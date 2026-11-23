@@ -1,0 +1,89 @@
+$schema: https://refinery.systems/ontology/technical-design
+title: seek server
+relationships:
+  related-to:
+    - architecture
+    - secret-resolution
+objective: >-
+  A proxy that lets a seek client call any of the seven upstreams with a
+  revocable client token while only the server holds provider keys, and that
+  forwards provider requests and streams responses so that every command
+  works the same in server mode.
+design-challenges:
+  only-fixed-hosts:
+    >-
+      A client chooses the upstream and the path, and must not be able to
+      reach any other host. The upstream ID is looked up in `UPSTREAMS`, which
+      fixes the base URL, and the path is appended to that base URL. The URL
+      parser resolves `.` and `..` segments before the handler reads the path.
+      The defensive 400 guard for remaining dot segments is unreachable with
+      the normalized HTTP pathname.
+      The handler sends the request with `redirect: manual`, so a provider's
+      redirect returns to the client and the server follows none.
+  credentials-never-cross:
+    >-
+      The client's token must not reach a provider, and a client must not be
+      able to supply a provider key. The handler drops `Authorization` and
+      every header name any upstream uses for its key, then sets the
+      upstream's own key header. It also drops cookies, proxy credentials,
+      hop-by-hop headers, the headers `Connection` nominates, `Forwarded` and
+      `X-Forwarded-*`, and the headers fetch computes itself.
+  token-comparison:
+    >-
+      Comparing the presented token with each accepted token must not reveal
+      by its timing how much of a token matched. The handler hashes the
+      presented token and each accepted token with SHA-256 and compares the
+      digests with `timingSafeEqual`, comparing every accepted token rather
+      than stopping at the first match.
+  streams-and-long-silences:
+    >-
+      Brave Answers streams server-sent events, and deep research reads can
+      stay quiet for minutes. The handler returns the provider's body as a
+      stream instead of buffering it, and `startServer` disables Bun's idle
+      timeout for every request under `/v1/proxy/`.
+proposed-design:
+  high-level-overview:
+    >-
+      `seek serve` builds the secret resolver, checks that it has a client
+      token, and calls `startServer()` in `src/server/server.ts`, which runs
+      `createHandler()` under `Bun.serve`. The handler routes each request
+      through a fixed order of checks, then forwards it to the upstream's base
+      URL with the upstream's key, and returns the provider's response with
+      four of its headers. The `http-api` specification defines the resulting
+      HTTP surface.
+  startup:
+    >-
+      `seek serve` validates `--port` as an integer from 0 to 65535. When
+      `SEEK_VAULT_PATH` is set, it reads the Vault secret once and exits on
+      failure, then logs the address, mount, path, KV version and auth method.
+      With authentication on, it exits when no client token resolves. With
+      `--no-auth`, it logs a warning. It logs the address it listens on and
+      the upstreams whose keys resolve, and stops the server and exits 0 on
+      SIGINT or SIGTERM.
+  request-pipeline:
+    >-
+      `/healthz` returns `{"status":"ok"}` for any method. A path outside
+      `/v1/proxy/` returns 404. Unless authentication is off, the handler
+      reads the accepted tokens from the resolver on each request, splits
+      `SEEK_SERVER_TOKEN` on commas, and returns 401 with `WWW-Authenticate:
+      Bearer` when the `Authorization: Bearer` value is missing or matches
+      none of them. It then takes the upstream ID from the first path segment
+      after `/v1/proxy/` and returns 404 for an ID outside `UPSTREAMS` and 503
+      when the upstream's key does not resolve. It forwards with the client's
+      method, the filtered headers plus the upstream's key header and the query
+      string. It buffers request bodies before forwarding and omits them for
+      GET and HEAD. It returns 502 when the request to the provider fails.
+      It reads secrets per request, so a refreshed Vault secret takes effect
+      without a restart.
+  response:
+    >-
+      The handler returns the provider's status, status text and body stream,
+      with `Content-Type`, `Cache-Control`, `Retry-After` and `X-Request-Id`
+      when the provider sent them. It drops every other provider header,
+      including `Set-Cookie`.
+  logging:
+    >-
+      Each forwarded request logs one line to stderr: the method, the upstream
+      and path, and the status with the duration in milliseconds, or the
+      connection error and the time it took. The log holds no header values,
+      query strings or bodies.

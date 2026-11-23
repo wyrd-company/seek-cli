@@ -1,31 +1,13 @@
 #!/usr/bin/env bun
-import { Command } from "commander";
-import packageMetadata from "../package.json" with { type: "json" };
-import { registerWebCommand } from "./commands/web.ts";
-import { registerResearchCommand } from "./commands/research.ts";
-import { registerScrapeCommand } from "./commands/scrape.ts";
-import { registerConfigCommand } from "./commands/config.ts";
-import { registerServeCommand } from "./commands/serve.ts";
+import type { Command } from "commander";
+import { createProgram } from "./program.ts";
+import { EXIT } from "./lib/exit-status.ts";
 import { HttpError } from "./lib/http.ts";
 import { MissingEnvError } from "./lib/env.ts";
 import { KNOWN_KEYS, loadConfig } from "./lib/config.ts";
-import { remoteServer } from "./lib/upstreams.ts";
+import { remoteServerUrl } from "./lib/upstreams.ts";
 
-const program = new Command();
-
-program
-  .name("seek")
-  .description(
-    "Agent-friendly CLI for web search, deep research, and targeted scraping across popular APIs.",
-  )
-  .version(packageMetadata.version)
-  .showHelpAfterError();
-
-registerWebCommand(program);
-registerResearchCommand(program);
-registerScrapeCommand(program);
-registerConfigCommand(program);
-registerServeCommand(program);
+const program = createProgram();
 
 let activeCommand: Command | null = null;
 program.hook("preAction", (_thisCommand, actionCommand) => {
@@ -38,7 +20,7 @@ function providerHasKey(cmd: Command): boolean {
     KNOWN_KEYS.find(([, p]) => p === cmd.name());
   if (!entry) return true;
   // A seek server holds the keys; assume every provider is available.
-  if (remoteServer()) return true;
+  if (remoteServerUrl() !== null) return true;
   const [envVar] = entry;
   if (process.env[envVar]) return true;
   return Boolean(loadConfig()[envVar]);
@@ -69,16 +51,16 @@ program.parseAsync(process.argv).catch((err: unknown) => {
   if (err instanceof MissingEnvError) {
     process.stderr.write(`error: ${err.message}\n`);
     if (activeCommand) printAlternatives(activeCommand);
-    process.exit(2);
+    process.exit(EXIT.missingProviderKey);
   }
   if (err instanceof HttpError) {
     process.stderr.write(`error: ${err.message}\n`);
-    process.exit(1);
+    process.exit(EXIT.failure);
   }
   if (err instanceof Error) {
     process.stderr.write(`error: ${err.message}\n`);
-    process.exit(1);
+    process.exit(EXIT.failure);
   }
   process.stderr.write(`error: ${String(err)}\n`);
-  process.exit(1);
+  process.exit(EXIT.failure);
 });

@@ -10,6 +10,12 @@
 Agent-friendly CLI for web search, deep research, and targeted scraping across
 popular APIs.
 
+Run `seek skill` to print the bundled Seek skill for use by an agent.
+
+Read the documentation at [wyrd.foo/docs/seek](https://wyrd.foo/docs/seek/):
+start with [Run your first search](docs/user/first-search.md), which needs no
+API key.
+
 Built with [Bun](https://bun.sh) + TypeScript. Each command groups providers by
 intent so an agent (or human) can pick the right trade-off between speed, cost,
 and output type.
@@ -85,6 +91,24 @@ export SEEK_SERVER_URL=https://seek.internal
 export SEEK_SERVER_TOKEN=...
 ```
 
+To read the client token from Vault or OpenBao, set `SEEK_VAULT_PATH` to a KV
+path containing a single client token under `SEEK_SERVER_TOKEN`. For example,
+a client using OpenBao token authentication can set:
+
+```sh
+export SEEK_SERVER_URL=https://seek.internal
+unset SEEK_SERVER_TOKEN
+export BAO_ADDR=https://bao.internal
+export SEEK_VAULT_PATH=clients/my-seek-cli
+# Supply BAO_TOKEN through your environment.
+seek web exa "papers on archival paper longevity"
+```
+
+The client checks the environment token first, then the Vault field, then the
+token in the seek config file. A failed first Vault read stops the request.
+Token files, AppRole, namespaces, and KV v1/v2 use the same environment
+settings documented for the server.
+
 The server adds the real API keys, which it reads from its environment, its
 config file, or Vault/OpenBao. See [docs/user/server.md](docs/user/server.md).
 
@@ -126,8 +150,7 @@ seek web brave answers "compare common bookbinding stitches" --citations
 seek web perplexity "compare natural fibers for basket weaving"
 
 # Deep research
-seek research brave "compare common methods for preserving paper records" \
-  --citations
+seek research brave "compare common methods for preserving paper records"
 seek research parallel "compare three soil amendments for container gardens" \
   --schema ./schema.json --processor pro
 seek research google "compare common methods for preserving paper records"
@@ -261,7 +284,12 @@ The tap publish job expects an SSH deploy key in the repository secret
 ### Public docs
 
 The public docs are `docs/user/` (`docs.yml` and the pages), and they publish to
-[wyrd.foo](https://wyrd.foo/tools/seek/). They release as their own Intentional
+[wyrd.foo](https://wyrd.foo/tools/seek/). `bun run docs:reference` regenerates
+the reference in `docs/user/reference/` from the command definitions and the
+specifications, `bun run docs:check` checks the reference, examples, links,
+navigation and assets (CI runs it), and `bun run docs:capture` records the
+terminal recordings again with Docker. [docs/AGENTS.md](docs/AGENTS.md)
+describes each. They release as their own Intentional
 unit, `seek-docs`, which depends on `seek-cli`. `seek-docs` writes
 `docs-version` into `docs/user/docs.yml`, and `seek-cli` writes `version`; do not
 edit either by hand. A docs-only change takes a `seek-docs` intent:

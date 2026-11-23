@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -45,6 +45,15 @@ function cli(args: string[]): CliResult {
 }
 
 describe("CLI smoke tests", () => {
+  test("skill prints the tracked skill exactly and is discoverable in help", () => {
+    const result = cli(["skill"]);
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(result.stdout).toBe(readFileSync("skills/seek/SKILL.md", "utf8"));
+    expect(cli(["--help"]).stdout).toContain("skill");
+    expect(cli(["skill", "--help"]).stdout).toContain("Print the bundled Seek skill");
+  });
+
   test("scrape parallel help documents the objective flag", () => {
     const result = cli(["scrape", "parallel", "--help"]);
 

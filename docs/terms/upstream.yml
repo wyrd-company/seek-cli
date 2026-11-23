@@ -1,0 +1,7 @@
+$schema: https://refinery.systems/ontology/term
+title: Upstream
+description: >-
+  One provider API with its own base URL and provider key, named by an ID in
+  the seek server's proxy routes: `parallel`, `exa`, `brave-search`,
+  `brave-answers`, `perplexity`, `google` or `firecrawl`. Brave is one
+  provider with two upstreams.

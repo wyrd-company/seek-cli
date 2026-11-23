@@ -1,0 +1,88 @@
+$schema: https://refinery.systems/ontology/specification
+title: seek command line
+description: >-
+  The `seek` command line: its command tree, arguments, options, output and
+  exit statuses. Its definition is the Commander program that
+  `createProgram()` in `src/program.ts` builds from the declarations in
+  `src/commands/`; `src/index.ts` runs that program, and `seek --help` and
+  each command's `--help` render it. Every command, argument, option, default
+  and description comes from those declarations. This document states the
+  rules that hold across commands.
+
+
+  The root commands are `web`, `research`, `scrape`, `config`, `serve` and
+  `skill`. Under `web` are `parallel`, `exa`, `brave` and `perplexity`.
+  Under `web brave` are `search` and `answers`. Under `research` are `brave`,
+  `parallel`, `google`, `perplexity`, `status` and `get`. Under `scrape` are
+  `exa`, `parallel` and `firecrawl`. Under `config` are `path`, `init` and
+  `show`. The root also takes `--version` (`-V`). Every command takes `-h`
+  and `--help`, and a parse error prints the error and then the command's help.
+
+
+  A provider command's text arguments are variadic and joined with single
+  spaces into one query; `scrape exa` and `scrape parallel` take one or more
+  URLs, and `scrape firecrawl` one URL. `--` ends option parsing. Results go
+  to stdout. Progress, warnings and errors go to stderr, and `research google`
+  and `research perplexity` print their polling progress there unless
+  `--quiet` is given.
+
+
+  Every provider command takes `--json`, which prints JSON with two-space
+  indentation instead of rendered text: the provider's response; for `web
+  brave answers` and `research brave`, the response seek assembles from
+  Brave's event stream, with the answer, its citations and the raw events; and
+  for `research --async`, `research status` and `research get`, the envelope
+  that the `research-job-envelope` specification defines. Rendered search
+  results are numbered, with title, URL, Exa's score to three decimals, and
+  content cut at 1,200 characters and indented three spaces. Rendered answers
+  and reports end with a numbered `Citations:` list when the provider returned
+  sources.
+
+
+  A provider command calls its provider directly with the local provider key,
+  or, in server mode, through the seek server with the client token; the
+  `configuration` specification defines how each is resolved. The commands,
+  their options and their output are the same in both modes. In server mode
+  without a client token, the request carries no `Authorization` header, and a
+  server that requires a token answers 401. In blocking mode, Parallel polls
+  every 5 seconds for up to 25 minutes, Google and Perplexity every 10 seconds
+  for up to 30 minutes, and Brave reads one streaming response. `research
+  google --interactive` needs a terminal on stdin and stdout. It asks the
+  planner chosen with `--planner` for a plan and approves, revises or quits on `a`,
+  `r` or `q` before it starts Deep Research.
+
+
+  `EXIT_STATUSES` in `src/lib/exit-status.ts` defines the exit statuses, and
+  every exit in the source takes its code from it. Exit status 0 means the
+  command completed. Exit status 2 means a provider key is not set in direct
+  mode: the message names the variable and the configuration file, and the
+  other commands of the same group follow, those with a key first and the rest
+  tagged `(no key set)`. Exit status 1 means any other failure. That covers a
+  parse error; an HTTP error, printed as `error: HTTP <status> <status text>
+  from <URL>: <body>`, where Brave Answers names itself in place of the URL,
+  the body is cut at 500 characters, and the request's bearer token is
+  replaced by `[redacted]` wherever it appears; research that ends without
+  completing; `research get` for a job that has not completed; a Firecrawl
+  response with `success: false` in rendered mode; `config init` when the file
+  exists and `--force` is absent; and `research brave --citations`, which seek
+  rejects before any request because Brave research does not take citations.
+  Other errors print as `error: <message>`.
+
+
+  `seek skill` prints the bundled skill, `skills/seek/SKILL.md` as it was when
+  seek was built, byte for byte. `seek serve` runs the server that the
+  `http-api` specification defines; it refuses to start without a client token
+  unless `--no-auth` is given, and stops on SIGINT or SIGTERM.
+format: cli
+validation-criteria: >-
+  `tests/program.test.ts` renders the help of every command that
+  `createProgram()` builds and requires it to equal the CLI's own `--help`
+  output, so the importable program is the one the CLI runs. It also requires
+  every exit in the source to use `EXIT_STATUSES` and checks three exits
+  against it. `tests/cli.test.ts` runs the CLI from source and checks help
+  content, the bundled skill, parse boundaries, provider validation before
+  network access, and the missing-key exit status with its alternatives.
+  `scripts/ci.sh` compiles the binary and checks its version and skill output.
+  Published command reference is generated from `createProgram()`, as the
+  `documentation` technical design describes, so it cannot disagree with
+  `--help`.

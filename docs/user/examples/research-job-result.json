@@ -1,0 +1,56 @@
+{
+  "locator": {
+    "provider": "parallel",
+    "jobId": "trun_practice_1"
+  },
+  "status": "completed",
+  "providerStatus": "completed",
+  "terminal": true,
+  "providerPayload": {
+    "run_id": "trun_practice_1",
+    "interaction_id": "interaction_practice_1",
+    "status": "completed",
+    "is_active": false,
+    "processor": "core",
+    "created_at": "2026-01-01T00:00:00Z",
+    "modified_at": "2026-01-01T00:00:00Z"
+  },
+  "result": {
+    "text": "A made-up report on \"how do honeybees make honey\". The practice server wrote it from two invented sources.",
+    "citations": [
+      "https://example.com/practice/source-1",
+      "https://example.com/practice/source-2"
+    ]
+  },
+  "providerResult": {
+    "run": {
+      "run_id": "trun_practice_1",
+      "interaction_id": "interaction_practice_1",
+      "status": "completed",
+      "is_active": false,
+      "processor": "core",
+      "created_at": "2026-01-01T00:00:00Z",
+      "modified_at": "2026-01-01T00:00:00Z"
+    },
+    "output": {
+      "type": "text",
+      "content": "A made-up report on \"how do honeybees make honey\". The practice server wrote it from two invented sources.",
+      "basis": [
+        {
+          "field": "output",
+          "reasoning": "Invented by the practice server.",
+          "citations": [
+            {
+              "url": "https://example.com/practice/source-1",
+              "title": "Practice source 1"
+            },
+            {
+              "url": "https://example.com/practice/source-2",
+              "title": "Practice source 2"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

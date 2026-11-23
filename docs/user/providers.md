@@ -1,97 +1,79 @@
 ---
-title: Providers
-order: 4
+title: Choosing a provider
 product: seek
+order: 11
 ---
 
-seek is a thin, uniform layer over several provider APIs. Commands are grouped
-by intent (search, research, scrape); within a command you pick the provider
-whose trade-offs fit your query. Every provider requires its own API key — see
-[Configuration](config).
+Each provider answers in its own way, at its own speed and cost, so the
+choice of provider shapes the answer more than any option does. This page
+describes what each provider offers through seek. Every provider needs its own
+key; see [Set up provider keys](config.md).
 
-| Provider      | Commands                         | Best for                                                        |
-| ------------- | -------------------------------- | --------------------------------------------------------------- |
-| Parallel      | `web`, `research`, `scrape`      | Dense, LLM-ready context; strict-JSON deep research; extraction |
-| Exa           | `web`, `scrape`                  | Neural semantic search; bulk clean page text                    |
-| Brave Search  | `web brave search`               | Real-time facts from an independent global index                |
-| Brave Answers | `web brave answers`, `research brave` | AI answers with verifiable sources; deep research           |
-| Perplexity    | `web`, `research`                | Short cited answers; polished long-form briefings               |
-| Google/Gemini | `research google`                | Long-horizon, Google-grounded reports                           |
-| Firecrawl     | `scrape firecrawl`               | Clean Markdown/HTML/JSON/screenshots from any live URL          |
+| Provider | Commands | What it is good at |
+| --- | --- | --- |
+| Parallel | `web`, `research`, `scrape` | Dense, LLM-ready excerpts; research with strict JSON output; focused extraction |
+| Exa | `web`, `scrape` | Finding pages by meaning; bulk page text |
+| Brave Search | `web brave search` | Real-time results from an independent web index |
+| Brave Answers | `web brave answers`, `research brave` | AI answers with sources; quick research |
+| Perplexity | `web perplexity`, `research perplexity` | Short cited answers; long-form briefings |
+| Google Gemini | `research google` | Long, planned research with a detailed, cited report |
+| Firecrawl | `scrape firecrawl` | Any live page as Markdown, HTML, links, a screenshot or extracted JSON |
 
-## Parallel
+When you are not sure, Parallel is a good start for `web` and `research`,
+and Firecrawl for `scrape`.
 
-The most versatile provider — used by all three commands.
+## Search
 
-- **web** — returns relevant excerpts optimized for LLMs, replacing multiple
-  keyword searches with a single call for broad or complex queries.
-- **research** — Parallel Deep Research with tunable processor depth
-  (`core-fast` … `ultra`) and optional strict JSON output via a schema file.
-  Best for B2B and data-ops work where output must be auditable. Supports
-  resumable `--async` submission plus later `research status` and `research
-  get` calls.
-- **scrape** — the `/v1/extract` endpoint returns clean markdown excerpts (and
-  optional full content) plus publish dates, and can authenticate through
-  logins and paywalls.
+- **Parallel** returns excerpts written for a language model, and one query
+  can stand in for several keyword searches. It suits an agent that needs
+  broad context in one call.
+- **Exa** searches by meaning, so it finds papers, companies or posts that
+  match a concept even when they share no keywords with the query. It can
+  restrict results to a category and a publication window.
+- **Brave Search** returns snippets from Brave's own index, with freshness
+  and country filters: a good source of current facts.
+- **Brave Answers** and **Perplexity** write one answer and list its sources,
+  for a reader who wants the answer rather than a list of pages.
 
-## Exa
+## Research
 
-Neural semantic search that finds pages by meaning rather than keywords.
+Research providers differ most in time and depth:
 
-- **web** — best for conceptual queries; supports search types
-  (`auto` … `deep-reasoning`), category filters, and date windows.
-- **scrape** — bulk page parsing that returns stripped text optimized for LLM
-  token windows.
+| Provider | Typical time | Resumable job |
+| --- | --- | --- |
+| Brave | Seconds | No |
+| Perplexity | 1 to 3 minutes | Yes |
+| Parallel | 15 seconds to 25 minutes, by processor | Yes |
+| Google | 5 to 20 minutes | Yes |
 
-## Brave
+- **Parallel** chooses its depth by processor, from `core-fast` to `ultra`;
+  the `-fast` processors trade freshness of data for speed. With `--schema`,
+  it returns JSON in the shape a schema file describes, with the sources for
+  each field, which suits work that must be audited.
+- **Google** runs the Gemini Deep Research agent, which plans, searches and
+  writes a long report. With `--interactive`, a planner drafts a plan for
+  you to approve or revise before the research starts.
+- **Perplexity** writes a polished briefing with inline citations, with a
+  reasoning effort of `low`, `medium` or `high`.
+- **Brave** answers in one streaming response, so it is the quickest, and it
+  has no job to check later. `seek research brave` lists `--citations`, but
+  Brave's research mode does not accept it, and the command stops with an
+  error before it sends the request.
 
-Brave exposes two separate APIs, provisioned and keyed independently.
+When `--country` or `--language` is left out of a Brave command, seek sends
+neither, and Brave applies its own defaults.
 
-- **Brave Search** (`web brave search`) — clean, structured snippets from an
-  independent global web index; best for real-time consumer facts, with
-  optional freshness and country filters.
-- **Brave Answers** (`web brave answers`, `research brave`) — AI-generated
-  answers backed by verifiable sources. The same endpoint powers deep research
-  when the research flag is enabled. Research remains synchronous because the
-  streaming endpoint does not expose a resumable job id.
+## Extraction
 
-## Perplexity
+- **Exa** returns the text of many pages at once, stripped for a model's
+  context window.
+- **Parallel** returns excerpts focused on an objective you give, with each
+  page's publish date, and can include each page's full Markdown.
+- **Firecrawl** renders one live page, including its JavaScript, and returns
+  the formats you ask for, or JSON that a model extracts with your prompt.
 
-Synthesizes the web into cited answers.
+## When a key is missing
 
-- **web** — short, conversational answers with citations; model, recency,
-  search mode (`web`/`academic`), and domain filters are configurable.
-- **research** — Sonar Deep Research (async job) for polished long-form
-  briefings with inline citations and a tunable reasoning-effort level.
-  Supports resumable submission and later status/result retrieval.
-
-## Google (Gemini)
-
-- **research google** — the Gemini Deep Research Agent autonomously plans,
-  executes, and synthesizes multi-step research into a detailed, cited report.
-  Runs can take several minutes; resumable submission and an interactive
-  plan-approval mode are available. With `--interactive --async`, the plan is
-  approved before the provider job is submitted.
-
-## Resumable provider jobs
-
-Google, Parallel, and Perplexity expose durable provider jobs. `seek research
-<provider> <query> --async` returns a provider-qualified locator without
-polling. `seek research status <provider> <job-id>` and `seek research get
-<provider> <job-id>` reconnect directly to that remote job; no local daemon or
-job-history database is involved. See [Research](research) for command examples
-and the JSON lifecycle contract.
-
-## Firecrawl
-
-- **scrape firecrawl** — turns any live URL into clean Markdown, HTML, raw
-  HTML, links, a summary, a screenshot, or LLM-extracted JSON, with controls
-  for JS rendering, mobile viewport, ad blocking, proxy modes, and caching.
-
-## Choosing a provider
-
-- Not sure which to use? Start with **Parallel** for `web` and `research`, and
-  **Firecrawl** for `scrape`.
-- Running a command without the matching key prints the missing-key error plus
-  a ranked list of sibling providers, marking which ones you already have keys
-  for.
+A provider command without its key stops before calling anything, names the
+variable to set, and lists the other providers of the same group, marking
+those that have no key yet, so you can switch to one you already have.

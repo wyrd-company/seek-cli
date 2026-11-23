@@ -1,0 +1,5 @@
+$schema: https://refinery.systems/ontology/term
+title: Bundled skill
+description: >-
+  The agent skill `skills/seek/SKILL.md`, compiled into the seek binary when
+  it is built and printed byte for byte by `seek skill`.

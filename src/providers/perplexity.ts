@@ -3,10 +3,6 @@ import { request, poll } from "../lib/http.ts";
 
 const baseUrl = () => upstreamBaseUrl("perplexity");
 
-function authHeaders(): Record<string, string> {
-  return upstreamAuthHeaders("perplexity");
-}
-
 export type SearchRecency = "hour" | "day" | "week" | "month";
 export type ReasoningEffort = "low" | "medium" | "high";
 
@@ -69,7 +65,7 @@ export async function perplexitySearch(
 ): Promise<PerplexityResponse> {
   return await request(`${baseUrl()}/chat/completions`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: await upstreamAuthHeaders("perplexity"),
     body: buildBody(query, { ...opts, model: opts.model ?? "sonar" }),
     timeoutMs: 90_000,
   });
@@ -111,7 +107,7 @@ export async function submitPerplexityDeepResearch(
 
   return await request<PerplexityAsyncJob>(`${baseUrl()}/v1/async/sonar`, {
     method: "POST",
-    headers: authHeaders(),
+    headers: await upstreamAuthHeaders("perplexity"),
     body,
     timeoutMs: 60_000,
   });
@@ -122,7 +118,7 @@ export async function getPerplexityDeepResearch(
 ): Promise<PerplexityAsyncJob> {
   return await request<PerplexityAsyncJob>(
     `${baseUrl()}/v1/async/sonar/${encodeURIComponent(id)}`,
-    { headers: authHeaders(), timeoutMs: 60_000 },
+    { headers: await upstreamAuthHeaders("perplexity"), timeoutMs: 60_000 },
   );
 }
 

@@ -1,0 +1,7 @@
+{
+  "locator": { "provider": "brave", "jobId": "synthetic-1" },
+  "status": "queued",
+  "providerStatus": "queued",
+  "terminal": false,
+  "providerPayload": {}
+}

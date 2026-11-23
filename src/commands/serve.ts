@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { UPSTREAMS } from "../lib/upstreams.ts";
+import { EXIT } from "../lib/exit-status.ts";
 import { SecretResolver } from "../server/secrets.ts";
 import { startServer } from "../server/server.ts";
 import { VaultSecretSource, vaultConfigFromEnv } from "../server/vault.ts";
@@ -55,7 +56,7 @@ export function registerServeCommand(program: Command): void {
 
       const shutdown = () => {
         server.stop();
-        process.exit(0);
+        process.exit(EXIT.success);
       };
       process.on("SIGINT", shutdown);
       process.on("SIGTERM", shutdown);

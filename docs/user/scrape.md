@@ -1,77 +1,73 @@
 ---
-title: scrape
-order: 7
+title: Extract the content of a page
 product: seek
+order: 6
 ---
 
-Targeted page extraction — clean text, Markdown, or JSON from URLs you already
-have. Pick a provider subcommand.
+Get the text of pages whose URLs you already have, as Markdown, plain text or
+JSON. You need the provider's key (see [Set up provider keys](config.md)) or
+a seek server. The practice server from
+[Run your first search](first-search.md) answers `seek scrape exa`, with
+made-up text.
 
-```bash
-seek scrape <provider> <url...> [options]
+![Terminal recording: seek scrape exa prints a heading, the URL and the text of one page.](assets/scrape.gif)
+
+## 1. Pick the command
+
+| You want | Command | Key |
+| --- | --- | --- |
+| The text of one or more pages, in bulk | `seek scrape exa` | `EXA_API_KEY` |
+| Excerpts focused on an objective, with publish dates, from one or more pages | `seek scrape parallel` | `PARALLEL_API_KEY` |
+| One page as Markdown, HTML, links, a summary, a screenshot or extracted JSON | `seek scrape firecrawl` | `FIRECRAWL_API_KEY` |
+
+## 2. Extract the pages
+
+Put the URLs after the command:
+
+```sh
+seek scrape exa https://example.com/honey
 ```
 
-Providers: `exa`, `parallel`, `firecrawl`.
+```text
+# Practice page 1
+https://example.com/honey
 
-## scrape exa
-
-Bulk parsing — retrieves clean, stripped page text optimized for LLM token
-windows. Accepts multiple URLs.
-
-```bash
-seek scrape exa https://example.com https://example.org
+Made-up text for https://example.com/honey. The practice server wrote it and did not fetch the page.
 ```
 
-| Option            | Description                            |
-| ----------------- | -------------------------------------- |
-| `-c, --chars <n>` | Max characters per page (default 50000) |
-| `--json`          | Emit raw JSON response                 |
+Each page prints as a heading with its title, its URL and its text. Several
+pages are separated by `---`.
 
-Output: one Markdown block per URL (title, URL, text), separated by `---`.
+## 3. Shape the result
 
-## scrape parallel
-
-Enterprise extraction via Parallel's `/v1/extract` endpoint — clean markdown
-excerpts (and optional full content) plus publish dates per URL. Can
-authenticate through logins and paywalls. Accepts multiple URLs.
-
-```bash
-seek scrape parallel https://app.example.com/dashboard \
-  --objective "Extract the latest invoice table"
+```sh
+seek scrape exa https://example.com/honey https://example.org/bees -c 2000
+seek scrape parallel https://example.com/honey --objective "Find the harvest months"
+seek scrape firecrawl https://example.com/honey -f markdown,links --wait 2000
 ```
 
-| Option              | Description                                          |
-| ------------------- | ---------------------------------------------------- |
-| `--objective <text>`| Focus excerpts on a natural-language extraction goal  |
-| `--full`            | Include full markdown content, not just excerpts      |
-| `-c, --chars <n>`   | Max characters per excerpt block                      |
-| `--max-total <n>`   | Max characters total across all URLs                  |
-| `--max-age <secs>`  | Reuse cached content up to N seconds old              |
-| `--json`            | Emit raw JSON response                               |
+- `-c` caps the characters per page for `exa`, and per excerpt for
+  `parallel`.
+- `--objective` focuses the `parallel` excerpts on a goal, and `--full` adds
+  each page's full Markdown.
+- `seek scrape firecrawl` takes one URL. `-f` chooses the formats Firecrawl
+  returns, and seek prints the first it has, in this order: Markdown, summary,
+  HTML, links, extracted JSON, screenshot. `--wait` gives the page's
+  JavaScript time to run, and `--json-prompt` asks Firecrawl to extract JSON
+  with the prompt you give.
 
-Output: one block per URL (title, URL, publish date, content), with any
-per-URL errors listed at the end.
+The [scrape commands](reference/commands/seek-scrape.md) list every option.
 
-## scrape firecrawl
+## 4. Get JSON for a script or an agent
 
-Turn a single live URL into clean Markdown, HTML, JSON, a summary, or a
-screenshot via Firecrawl v2.
+Add `--json` to print the provider's own response:
 
-```bash
-seek scrape firecrawl https://example.com -f markdown,links
+```sh
+seek scrape exa https://example.com/honey --json
 ```
 
-| Option                | Description                                                             |
-| --------------------- | ---------------------------------------------------------------------- |
-| `-f, --format <list>` | Comma-separated: `markdown`, `html`, `rawHtml`, `links`, `summary`, `screenshot`, `video`, `audio` (default `markdown`) |
-| `--json-prompt <text>`| Add a JSON format with this LLM extraction prompt (produces `data.json`)|
-| `--full`              | Include nav/footer/sidebars (disables `onlyMainContent`)                |
-| `--wait <ms>`         | Wait N ms for JS to render before scraping                              |
-| `--mobile`            | Render as a mobile viewport                                             |
-| `--block-ads`         | Block ads / trackers during render                                      |
-| `--proxy <mode>`      | Proxy mode: `basic` \| `stealth` \| `enhanced` \| `auto`                |
-| `--max-age <ms>`      | Reuse cached scrape up to N ms old (cheaper, near-instant)              |
-| `--json`              | Emit raw JSON response                                                 |
+## Check the result
 
-Takes a single URL. Output: the first available rendered format (markdown,
-then summary, html, links, JSON, or screenshot).
+Each URL printed a block of text, and the command exited with status 0.
+`seek scrape parallel` lists the URLs it could not read under `Errors:`
+after the blocks it read.

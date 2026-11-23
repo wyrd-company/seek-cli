@@ -1,0 +1,113 @@
+$schema: https://refinery.systems/ontology/concept
+title: seek
+description: >-
+  seek is a command-line tool that gives an agent, or a person, one command
+  tree over several web search, deep research and page extraction APIs. The
+  caller chooses an intent group first, `web`, `research` or `scrape`, and
+  then the provider whose speed, cost and output fit the request. seek renders
+  each provider's answer as text, or prints the provider's JSON with `--json`
+  for a program to parse. Long research runs as a job the provider holds,
+  which the caller can check on and collect in later invocations. A seek
+  server holds the provider keys for its clients, so a machine that runs the
+  CLI needs only the server's URL and a client token.
+properties:
+  intent-groups:
+    >-
+      Three command groups named by what the caller wants: `web` for real-time
+      search and short answers, `research` for multi-step research that
+      compiles a cited report, and `scrape` for the content of URLs the caller
+      already has. Each holds one command per provider.
+  providers:
+    >-
+      Parallel, Exa, Brave, Perplexity, Google Gemini and Firecrawl, each
+      reached through its own HTTP API. Brave has two APIs with separate keys,
+      Search and Answers, so seek has seven upstreams.
+  provider-keys:
+    >-
+      One API key per upstream, named by an environment variable such as
+      `EXA_API_KEY`, set in the environment or the configuration file.
+  output-modes:
+    >-
+      Rendered text on stdout by default: numbered search results, answers and
+      reports with a numbered citation list, and page content. `--json` prints
+      the provider's response instead, or the research job envelope for
+      resumable research.
+  research-jobs:
+    >-
+      Google, Parallel and Perplexity research runs as a job the provider
+      holds. seek identifies it by its provider and job ID and reports its
+      state as one of eight normalized statuses beside the provider's own.
+  seek-server:
+    >-
+      `seek serve`, the same binary run as an HTTP proxy that holds the
+      provider keys, checks client tokens, and forwards each request to its
+      upstream's fixed base URL with the upstream's key. It is published as
+      the `ghcr.io/wyrd-company/seek-server` image.
+  secret-sources:
+    >-
+      The environment, a Vault or OpenBao KV secret, and the configuration
+      file, read in that order. The server reads provider keys and client
+      tokens from all three; a client reads its client token from all three.
+  configuration-file:
+    >-
+      A flat JSON object at `$XDG_CONFIG_HOME/seek/config.json` whose keys are
+      the environment variable names, managed with `seek config`.
+  bundled-skill:
+    >-
+      The agent skill in `skills/seek/SKILL.md`, compiled into the binary and
+      printed by `seek skill`, which tells an agent which command and provider
+      fit a task.
+  distribution:
+    >-
+      A single native binary compiled with Bun for Linux and macOS on x86_64
+      and arm64, a Homebrew formula, a source launcher that runs on Bun, and
+      the server image for linux/amd64 and linux/arm64.
+features:
+  search-the-web:
+    >-
+      Runs one real-time search or answer query against Parallel, Exa, Brave
+      Search, Brave Answers or Perplexity, with that provider's filters.
+  research-a-question:
+    >-
+      Runs deep research with Brave, Parallel, Google or Perplexity and prints
+      a cited report, waiting for it while showing progress.
+  resume-research:
+    >-
+      Submits Google, Parallel or Perplexity research with `--async`, then
+      checks its status and collects its result with `seek research status`
+      and `seek research get` in separate invocations.
+  plan-research-interactively:
+    >-
+      Drafts a research plan with Perplexity, Brave or a fixed template, lets
+      the person approve or revise it in the terminal, and sends the approved
+      plan to Google Deep Research.
+  scrape-pages:
+    >-
+      Extracts clean text, Markdown, HTML, JSON, links or screenshots from
+      known URLs with Exa, Parallel or Firecrawl.
+  suggest-other-providers:
+    >-
+      When a provider key is missing, names the variable to set and lists the
+      other commands of the same group, those with keys first.
+  keep-keys-on-a-server:
+    >-
+      Routes every provider call through a seek server when `SEEK_SERVER_URL`
+      is set, so the machine running the CLI holds no provider keys.
+  read-secrets-from-vault:
+    >-
+      Reads the server's provider keys and client tokens, or a client's token,
+      from one Vault or OpenBao KV secret, with token, token-file or AppRole
+      authentication, and reads it again after a refresh interval.
+  manage-configuration:
+    >-
+      Prints the configuration file's path, writes a template with a
+      placeholder for every provider key, and shows each key's source with its
+      value masked.
+  print-the-skill:
+    >-
+      Prints the bundled skill so that an agent harness can install it from
+      the binary it runs.
+exclusions:
+  - Resumable Brave research, because Brave's streaming endpoint exposes no job to resume.
+  - TLS in the seek server, which serves plain HTTP behind a TLS-terminating proxy.
+  - Forwarding to any host other than the seven upstreams' fixed base URLs.

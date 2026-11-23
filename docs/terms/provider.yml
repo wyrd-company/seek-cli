@@ -1,0 +1,6 @@
+$schema: https://refinery.systems/ontology/term
+title: Provider
+description: >-
+  An external service whose API seek calls: Parallel, Exa, Brave, Perplexity,
+  Google or Firecrawl. Each provider command is named for its provider, such
+  as `seek web exa`. A provider can offer more than one upstream.

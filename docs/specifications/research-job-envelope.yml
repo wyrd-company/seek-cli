@@ -1,0 +1,48 @@
+$schema: https://refinery.systems/ontology/specification
+title: seek research job envelope
+description: >-
+  The JSON that seek prints for a resumable research job, which agents parse
+  to submit research, check on it and collect the report in separate
+  invocations. `research-job-envelope.schema.json` beside this document
+  defines it in JSON Schema 2020-12, including the provider statuses behind
+  each normalized status.
+
+
+  Google, Parallel and Perplexity research jobs are resumable; the provider
+  holds the job. `seek research <provider> --async` submits one job, prints
+  the envelope for the provider's submission response, and exits 0 without
+  waiting. `seek research status <provider> <job-id>` reads the job once and
+  prints its envelope, and exits 0 whenever the provider answers, whatever the
+  job's state. `seek research get <provider> <job-id>` reads the job once.
+  When the normalized status is `completed`, it adds `result`, which for
+  Parallel needs one more request to the result endpoint, and exits 0.
+  Otherwise it prints the same envelope without `result`, or a summary on
+  stderr without `--json`, and exits 1. Neither command waits for the job to
+  change state. A job ID that begins with a hyphen follows `--`.
+
+
+  Without `--json`, the same commands print the provider, job ID and both
+  statuses, the failure message when there is one, and for submission and an
+  unfinished `get`, copyable `seek research status` and `seek research get`
+  commands with shell-quoted arguments after `--`. `get` prints a completed
+  report as text followed by a numbered citation list. Brave research has no
+  resumable job. `status` and `get` reject `brave`, and any provider name
+  outside the three, before any request, with exit status 1.
+
+
+  Blocking research, which runs without `--async`, prints the provider's own
+  final response with `--json` instead of this envelope.
+format: json-schema
+validation-criteria: >-
+  `research-job-envelope.schema.json` compiles under Ajv 8.20.0 in strict mode
+  with the 2020-12 dialect. Envelopes that seek produces from synthetic
+  provider responses validate, and envelopes that break its rules are
+  rejected: a terminal flag that disagrees with the status, a result on an
+  unfinished job, and a Parallel result on another provider's job.
+  `tests/research-job-envelope.test.ts` binds the schema to
+  `src/lib/research-jobs.ts`. The provider and status enumerations equal the
+  code's, each provider status named in a status description normalizes to
+  that status, each status the code maps is named, and an unmapped status
+  normalizes to `unknown`. The envelopes the code builds for each provider
+  hold only the schema's properties and satisfy its terminal, result and
+  provider rules.

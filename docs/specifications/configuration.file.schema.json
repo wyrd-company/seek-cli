@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "seek configuration file",
+  "description": "The JSON object seek reads from $XDG_CONFIG_HOME/seek/config.json, or ~/.config/seek/config.json when XDG_CONFIG_HOME is empty or unset. Its keys are seek's variable names, and an environment variable with the same name takes precedence over the file. A Vault or OpenBao secret read through SEEK_VAULT_PATH holds fields with these same names. seek reads string values only and ignores other keys.",
+  "type": "object",
+  "properties": {
+    "PARALLEL_API_KEY": {
+      "description": "Parallel API key, used by `seek web parallel`, `seek research parallel` and `seek scrape parallel`. A seek server sends it to Parallel as the `x-api-key` header.",
+      "type": "string"
+    },
+    "EXA_API_KEY": {
+      "description": "Exa API key, used by `seek web exa` and `seek scrape exa`. A seek server sends it to Exa as the `x-api-key` header.",
+      "type": "string"
+    },
+    "BRAVE_SEARCH_API_KEY": {
+      "description": "Brave Search API key, used by `seek web brave search`. A seek server sends it to Brave as the `X-Subscription-Token` header.",
+      "type": "string"
+    },
+    "BRAVE_ANSWERS_API_KEY": {
+      "description": "Brave Answers API key, used by `seek web brave answers`, `seek research brave` and the Brave planner of `seek research google --interactive`. A seek server sends it to Brave as the `X-Subscription-Token` header.",
+      "type": "string"
+    },
+    "PERPLEXITY_API_KEY": {
+      "description": "Perplexity API key, used by `seek web perplexity`, `seek research perplexity` and the Perplexity planner of `seek research google --interactive`. A seek server sends it to Perplexity as an `Authorization: Bearer` header.",
+      "type": "string"
+    },
+    "GEMINI_API_KEY": {
+      "description": "Google Gemini API key, used by `seek research google`. A seek server sends it to Google as the `x-goog-api-key` header.",
+      "type": "string"
+    },
+    "FIRECRAWL_API_KEY": {
+      "description": "Firecrawl API key, used by `seek scrape firecrawl`. A seek server sends it to Firecrawl as an `Authorization: Bearer` header.",
+      "type": "string"
+    },
+    "SEEK_SERVER_URL": {
+      "description": "Base URL of a seek server. When it is set, the CLI sends every provider call to `<url>/v1/proxy/<upstream>` with the client token, and does not use local provider keys. The value is trimmed and trailing slashes are removed.",
+      "type": "string",
+      "format": "uri",
+      "examples": ["https://seek.internal.example"]
+    },
+    "SEEK_SERVER_TOKEN": {
+      "description": "Client token for a seek server. The CLI sends the whole value as `Authorization: Bearer <token>`, so a client's value is one token. `seek serve` accepts each entry of a comma-separated list, which allows rotation.",
+      "type": "string"
+    }
+  },
+  "additionalProperties": {
+    "description": "seek ignores keys it does not read."
+  }
+}

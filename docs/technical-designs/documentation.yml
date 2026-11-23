@@ -19,8 +19,9 @@ design-challenges:
       their flags, descriptions and defaults, and subcommands. Leave
       `SEEK_SERVER_HOST` and `SEEK_SERVER_PORT` unset when calling
       `createProgram()` to generate the CLI's built-in defaults regardless of
-      the local environment. It captures `outputHelp()` at 80 columns, the way
-      `tests/program.test.ts` does, to render full help including appended text.
+      the local environment. It captures `outputHelp()` at 80 columns without
+      colour, the way `tests/program.test.ts` does, to render full help
+      including appended text.
   facts-outside-the-parser:
     >-
       Exit statuses are part of the command reference but are not Commander
@@ -43,17 +44,35 @@ design-challenges:
       further dot. The link check rejects a link from a page in `docs/user/`
       to any file under `docs/` outside `docs/user/`, by relative path or by a
       `github.com/wyrd-company/seek-cli` blob, tree or raw URL.
+  tutorials-without-credentials:
+    >-
+      A tutorial must work as written in a clean environment and show output
+      the reader can compare, but real providers need accounts and keys and
+      answer differently each time. `docs/user/examples/practice-server.mjs`
+      answers the seek server HTTP API with made-up results on example.com
+      and accepts the token `practice-token`. It runs under Node.js 18 or Bun,
+      so a reader without Bun can start it, and seek reaches it in server
+      mode. Its answers are deterministic, so pages show exact output and the
+      tests compare it.
+  captures-need-a-browser:
+    >-
+      VHS renders recordings in a headless Chromium, which needs system
+      libraries a development machine may lack. `scripts/docs/capture.sh`
+      builds `dist/seek` and runs each tape in a container from
+      `docs/captures/Dockerfile`, the pinned VHS image with Node.js, curl and
+      jq added, with a fresh practice server and an empty synthetic home.
 proposed-design:
   high-level-overview:
     >-
       `scripts/docs/reference.ts` reads the authoritative definitions and
       writes Markdown reference pages and definition copies under
       `docs/user/reference/`. `bun run docs:reference` runs it.
-      `scripts/docs/check.ts` regenerates into a temporary directory, compares
-      the result with the committed files, validates the definitions and
-      examples, and checks links and assets. `bun run docs:check` runs it, and
+      `scripts/docs/check.ts` regenerates in memory, compares the result with
+      the committed files, validates the definitions and examples, and checks
+      pages, navigation, links and assets. `bun run docs:check` runs it, and
       `scripts/ci.sh` runs it after the tests, so the CI workflow fails on any
-      drift.
+      drift. `scripts/docs/paths.ts` names the folders and definitions without
+      importing `src/`, so the check reports a generator that fails to load.
   authoritative-inputs:
     >-
       The command line: `createProgram()` in `src/program.ts`, with
@@ -75,7 +94,8 @@ proposed-design:
       `seek.md` also has the exit status table.
       `docs/user/reference/http-api.md`, with one section per OpenAPI tag,
       listing each operation's method, path, summary, description, parameters
-      and responses with their examples, and the security scheme.
+      and responses, and the security scheme, then the components: each
+      schema, and each shared response with its headers and examples.
       `docs/user/reference/configuration.md`, with one table per configuration
       schema giving each key's type, accepted values, default and description.
       `docs/user/reference/research-job-envelope.md`, with the envelope's
@@ -90,22 +110,33 @@ proposed-design:
   examples-and-fixtures:
     >-
       Valid examples that readers download live in `docs/user/examples/`:
-      `config.json` for the configuration file schema,
-      `research-job-envelope.json` for the envelope schema, and each request
-      and response example a page offers for the HTTP API. The check validates
-      each against its definition. Invalid fixtures live in
-      `tests/fixtures/invalid/<definition>/`, and
-      `tests/documentation.test.ts` asserts the validation error each one
+      `config.json` and `client-config.json` for the configuration file
+      schema; `research-job-submitted.json` and `research-job-result.json`
+      for the envelope schema, which are seek's own output against the
+      practice server; `health.response.json` and
+      `unauthorized.response.json` for HTTP API responses; and the scripts
+      `practice-server.mjs` and `server-client.mjs`. `EXAMPLES` in
+      `scripts/docs/validate.ts` declares how each is proved: a JSON example
+      names its definition, or an operation's response in the OpenAPI
+      document, and the check validates it; a script names the test that runs
+      it, and the check parses it. An example without a declaration fails the
+      check. Invalid fixtures live in `tests/fixtures/invalid/<definition>/`,
+      and `tests/documentation.test.ts` asserts the validation error each one
       produces. Every example uses synthetic values.
   validation:
     >-
-      The check validates `http-api.openapi.yml` with
-      `@seriousme/openapi-schema-validator` and compiles each JSON Schema
-      under Ajv with the 2020-12 dialect, strict mode and `ajv-formats`, using
-      versions pinned as development dependencies. The contract tests in
-      `tests/http-api.test.ts`, `tests/configuration.test.ts`,
-      `tests/research-job-envelope.test.ts` and `tests/program.test.ts` bind
-      the definitions to the code.
+      The check uses the Ajv development dependency already in the lockfile,
+      with the 2020-12 dialect and strict mode, and adds no validator package.
+      It compiles each JSON Schema definition, with the `uri` format checked
+      by a scheme pattern and `URL.canParse`, validates examples against them
+      and against OpenAPI schemas compiled with the document's components as
+      `$defs`, and validates every inline example in the OpenAPI document
+      against its schema. The OpenAPI document as a whole is validated by the
+      contract tests in `tests/http-api.test.ts` and by the OpenAPI validators
+      `docs/AGENTS.md` names, which run through `npm exec` outside the check.
+      The contract tests in `tests/http-api.test.ts`,
+      `tests/configuration.test.ts`, `tests/research-job-envelope.test.ts`
+      and `tests/program.test.ts` bind the definitions to the code.
   drift-check:
     >-
       `docs:check` fails when generation fails, when a generated file differs
@@ -123,7 +154,40 @@ proposed-design:
       check fails when a listed asset does not exist, when a generated copy or
       example is not listed, and when a listed asset is neither linked, by its
       path relative to the page, from a page whose `product` is `seek`, nor
-      named by a product field such as `logo` or `media`.
+      named by a product field such as `logo` or `media`. A link to a file
+      that is not listed fails as a download that does not publish, and each
+      recording a tape in `docs/captures/` writes must exist and be listed.
+  walkthroughs:
+    >-
+      `tests/documentation.test.ts` runs the published tutorials and guides as
+      written against the practice server, and the CLI search and the example
+      client also through a real `seek serve` handler whose upstreams return
+      the practice server's answers. Each step's command must appear in a
+      `sh` block of its page and its output in the block that shows it. The
+      script in the research-job guide runs under bash with jq, with `sleep`
+      replaced so the test does not wait.
+  guards:
+    >-
+      The same test file proves each guard of the check by breaking it in a
+      copy of the repository and requiring `docs:check` to fail with the
+      finding that names it: a command, exit status, JSON Schema or OpenAPI
+      definition changed without regenerating; generation that fails; a
+      generated page edited, deleted or left over; an invalid example; a
+      missing page, fragment or download; a design-document link by relative
+      path and by GitHub URL; a listed asset that no page uses; an asset that
+      loses its only link; an unlisted example; and a page with two homes. An
+      unchanged copy passes with `SEEK_SERVER_HOST` and `SEEK_SERVER_PORT`
+      set, which proves the generator ignores them.
+  captures:
+    >-
+      Each terminal recording `docs/user/assets/<name>.gif` has a tape
+      `docs/captures/<name>.tape` that sources `_settings.tape`, runs the
+      compiled binary against the practice server or with synthetic values,
+      and shows the commands of the page that embeds it.
+      `bun run docs:capture` records every tape, and
+      `scripts/docs/capture.sh <name>` records one. The check cannot tell
+      whether a recording is current, so a change to output a recording shows
+      records it again in the same pull request.
   release-units:
     >-
       Generated pages and copies are part of the `seek-docs` release unit in

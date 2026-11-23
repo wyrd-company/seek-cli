@@ -12,6 +12,10 @@ popular APIs.
 
 Run `seek skill` to print the bundled Seek skill for use by an agent.
 
+Read the documentation at [wyrd.foo/docs/seek](https://wyrd.foo/docs/seek/):
+start with [Run your first search](docs/user/first-search.md), which needs no
+API key.
+
 Built with [Bun](https://bun.sh) + TypeScript. Each command groups providers by
 intent so an agent (or human) can pick the right trade-off between speed, cost,
 and output type.
@@ -146,8 +150,7 @@ seek web brave answers "compare common bookbinding stitches" --citations
 seek web perplexity "compare natural fibers for basket weaving"
 
 # Deep research
-seek research brave "compare common methods for preserving paper records" \
-  --citations
+seek research brave "compare common methods for preserving paper records"
 seek research parallel "compare three soil amendments for container gardens" \
   --schema ./schema.json --processor pro
 seek research google "compare common methods for preserving paper records"
@@ -281,7 +284,12 @@ The tap publish job expects an SSH deploy key in the repository secret
 ### Public docs
 
 The public docs are `docs/user/` (`docs.yml` and the pages), and they publish to
-[wyrd.foo](https://wyrd.foo/tools/seek/). They release as their own Intentional
+[wyrd.foo](https://wyrd.foo/tools/seek/). `bun run docs:reference` regenerates
+the reference in `docs/user/reference/` from the command definitions and the
+specifications, `bun run docs:check` checks the reference, examples, links,
+navigation and assets (CI runs it), and `bun run docs:capture` records the
+terminal recordings again with Docker. [docs/AGENTS.md](docs/AGENTS.md)
+describes each. They release as their own Intentional
 unit, `seek-docs`, which depends on `seek-cli`. `seek-docs` writes
 `docs-version` into `docs/user/docs.yml`, and `seek-cli` writes `version`; do not
 edit either by hand. A docs-only change takes a `seek-docs` intent:

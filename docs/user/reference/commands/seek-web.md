@@ -31,6 +31,10 @@ seek web [options] [command]
 | [`seek web brave`](seek-web-brave.md) | Best for real-time consumer facts. Clean, structured snippets from an independent global web index. |
 | [`seek web perplexity`](seek-web-perplexity.md) | Best for quick, human-readable summaries. Synthesizes the web into a short, conversational answer with citations. |
 
+## Exit statuses
+
+`seek web` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek web --help`:

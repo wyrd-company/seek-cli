@@ -30,6 +30,10 @@ seek config [options] [command]
 | [`seek config init`](seek-config-init.md) | Create a template config file with placeholders for every known API key. |
 | [`seek config show`](seek-config-show.md) | Show which API keys are configured (values are masked). |
 
+## Exit statuses
+
+`seek config` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek config --help`:

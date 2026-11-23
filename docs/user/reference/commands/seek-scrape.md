@@ -30,6 +30,10 @@ seek scrape [options] [command]
 | [`seek scrape parallel`](seek-scrape-parallel.md) | Best for enterprise extract jobs. Hits Parallel's /v1/extract endpoint — returns clean markdown excerpts (and optional full content) plus publish dates per URL. |
 | [`seek scrape firecrawl`](seek-scrape-firecrawl.md) | Turn any live URL into clean, structured Markdown, HTML, JSON, summary, or screenshot via Firecrawl v2. |
 
+## Exit statuses
+
+`seek scrape` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek scrape --help`:

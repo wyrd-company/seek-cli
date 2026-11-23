@@ -33,6 +33,10 @@ seek research [options] [command]
 | [`seek research google`](seek-research-google.md) | [Comprehensive/Planning] Gemini Deep Research Agent (5 - 20 minutes) |
 | [`seek research perplexity`](seek-research-perplexity.md) | [Informed] Perplexity Sonar Deep Research (1 - 3 minutes) |
 
+## Exit statuses
+
+`seek research` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek research --help`:

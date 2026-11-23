@@ -22,6 +22,10 @@ seek config path [options]
 | --- | --- | --- |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek config path` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek config path --help`:

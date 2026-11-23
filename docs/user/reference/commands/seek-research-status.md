@@ -30,6 +30,10 @@ seek research status [options] <provider> <job-id>
 | `--json` | Emit the normalized lifecycle envelope and provider payload |  |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek research status` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek research status --help`:

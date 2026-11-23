@@ -32,6 +32,10 @@ seek research parallel [options] <query...>
 | `--json` | Emit JSON (raw result when blocking; lifecycle envelope with --async) |  |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek research parallel` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek research parallel --help`:

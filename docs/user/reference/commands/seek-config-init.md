@@ -23,6 +23,10 @@ seek config init [options]
 | `--force` | Overwrite an existing config file |  |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek config init` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek config init --help`:

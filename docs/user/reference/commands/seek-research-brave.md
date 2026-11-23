@@ -33,6 +33,10 @@ seek research brave [options] <query...>
 | `--json` | Emit JSON (raw response for synchronous research) |  |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek research brave` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek research brave --help`:

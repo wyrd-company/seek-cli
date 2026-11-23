@@ -30,6 +30,10 @@ seek research get [options] <provider> <job-id>
 | `--json` | Emit the normalized result envelope and provider payload |  |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek research get` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek research get --help`:

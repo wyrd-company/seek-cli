@@ -22,6 +22,10 @@ seek config show [options]
 | --- | --- | --- |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek config show` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek config show --help`:

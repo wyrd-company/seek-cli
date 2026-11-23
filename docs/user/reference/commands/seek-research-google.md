@@ -35,6 +35,10 @@ seek research google [options] <query...>
 | `--json` | Emit JSON (raw interaction when blocking; lifecycle envelope with --async) |  |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek research google` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek research google --help`:

@@ -25,6 +25,10 @@ seek serve [options]
 | `--no-auth` | Accept requests without a SEEK_SERVER_TOKEN (trusted networks only) |  |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek serve` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek serve --help`:

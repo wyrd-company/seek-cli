@@ -142,6 +142,10 @@ function commandPage(entry: CommandEntry, entries: CommandEntry[], order: number
       "Every command exits with one of these statuses.",
       table(["Code", "Name", "Meaning"], EXIT_STATUSES.map((s) => [code(String(s.code)), code(s.name), cell(s.meaning)])),
     );
+  } else {
+    const root = entries[0]!;
+    const href = relative(dirname(commandFile(path)), commandFile(root.path));
+    body.push("## Exit statuses", `${code(title)} exits with one of the [exit statuses of ${code(root.path.join(" "))}](${href}#exit-statuses).`);
   }
 
   body.push("## Help", `The output of ${code(`${title} --help`)}:`, fence("text", renderHelp(command)));

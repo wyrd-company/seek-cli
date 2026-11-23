@@ -33,6 +33,10 @@ seek web brave answers [options] <query...>
 | `--json` | Emit raw JSON response |  |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek web brave answers` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek web brave answers --help`:

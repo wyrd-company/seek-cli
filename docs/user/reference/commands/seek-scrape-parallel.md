@@ -34,6 +34,10 @@ seek scrape parallel [options] <urls...>
 | `--json` | Emit raw JSON response |  |
 | `-h, --help` | display help for command |  |
 
+## Exit statuses
+
+`seek scrape parallel` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek scrape parallel --help`:

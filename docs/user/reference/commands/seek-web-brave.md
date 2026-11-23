@@ -29,6 +29,10 @@ seek web brave [options] [command]
 | [`seek web brave search`](seek-web-brave-search.md) | Search from a large index of web pages with optional local and rich data enrichments, with results intended for human consumption. |
 | [`seek web brave answers`](seek-web-brave-answers.md) | Brave Answers provides state-of-the-art AI-generated answers backed by verifiable sources from the web. |
 
+## Exit statuses
+
+`seek web brave` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
+
 ## Help
 
 The output of `seek web brave --help`:

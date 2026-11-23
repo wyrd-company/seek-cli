@@ -16,10 +16,11 @@ design-challenges:
       program. The generator imports `createProgram()` from `src/program.ts`,
       which builds the tree without parsing arguments, and reads each
       command's name, description, usage, registered arguments, options with
-      their flags, descriptions and defaults, and subcommands. It renders each
-      command's full help, including text added after the generated help, by
-      capturing `outputHelp()` with a fixed width of 80 columns, the way
-      `tests/program.test.ts` does.
+      their flags, descriptions and defaults, and subcommands. Leave
+      `SEEK_SERVER_HOST` and `SEEK_SERVER_PORT` unset when calling
+      `createProgram()` to generate the CLI's built-in defaults regardless of
+      the local environment. It captures `outputHelp()` at 80 columns, the way
+      `tests/program.test.ts` does, to render full help including appended text.
   facts-outside-the-parser:
     >-
       Exit statuses are part of the command reference but are not Commander

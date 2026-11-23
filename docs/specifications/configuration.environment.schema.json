@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "seek environment variables",
-  "description": "The process environment seek reads, as an object of variable names and string values. An empty value counts as unset. seek trims the provider keys, SEEK_SERVER_TOKEN and the Vault variables, so a value of only whitespace counts as unset for them too. The provider keys, SEEK_SERVER_URL and SEEK_SERVER_TOKEN are also configuration file keys; a set environment variable takes precedence over the file. The SEEK_VAULT_*, VAULT_* and BAO_* variables are read from the environment only.",
+  "description": "The process environment seek reads, as an object of variable names and string values. An empty value counts as unset. Whitespace-only provider keys, SEEK_SERVER_TOKEN and Vault settings count as unset. Direct mode preserves nonblank provider key values as entered. The server trims provider keys before using them. The provider keys, SEEK_SERVER_URL and SEEK_SERVER_TOKEN are also configuration file keys; a set environment variable takes precedence over the file. The SEEK_VAULT_*, VAULT_* and BAO_* variables are read from the environment only.",
   "type": "object",
   "properties": {
     "PARALLEL_API_KEY": {

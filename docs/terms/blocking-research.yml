@@ -1,5 +1,6 @@
 $schema: https://refinery.systems/ontology/term
 title: Blocking research
 description: >-
-  A research command run without `--async`: it submits the research, polls
-  until the job ends or the wait limit passes, and prints the report.
+  A research command that waits for a report. With Google, Parallel and
+  Perplexity, seek submits a job and polls until it ends or the wait limit
+  passes. With Brave, seek reads a single streaming response.

@@ -45,11 +45,11 @@ description: >-
   `configuration` specification defines how each is resolved. The commands,
   their options and their output are the same in both modes. In server mode
   without a client token, the request carries no `Authorization` header, and a
-  server that requires a token answers 401. Blocking research polls until the
-  job ends: Parallel every 5 seconds for up to 25 minutes, Google and
-  Perplexity every 10 seconds for up to 30 minutes. `research google
-  --interactive` needs a terminal on stdin and stdout; it asks the planner
-  chosen with `--planner` for a plan and approves, revises or quits on `a`,
+  server that requires a token answers 401. In blocking mode, Parallel polls
+  every 5 seconds for up to 25 minutes, Google and Perplexity every 10 seconds
+  for up to 30 minutes, and Brave reads one streaming response. `research
+  google --interactive` needs a terminal on stdin and stdout. It asks the
+  planner chosen with `--planner` for a plan and approves, revises or quits on `a`,
   `r` or `q` before it starts Deep Research.
 
 

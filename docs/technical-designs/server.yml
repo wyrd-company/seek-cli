@@ -7,16 +7,17 @@ relationships:
 objective: >-
   A proxy that lets a seek client call any of the seven upstreams with a
   revocable client token while only the server holds provider keys, and that
-  passes requests and responses through unchanged, streaming included, so that
-  every command works the same in server mode.
+  forwards provider requests and streams responses so that every command
+  works the same in server mode.
 design-challenges:
   only-fixed-hosts:
     >-
       A client chooses the upstream and the path, and must not be able to
       reach any other host. The upstream ID is looked up in `UPSTREAMS`, which
       fixes the base URL, and the path is appended to that base URL. The URL
-      parser resolves `.` and `..` segments before the handler reads the path,
-      and the handler rejects a path that still holds such a segment with 400.
+      parser resolves `.` and `..` segments before the handler reads the path.
+      The defensive 400 guard for remaining dot segments is unreachable with
+      the normalized HTTP pathname.
       The handler sends the request with `redirect: manual`, so a provider's
       redirect returns to the client and the server follows none.
   credentials-never-cross:
@@ -67,13 +68,13 @@ proposed-design:
       `SEEK_SERVER_TOKEN` on commas, and returns 401 with `WWW-Authenticate:
       Bearer` when the `Authorization: Bearer` value is missing or matches
       none of them. It then takes the upstream ID from the first path segment
-      after `/v1/proxy/` and returns 404 for an ID outside `UPSTREAMS`, 400
-      for a dot segment, and 503 when the upstream's key does not resolve. It
-      forwards with the client's method, the filtered headers plus the
-      upstream's key header, the query string, and the body for methods other
-      than GET and HEAD, and returns 502 when the request to the provider
-      fails. It reads secrets per request, so a refreshed Vault secret takes
-      effect without a restart.
+      after `/v1/proxy/` and returns 404 for an ID outside `UPSTREAMS` and 503
+      when the upstream's key does not resolve. It forwards with the client's
+      method, the filtered headers plus the upstream's key header and the query
+      string. It buffers request bodies before forwarding and omits them for
+      GET and HEAD. It returns 502 when the request to the provider fails.
+      It reads secrets per request, so a refreshed Vault secret takes effect
+      without a restart.
   response:
     >-
       The handler returns the provider's status, status text and body stream,

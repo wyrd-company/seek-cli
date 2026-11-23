@@ -11,11 +11,11 @@ description: >-
   URL and one provider key: `parallel`, `exa`, `brave-search`,
   `brave-answers`, `perplexity`, `google` and `firecrawl`. A request to
   `/v1/proxy/<upstream>/<provider path>?<query>` goes to the upstream's base
-  URL followed by the provider path and the query, with the same method and
-  body. Every method and provider path is forwarded; the definition lists the
-  routes seek's commands use. The provider's status, status text and body
-  return unchanged with four of its headers, and bodies stream in both
-  directions.
+  URL followed by the provider path and the query, with the same method.
+  The server buffers request bodies before forwarding and omits them for GET
+  and HEAD. The definition lists the routes seek's commands use. The server
+  returns the provider's status, status text and four response headers and
+  streams its response body.
 
 
   Requests are checked in this order, and the first rule that applies answers:

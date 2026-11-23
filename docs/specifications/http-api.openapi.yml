@@ -11,7 +11,8 @@ info:
     and forwards the request to the upstream's fixed base URL. The provider's
     response comes back unchanged: its status, status text, body and the
     `Content-Type`, `Cache-Control`, `Retry-After` and `X-Request-Id` headers.
-    Bodies stream in both directions, so Brave Answers server-sent events
+    The server buffers request bodies before forwarding and omits them for
+    GET and HEAD. Response bodies stream, so Brave Answers server-sent events
     reach the client as they arrive.
 
 
@@ -336,7 +337,8 @@ paths:
       summary: Read a Gemini Deep Research interaction
       description: >-
         Called by `seek research google` while it waits, and by `seek research
-        status google` and `seek research get google`.
+        status google` and `seek research get google`. seek sends the
+        `Api-Revision` header, which passes through.
       parameters:
         - $ref: "#/components/parameters/ProviderJobId"
       responses:

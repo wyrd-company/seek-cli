@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
+import skill from "../skills/seek/SKILL.md" with { type: "text" };
 import packageMetadata from "../package.json" with { type: "json" };
 import { registerWebCommand } from "./commands/web.ts";
 import { registerResearchCommand } from "./commands/research.ts";
@@ -20,6 +21,13 @@ program
   )
   .version(packageMetadata.version)
   .showHelpAfterError();
+
+program
+  .command("skill")
+  .description("Print the bundled Seek skill")
+  .action(() => {
+    process.stdout.write(skill);
+  });
 
 registerWebCommand(program);
 registerResearchCommand(program);

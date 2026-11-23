@@ -10,6 +10,7 @@ on:
       - package.json
       - bun.lock
       - src/**
+      - skills/**
       - .github/workflows/server-image.yml
   push:
     tags:

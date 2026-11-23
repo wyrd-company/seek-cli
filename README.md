@@ -10,6 +10,8 @@
 Agent-friendly CLI for web search, deep research, and targeted scraping across
 popular APIs.
 
+Run `seek skill` to print the bundled Seek skill for use by an agent.
+
 Built with [Bun](https://bun.sh) + TypeScript. Each command groups providers by
 intent so an agent (or human) can pick the right trade-off between speed, cost,
 and output type.

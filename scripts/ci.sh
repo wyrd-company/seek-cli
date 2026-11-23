@@ -23,3 +23,6 @@ if [[ "$actual_version" != "$expected_version" ]]; then
   exit 1
 fi
 echo "$actual_version"
+
+echo "Checking bundled skill..."
+./dist/seek skill | cmp - skills/seek/SKILL.md

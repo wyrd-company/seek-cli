@@ -10,6 +10,7 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 COPY tsconfig.json ./
 COPY src ./src
+COPY skills ./skills
 RUN case "$TARGETARCH" in \
       amd64) target=bun-linux-x64 ;; \
       arm64) target=bun-linux-arm64 ;; \

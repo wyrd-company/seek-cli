@@ -1,0 +1,132 @@
+$schema: https://refinery.systems/ontology/technical-design
+title: seek documentation generation
+relationships:
+  related-to:
+    - architecture
+objective: >-
+  Generate seek's published reference, and the public copies of the
+  definitions it is generated from, from the authoritative definitions, and
+  fail the normal repository check whenever the published files differ from
+  those definitions, so that no published fact about a command, an endpoint or
+  a setting is written by hand.
+design-challenges:
+  commander-is-the-definition:
+    >-
+      The command line has no definition file: its definition is the Commander
+      program. The generator imports `createProgram()` from `src/program.ts`,
+      which builds the tree without parsing arguments, and reads each
+      command's name, description, usage, registered arguments, options with
+      their flags, descriptions and defaults, and subcommands. It renders each
+      command's full help, including text added after the generated help, by
+      capturing `outputHelp()` with a fixed width of 80 columns, the way
+      `tests/program.test.ts` does.
+  facts-outside-the-parser:
+    >-
+      Exit statuses are part of the command reference but are not Commander
+      declarations. `src/lib/exit-status.ts` exports `EXIT_STATUSES`, each
+      status with its code and meaning, and `src/index.ts` and the command
+      actions take their exit codes from it, so the generator reads the same
+      table the program exits with.
+  copies-stay-copies:
+    >-
+      Developers download the definitions, and a published page cannot link
+      into `docs/specifications/`, which is not published. The generator
+      copies each definition byte for byte under `docs/user/reference/`,
+      keeping its file name, and the check compares every copy with its
+      source, so a copy is never edited on its own.
+  design-documents-stay-private:
+    >-
+      Published pages link only to published pages, published assets and
+      public product surfaces. A design document is an immediate
+      `docs/<folder>/<slug>.yml` file outside `docs/user/` whose name has no
+      further dot. The link check rejects a link from a page in `docs/user/`
+      to any file under `docs/` outside `docs/user/`, by relative path or by a
+      `github.com/wyrd-company/seek-cli` blob, tree or raw URL.
+proposed-design:
+  high-level-overview:
+    >-
+      `scripts/docs/reference.ts` reads the authoritative definitions and
+      writes Markdown reference pages and definition copies under
+      `docs/user/reference/`. `bun run docs:reference` runs it.
+      `scripts/docs/check.ts` regenerates into a temporary directory, compares
+      the result with the committed files, validates the definitions and
+      examples, and checks links and assets. `bun run docs:check` runs it, and
+      `scripts/ci.sh` runs it after the tests, so the CI workflow fails on any
+      drift.
+  authoritative-inputs:
+    >-
+      The command line: `createProgram()` in `src/program.ts`, with
+      `EXIT_STATUSES` from `src/lib/exit-status.ts`. The HTTP API:
+      `docs/specifications/http-api.openapi.yml`. Configuration:
+      `docs/specifications/configuration.file.schema.json` and
+      `docs/specifications/configuration.environment.schema.json`. The
+      research job envelope:
+      `docs/specifications/research-job-envelope.schema.json`. The `.yml`
+      specification beside each definition describes its contract; the
+      generator reads only the definitions.
+  generated-files:
+    >-
+      `docs/user/reference/commands/<path>.md`, one page per command, named by
+      the command's path joined with hyphens: `seek.md`, `seek-web.md`,
+      `seek-web-brave-search.md` and so on for all 25 commands. Each page has
+      the usage line, the description, tables of arguments and options with
+      defaults, links to its subcommands' pages, and the rendered help;
+      `seek.md` also has the exit status table.
+      `docs/user/reference/http-api.md`, with one section per OpenAPI tag,
+      listing each operation's method, path, summary, description, parameters
+      and responses with their examples, and the security scheme.
+      `docs/user/reference/configuration.md`, with one table per configuration
+      schema giving each key's type, accepted values, default and description.
+      `docs/user/reference/research-job-envelope.md`, with the envelope's
+      fields and a table of normalized statuses from the schema's `oneOf`
+      descriptions. Beside these pages, the copies `http-api.openapi.yml`,
+      `configuration.file.schema.json`,
+      `configuration.environment.schema.json` and
+      `research-job-envelope.schema.json`, each linked from its page by its
+      relative file name. Every generated page starts with front matter giving
+      `title`, `product: seek` and `order`, and generated output is
+      deterministic, so a second run changes nothing.
+  examples-and-fixtures:
+    >-
+      Valid examples that readers download live in `docs/user/examples/`:
+      `config.json` for the configuration file schema,
+      `research-job-envelope.json` for the envelope schema, and each request
+      and response example a page offers for the HTTP API. The check validates
+      each against its definition. Invalid fixtures live in
+      `tests/fixtures/invalid/<definition>/`, and
+      `tests/documentation.test.ts` asserts the validation error each one
+      produces. Every example uses synthetic values.
+  validation:
+    >-
+      The check validates `http-api.openapi.yml` with
+      `@seriousme/openapi-schema-validator` and compiles each JSON Schema
+      under Ajv with the 2020-12 dialect, strict mode and `ajv-formats`, using
+      versions pinned as development dependencies. The contract tests in
+      `tests/http-api.test.ts`, `tests/configuration.test.ts`,
+      `tests/research-job-envelope.test.ts` and `tests/program.test.ts` bind
+      the definitions to the code.
+  drift-check:
+    >-
+      `docs:check` fails when generation fails, when a generated file differs
+      from the committed one, when a generated file is missing, and when
+      `docs/user/reference/` holds a file the generator did not write. It also
+      fails on an example that does not validate, a relative link, image or
+      download that does not resolve as published, a fragment that names no
+      heading of its target page, and a link into a design document. It prints
+      one line per failure and ends with a pass line only when every check
+      passed.
+  published-assets:
+    >-
+      `docs/user/docs.yml` lists every definition copy, example, image and
+      recording under `assets`, by its path relative to `docs/user/`. The
+      check fails when a listed asset does not exist, when a generated copy or
+      example is not listed, and when a listed asset is neither linked, by its
+      path relative to the page, from a page whose `product` is `seek`, nor
+      named by a product field such as `logo` or `media`.
+  release-units:
+    >-
+      Generated pages and copies are part of the `seek-docs` release unit in
+      `docs/user/`, which publishes with the wyrd.foo workflow. A change to an
+      authoritative definition regenerates them in the same pull request, so
+      the code release and the documentation that describes it carry the same
+      contract.

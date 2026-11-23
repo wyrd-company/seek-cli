@@ -1,0 +1,134 @@
+$schema: https://refinery.systems/ontology/technical-design
+title: seek architecture
+relationships:
+  related-to:
+    - server
+    - secret-resolution
+    - research-jobs
+    - documentation
+objective: >-
+  One TypeScript program, run on Bun, that is both the seek command line and
+  the seek server, and that reaches every provider through one routing module,
+  so that a command behaves the same whether it calls the provider directly or
+  through a seek server.
+design-challenges:
+  one-command-two-routes:
+    >-
+      Every provider command must work in direct mode and in server mode
+      without its own branch for each. Provider modules never build a base URL
+      or an auth header themselves: they ask `src/lib/upstreams.ts` for both,
+      per upstream, at call time. Only that module reads `SEEK_SERVER_URL`, so
+      adding a provider route adds no mode handling.
+  definition-and-runtime-agree:
+    >-
+      The command line's reference, its `--help` and its behavior must come
+      from one definition. The Commander declarations in `src/commands/` are
+      that definition. `createProgram()` assembles them without parsing, and
+      `src/index.ts` only runs the result, so tests and documentation tools
+      import the same tree the binary runs.
+  secrets-out-of-output:
+    >-
+      Keys and tokens pass through error paths: an HTTP error body can echo
+      the bearer token, and a Vault error can carry a response. `HttpError`
+      replaces the request's bearer token in the status text and body before
+      it builds its message, Vault errors carry only the method, path and
+      status, `config show` masks provider keys and prints only the client
+      token's source, and the server's request log names only the method,
+      upstream and path, with the status and duration or the connection error.
+proposed-design:
+  high-level-overview:
+    >-
+      `bin/seek` and the compiled binary both start `src/index.ts`, which
+      builds the command tree with `createProgram()` from `src/program.ts` and
+      parses the arguments. `src/program.ts` declares the root command, its
+      version from `package.json`, and `seek skill`, and calls one
+      registration function per group from `src/commands/`: `web.ts`,
+      `research.ts`, `scrape.ts`, `config.ts` and `serve.ts`. A provider
+      command's action calls a function in `src/providers/`, one module per
+      provider, and renders the result with `src/lib/output.ts` or prints it
+      as JSON. Provider functions send requests through `src/lib/http.ts` to
+      the base URL and with the auth headers that `src/lib/upstreams.ts`
+      returns. `seek serve` starts the HTTP proxy in `src/server/`, which the
+      `server` technical design describes; secrets come from the resolver the
+      `secret-resolution` technical design describes.
+  module-map:
+    >-
+      `src/index.ts`: runs the program, records the action command in a
+      `preAction` hook, and maps a rejected action to an exit status.
+      `src/program.ts`: `createProgram()`. `src/commands/*.ts`: the Commander
+      declarations and the actions. `src/providers/*.ts`: request bodies,
+      provider-specific parsing, and the submit, read and wait functions of
+      long-running research. `src/lib/upstreams.ts`: the `UPSTREAMS` table and
+      routing. `src/lib/http.ts`: `request()`, `poll()` and `HttpError`.
+      `src/lib/config.ts`: the configuration file's path, its cached contents
+      and `KNOWN_KEYS`, the provider key variables. `src/lib/env.ts`:
+      `requireEnv()` and `MissingEnvError`. `src/lib/output.ts`: JSON output
+      and the text renderers. `src/lib/research-jobs.ts`: the research job
+      lifecycle. `src/server/server.ts`: the proxy handler.
+      `src/server/secrets.ts`: `SecretResolver`. `src/server/vault.ts`: the
+      Vault and OpenBao client.
+  upstream-routing:
+    >-
+      `UPSTREAMS` holds, for each of the seven upstream IDs, a label for
+      messages, the provider's base URL, the provider key's variable, and a
+      function that turns a key into the provider's auth headers.
+      `remoteServerUrl()` returns `SEEK_SERVER_URL` from the environment or
+      the configuration file, trimmed and without trailing slashes, or null.
+      `upstreamBaseUrl(id)` returns `<server>/v1/proxy/<id>` when a server is
+      set and the provider's base URL otherwise. `upstreamAuthHeaders(id)`
+      returns `Authorization: Bearer <client token>` when a server is set, and
+      the provider's own headers built from `requireEnv()` otherwise.
+  requests:
+    >-
+      `request()` sends a JSON body when it is given an object, aborts after a
+      per-call timeout, sixty seconds by default, and parses the response as
+      JSON, or returns its text when it is not JSON. A response that is not
+      2xx raises `HttpError` with the status, status text, URL and the first
+      500 characters of the body. Each provider function sets its own timeout:
+      30 seconds for Brave Search, 90 seconds for search and answer calls, 120
+      seconds for page extraction, and five minutes for Brave research.
+      `poll()` calls a read function until a predicate holds, sleeping between
+      calls, and raises an error once its time limit has passed.
+  errors-and-exit-status:
+    >-
+      An action reports failure by throwing or by setting `process.exitCode`.
+      `src/index.ts` prints a thrown error as `error: <message>` on stderr and
+      exits 1, except for `MissingEnvError`, which exits 2 after it lists the
+      sibling commands of the failed command, those whose key resolves first
+      and the others tagged `(no key set)`. Commander handles parse errors
+      itself: it prints the error and the command's help, and exits 1.
+  output:
+    >-
+      Results go to stdout through `emit()`, which prints JSON with two-space
+      indentation, and `emitText()`, which ends text with one newline.
+      `renderSearchResults()` numbers results and indents their content, cut
+      at 1,200 characters; `renderCitations()` appends a numbered citation
+      list. Progress, warnings and errors go to stderr.
+  bundled-skill:
+    >-
+      `src/program.ts` imports `skills/seek/SKILL.md` as text, so Bun embeds
+      the file in the compiled binary and `seek skill` needs no file at run
+      time. `scripts/ci.sh` compares the built binary's output with the file.
+  build-and-distribution:
+    >-
+      `bun build src/index.ts --compile` produces one native binary.
+      `scripts/ci.sh` installs with the frozen lockfile, typechecks, runs the
+      tests, builds the binary, and checks its version and skill output. A
+      version tag runs the Release workflow: `scripts/release.sh` builds
+      `seek-<os>-<arch>.tar.gz` for macOS and Linux on arm64 and x86_64 and
+      attaches them to the GitHub Release, and
+      `scripts/publish-homebrew-tap.sh` writes the Homebrew formula from their
+      checksums. The Server image workflow builds the `Dockerfile` on pull
+      requests and pushes `ghcr.io/wyrd-company/seek-server` for linux/amd64
+      and linux/arm64 on version tags: the binary, cross-compiled with Bun, on
+      a distroless non-root base, running `seek serve` with
+      `SEEK_SERVER_HOST=0.0.0.0`, port 8787 and `XDG_CONFIG_HOME=/config`.
+  versions:
+    >-
+      Intentional manages two release units. `seek-cli` versions
+      `package.json` and the product version in `docs/user/docs.yml`, and tags
+      `<version>`. `seek-docs` versions the published documentation in
+      `docs/user/`, projects its `docs-version` into `docs/user/docs.yml`, and
+      tags `seek-docs@<version>`. The Publish docs workflow publishes
+      `docs/user/` to wyrd.foo after a successful release, on a docs tag, or
+      by dispatch.

@@ -93,8 +93,8 @@ file at `/config/seek/config.json`.
 
 ```sh
 docker run --rm -p 8787:8787 \
-  -e SEEK_SERVER_TOKEN=<client-token> \
-  -e EXA_API_KEY=<exa-api-key> \
+  -e SEEK_SERVER_TOKEN='<client-token>' \
+  -e EXA_API_KEY='<exa-api-key>' \
   ghcr.io/wyrd-company/seek-server:latest
 ```
 
@@ -103,7 +103,7 @@ docker run --rm -p 8787:8787 \
 From a client machine:
 
 ```sh
-curl -s http://<server-host>:8787/healthz
+curl -s 'http://<server-host>:8787/healthz'
 ```
 
 ```text

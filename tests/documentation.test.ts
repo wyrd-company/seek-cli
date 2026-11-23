@@ -321,7 +321,7 @@ describe("Set up provider keys and use a server", () => {
       const port = /0\.0\.0\.0:(\d+)/.exec(text)?.[1];
       expectPageShows("server.md", "seek serve --host 0.0.0.0 --port 8787", text.replace(`0.0.0.0:${port}`, "0.0.0.0:8787"));
       const health = await (await fetch(`http://127.0.0.1:${port}/healthz`)).text();
-      expectPageShows("server.md", "curl -s http://<server-host>:8787/healthz", health);
+      expectPageShows("server.md", "curl -s 'http://<server-host>:8787/healthz'", health);
     } finally {
       server.kill();
     }
@@ -528,6 +528,11 @@ const MUTATIONS: Mutation[] = [
     name: "the publisher autolinks a bare www address to a design document",
     apply: (c) => edit(c, "docs/user/web.md", "(providers.md)", "(providers.md)\n\nwww.github.com/wyrd-company/seek-cli/blob/main/docs/concepts/seek.yml"),
     expect: "links to a design document: http://www.github.com/wyrd-company/seek-cli/blob/main/docs/concepts/seek.yml",
+  },
+  {
+    name: "a single-quoted HTML link points to a design document",
+    apply: (c) => edit(c, "docs/user/web.md", "(providers.md)", "(providers.md)\n\n<a href='https://github.com/wyrd-company/seek-cli/blob/main/docs/concepts/seek.yml'>Concept</a>"),
+    expect: "links to a design document: https://github.com/wyrd-company/seek-cli/blob/main/docs/concepts/seek.yml",
   },
   {
     name: "a listed asset is used by no page and named by no product field",

@@ -48,7 +48,8 @@ done
 
 Put `--json` before `--` so seek reads the job ID as a positional argument.
 If the request fails, the script prints seek's error and exits. It also
-stops after 20 checks. Keep the locator to check the job again later.
+stops after 20 checks, about 10 minutes plus the time spent on the requests.
+Some jobs take longer. Keep the locator to check the job again later.
 
 ## 3. Print the report or the failure
 

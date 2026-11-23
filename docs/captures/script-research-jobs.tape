@@ -18,9 +18,19 @@ Type `for attempt in {1..20}; do`
 Enter
 Type `  status=$(seek research status --json "$provider" -- "$job_id") || exit 1`
 Enter
-Type `  if jq -e '.terminal' <<<"$status" >/dev/null; then break; fi`
+Type `  if jq -e '.terminal' <<<"$status" >/dev/null; then`
 Enter
-Type `  if [ "$attempt" -eq 20 ]; then echo "Job has no final status after 20 checks." >&2; exit 1; fi`
+Type `    break`
+Enter
+Type `  fi`
+Enter
+Type `  if [ "$attempt" -eq 20 ]; then`
+Enter
+Type `    echo "Job has no final status after 20 checks." >&2`
+Enter
+Type `    exit 1`
+Enter
+Type `  fi`
 Enter
 Type `  sleep 30`
 Enter

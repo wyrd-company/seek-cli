@@ -1,0 +1,8 @@
+{
+  "locator": { "provider": "google", "jobId": "interaction-synthetic-1" },
+  "status": "running",
+  "providerStatus": "in_progress",
+  "terminal": false,
+  "providerPayload": {},
+  "result": { "text": "A partial report.", "citations": [] }
+}

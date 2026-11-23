@@ -12,6 +12,9 @@ bun run typecheck
 echo "Running tests..."
 bun run test
 
+echo "Checking documentation..."
+bun run docs:check
+
 echo "Building native binary..."
 bun run build
 

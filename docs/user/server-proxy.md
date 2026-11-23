@@ -25,12 +25,11 @@ upstream names one provider API with its own base URL and key:
 | `google` | `https://generativelanguage.googleapis.com/v1beta` | `GEMINI_API_KEY` |
 | `firecrawl` | `https://api.firecrawl.dev` | `FIRECRAWL_API_KEY` |
 
-The rest of the path, and the query string, go to the provider unchanged, so
-Exa's `POST /search` is `POST /v1/proxy/exa/search`. The base URLs are
-fixed, and the server resolves `.` and `..` path segments before routing, so
-a client cannot make the server call another host or leave its upstream's
-prefix. Brave is two upstreams because its Search and Answers APIs have
-separate keys.
+For example, Exa's `POST /search` is `POST /v1/proxy/exa/search`. The URL
+parser resolves `.` and `..` segments before the server reads the path. The
+server appends the remaining path and query string to the upstream's fixed
+base URL. It returns redirects to the client. Brave has two upstreams
+because Search and Answers use separate keys.
 
 ## What the server changes
 
@@ -54,8 +53,8 @@ separate keys.
   with `Retry-After`, reaches the client as the provider's error.
 - **Streaming.** Response bodies stream through as they arrive, so Brave
   Answers' server-sent events reach the client without waiting for the end.
-- **Formats.** The server does not read or rewrite request and response
-  bodies. Each provider's own API documentation describes them.
+- **Formats.** The server preserves the body format. Each provider's API
+  documentation describes its request and response bodies.
 
 ## Errors the server returns itself
 

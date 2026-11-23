@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { chmodSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { configDir, configPath, KNOWN_KEYS, loadConfig, resetConfigCache } from "../lib/config.ts";
 import { remoteServerUrl } from "../lib/upstreams.ts";
+import { EXIT } from "../lib/exit-status.ts";
 
 function maskKey(value: string): string {
   if (value.length <= 8) return "********";
@@ -38,7 +39,7 @@ export function registerConfigCommand(program: Command): void {
         process.stderr.write(
           `Config already exists at ${path}. Re-run with --force to overwrite.\n`,
         );
-        process.exitCode = 1;
+        process.exitCode = EXIT.failure;
         return;
       }
       mkdirSync(configDir(), { recursive: true, mode: 0o700 });

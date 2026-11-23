@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { emit, emitText, renderCitations } from "../lib/output.ts";
+import { EXIT } from "../lib/exit-status.ts";
 import {
   inspectResearchJob,
   parseAsyncResearchProvider,
@@ -79,7 +80,7 @@ export function registerResearchCommand(program: Command): void {
       if (job.status !== "completed" || !job.result) {
         if (opts.json) emit(job, { json: true });
         else process.stderr.write(renderResearchUnavailable(job) + "\n");
-        process.exitCode = 1;
+        process.exitCode = EXIT.failure;
         return;
       }
       if (opts.json) {
@@ -237,7 +238,7 @@ export function registerResearchCommand(program: Command): void {
             "\n",
         );
         if (opts.json) emit(interaction, { json: true });
-        process.exitCode = 1;
+        process.exitCode = EXIT.failure;
         return;
       }
 
@@ -304,7 +305,7 @@ export function registerResearchCommand(program: Command): void {
             "\n",
         );
         if (opts.json) emit(job, { json: true });
-        process.exitCode = 1;
+        process.exitCode = EXIT.failure;
         return;
       }
 

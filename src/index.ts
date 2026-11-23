@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import type { Command } from "commander";
 import { createProgram } from "./program.ts";
+import { EXIT } from "./lib/exit-status.ts";
 import { HttpError } from "./lib/http.ts";
 import { MissingEnvError } from "./lib/env.ts";
 import { KNOWN_KEYS, loadConfig } from "./lib/config.ts";
@@ -50,16 +51,16 @@ program.parseAsync(process.argv).catch((err: unknown) => {
   if (err instanceof MissingEnvError) {
     process.stderr.write(`error: ${err.message}\n`);
     if (activeCommand) printAlternatives(activeCommand);
-    process.exit(2);
+    process.exit(EXIT.missingProviderKey);
   }
   if (err instanceof HttpError) {
     process.stderr.write(`error: ${err.message}\n`);
-    process.exit(1);
+    process.exit(EXIT.failure);
   }
   if (err instanceof Error) {
     process.stderr.write(`error: ${err.message}\n`);
-    process.exit(1);
+    process.exit(EXIT.failure);
   }
   process.stderr.write(`error: ${String(err)}\n`);
-  process.exit(1);
+  process.exit(EXIT.failure);
 });

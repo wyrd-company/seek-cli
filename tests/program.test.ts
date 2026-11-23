@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Command } from "commander";
 import { createProgram } from "../src/program.ts";
+import { EXIT, EXIT_STATUSES } from "../src/lib/exit-status.ts";
 
 function walk(command: Command, path: string[] = []): Array<[string[], Command]> {
   return [
@@ -66,5 +67,34 @@ describe("command-line.yml", () => {
     for (const [, command] of leaves) {
       expect(command.options.some((option) => option.long === "--json")).toBe(true);
     }
+  });
+});
+
+describe("EXIT_STATUSES", () => {
+  test("is the only source of the codes seek exits with", () => {
+    const literal = /process\.exit\(\s*\d|process\.exitCode\s*=\s*\d/;
+    const files = new Bun.Glob("src/**/*.ts").scanSync(".");
+    const offenders = [...files].filter((file) => literal.test(readFileSync(file, "utf8")));
+    expect(offenders).toEqual([]);
+    expect(new Set(EXIT_STATUSES.map((s) => s.code)).size).toBe(EXIT_STATUSES.length);
+  });
+
+  test("names the codes the CLI exits with", () => {
+    const run = (args: string[]) =>
+      Bun.spawnSync({
+        cmd: [process.execPath, "run", "src/index.ts", ...args],
+        cwd: process.cwd(),
+        env: {
+          ...process.env,
+          XDG_CONFIG_HOME: mkdtempSync(join(tmpdir(), "seek-exit-test-")),
+          SEEK_SERVER_URL: "",
+          PARALLEL_API_KEY: "",
+        },
+        stdout: "pipe",
+        stderr: "pipe",
+      }).exitCode;
+    expect(run(["--version"])).toBe(EXIT.success);
+    expect(run(["web", "nope"])).toBe(EXIT.failure);
+    expect(run(["web", "parallel", "synthetic query"])).toBe(EXIT.missingProviderKey);
   });
 });

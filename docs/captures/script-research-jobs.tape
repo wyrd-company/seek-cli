@@ -9,6 +9,7 @@ Enter
 Show
 Type `job=$(seek research parallel "how do honeybees make honey" --async --json) || exit 1`
 Enter
+Sleep 500ms
 Type `provider=$(jq -r '.locator.provider' <<<"$job")`
 Enter
 Type `job_id=$(jq -r '.locator.jobId' <<<"$job")`

@@ -80,7 +80,7 @@ export interface Link {
   image: boolean;
 }
 
-/** Inline links and images, reference definitions, and HTML `href`/`src` attributes, outside code. */
+/** Inline links and images, autolinks, reference definitions, and HTML `href`/`src` attributes, outside code. */
 export function links(body: string, firstLine = 1): Link[] {
   const found: Link[] = [];
   const text = withoutCode(body);
@@ -93,6 +93,13 @@ export function links(body: string, firstLine = 1): Link[] {
   }
   for (const match of text.matchAll(/<(a|img|source)\b[^>]*?\s(href|src|srcset)\s*=\s*"([^"]+)"/gi)) {
     found.push({ target: match[3]!, line: lineOf(match.index), image: match[1]!.toLowerCase() !== "a" });
+  }
+  for (const match of text.matchAll(/<(https?:\/\/[^<>\s]+)>/gi)) {
+    const target = match[1]!;
+    const line = lineOf(match.index);
+    if (!found.some((link) => link.target === target && link.line === line)) {
+      found.push({ target, line, image: false });
+    }
   }
   return found;
 }

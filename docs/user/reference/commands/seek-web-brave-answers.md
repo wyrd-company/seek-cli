@@ -26,7 +26,7 @@ seek web brave answers [options] <query...>
 
 | Option | Description | Default |
 | --- | --- | --- |
-| `--language <code>` | Response language (default: en) |  |
+| `--language <code>` | Response language. Omit to use the provider default. |  |
 | `--citations` | Request provider citation tags | `false` |
 | `--entities` | Request provider entity tags | `false` |
 | `--country <cc>` | Two-letter country code (e.g. US, GB) |  |
@@ -51,7 +51,7 @@ Arguments:
   query              Answers query
 
 Options:
-  --language <code>  Response language (default: en)
+  --language <code>  Response language. Omit to use the provider default.
   --citations        Request provider citation tags (default: false)
   --entities         Request provider entity tags (default: false)
   --country <cc>     Two-letter country code (e.g. US, GB)

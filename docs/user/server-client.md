@@ -9,8 +9,9 @@ calls a seek server's HTTP API, read what it prints, and then see the error
 the server returns for a wrong token. We use the seek practice server, which
 answers the same API with made-up results, so we need no provider key.
 
-You need [Node.js](https://nodejs.org/) 18 or later, or
-[Bun](https://bun.sh). seek itself is not needed for this tutorial.
+You need [Node.js](https://nodejs.org/) 18 or later. If you use
+[Bun](https://bun.sh), substitute `bun` for `node` throughout. The examples
+call the HTTP API directly, so you can run them without installing seek.
 
 ![Terminal recording: the example client checks the practice server's health, prints three search results, and then prints the 401 error for a wrong token.](assets/server-client.gif)
 

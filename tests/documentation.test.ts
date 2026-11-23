@@ -223,6 +223,29 @@ describe("Track a research job from a script", () => {
       rmSync(bin, { recursive: true, force: true });
     }
   });
+
+  test("the polling example stops on a request failure and bounds a pending job", async () => {
+    const poll = blocks(page("script-research-jobs.md"))
+      .find((block) => block.language === "sh" && block.content.includes("seek research status"))!.content;
+    const env = cleanEnv();
+    const failed = await run(["bash", "-c", `
+      seek() { echo "synthetic request failure" >&2; return 1; }
+      sleep() { echo "unexpected retry" >&2; exit 99; }
+      provider=parallel job_id=trun_practice_1
+      ${poll}
+    `], { env });
+    expect(failed.exitCode).toBe(1);
+    expect(failed.stderr.trim()).toBe("synthetic request failure");
+
+    const pending = await run(["bash", "-c", `
+      seek() { printf '%s\\n' '{"terminal":false}'; }
+      sleep() { :; }
+      provider=parallel job_id=trun_practice_1
+      ${poll}
+    `], { env });
+    expect(pending.exitCode).toBe(1);
+    expect(pending.stderr.trim()).toBe("Job has no final status after 20 checks.");
+  });
 });
 
 describe("Extract the content of a page", () => {

@@ -10,8 +10,8 @@ answers like a seek server with made-up results, so we need no provider
 account or API key, and we see the same output as this page.
 
 You need seek installed (see [Install seek](install.md)) and
-[Node.js](https://nodejs.org/) 18 or later, or [Bun](https://bun.sh), to run
-the practice server.
+[Node.js](https://nodejs.org/) 18 or later to run the practice server. If you
+use [Bun](https://bun.sh), run the example with `bun` in place of `node`.
 
 ![Terminal recording: the tutorial's search runs against the practice server and prints three numbered results, then one result as JSON.](assets/first-search.gif)
 

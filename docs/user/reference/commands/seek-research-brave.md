@@ -26,9 +26,9 @@ seek research brave [options] <query...>
 
 | Option | Description | Default |
 | --- | --- | --- |
-| `--country <cc>` | Two-letter country code for grounding (default: us) |  |
-| `--language <code>` | Response language (default: en) |  |
-| `--citations` | Request provider citation tags | `false` |
+| `--country <cc>` | Two-letter country code for grounding. Omit to use the provider default. |  |
+| `--language <code>` | Response language. Omit to use the provider default. |  |
+| `--citations` | Unsupported in Brave research mode. Passing this flag returns an error. | `false` |
 | `--entities` | Request provider entity tags | `false` |
 | `--json` | Emit JSON (raw response for synchronous research) |  |
 | `-h, --help` | display help for command |  |
@@ -50,9 +50,11 @@ Arguments:
   query              Research question
 
 Options:
-  --country <cc>     Two-letter country code for grounding (default: us)
-  --language <code>  Response language (default: en)
-  --citations        Request provider citation tags (default: false)
+  --country <cc>     Two-letter country code for grounding. Omit to use the
+                     provider default.
+  --language <code>  Response language. Omit to use the provider default.
+  --citations        Unsupported in Brave research mode. Passing this flag
+                     returns an error. (default: false)
   --entities         Request provider entity tags (default: false)
   --json             Emit JSON (raw response for synchronous research)
   -h, --help         display help for command

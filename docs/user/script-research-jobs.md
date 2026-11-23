@@ -5,10 +5,10 @@ order: 21
 ---
 
 Submit a research job from a shell script, wait until it reaches a final
-status, and print its report or its failure. The script reads seek's research
-job envelope with [jq](https://jqlang.org/). It assumes seek has a key for the
-provider or a seek server, as for any research; with the practice server from
-[Run your first search](first-search.md), it prints the output below.
+status, and print its report or its failure. The script uses Bash and
+[jq](https://jqlang.org/). Set up a provider key or connect to a seek server
+first. With the practice server from [Run your first search](first-search.md),
+the script prints the output below.
 
 ![Terminal recording: the script submits a Parallel job, waits until its status is final, and prints the report text and its two citations.](assets/script-research-jobs.gif)
 
@@ -19,7 +19,7 @@ provider or a seek server, as for any research; with the practice server from
 `locator.provider` and `locator.jobId`:
 
 ```sh
-job=$(seek research parallel "how do honeybees make honey" --async --json)
+job=$(seek research parallel "how do honeybees make honey" --async --json) || exit 1
 provider=$(jq -r '.locator.provider' <<<"$job")
 job_id=$(jq -r '.locator.jobId' <<<"$job")
 ```
@@ -33,13 +33,22 @@ can continue from step 2 with them.
 is `completed`, `incomplete`, `failed` or `cancelled`:
 
 ```sh
-until seek research status --json "$provider" -- "$job_id" | jq -e '.terminal' >/dev/null; do
+for attempt in {1..20}; do
+  status=$(seek research status --json "$provider" -- "$job_id") || exit 1
+  if jq -e '.terminal' <<<"$status" >/dev/null; then
+    break
+  fi
+  if [ "$attempt" -eq 20 ]; then
+    echo "Job has no final status after 20 checks." >&2
+    exit 1
+  fi
   sleep 30
 done
 ```
 
-Put `--json` before `--`: everything after `--` is read as the job ID. Choose
-an interval that suits the provider; Google jobs take minutes.
+Put `--json` before `--` so seek reads the job ID as a positional argument.
+If the request fails, the script prints seek's error and exits. It also
+stops after 20 checks. Keep the locator to check the job again later.
 
 ## 3. Print the report or the failure
 
@@ -51,7 +60,9 @@ status it exits with status 1 and prints the envelope without `result`:
 if result=$(seek research get --json "$provider" -- "$job_id"); then
   jq -r '.result.text, .result.citations[]' <<<"$result"
 else
-  jq -r '"job ended as \(.status): \(.failure.message // "no report")"' <<<"$result" >&2
+  if [ -n "$result" ]; then
+    jq -r '"job ended as \(.status): \(.failure.message // "no report")"' <<<"$result" >&2
+  fi
   exit 1
 fi
 ```

@@ -141,7 +141,7 @@ export function registerWebCommand(program: Command): void {
     .description("Brave Answers provides state-of-the-art AI-generated answers backed by verifiable sources from the web. ")
     .copyInheritedSettings(brave)
     .argument("<query...>", "Answers query")
-    .option("--language <code>", "Response language (default: en)")
+    .option("--language <code>", "Response language. Omit to use the provider default.")
     .option("--citations", "Request provider citation tags", false)
     .option("--entities", "Request provider entity tags", false)
     .option("--country <cc>", "Two-letter country code (e.g. US, GB)")

@@ -96,9 +96,9 @@ export function registerResearchCommand(program: Command): void {
       "[Surface] Brave Answers Deep Research",
     )
     .argument("<query...>", "Research question")
-    .option("--country <cc>", "Two-letter country code for grounding (default: us)")
-    .option("--language <code>", "Response language (default: en)")
-    .option("--citations", "Request provider citation tags", false)
+    .option("--country <cc>", "Two-letter country code for grounding. Omit to use the provider default.")
+    .option("--language <code>", "Response language. Omit to use the provider default.")
+    .option("--citations", "Unsupported in Brave research mode. Passing this flag returns an error.", false)
     .option("--entities", "Request provider entity tags", false)
     .option("--json", "Emit JSON (raw response for synchronous research)")
     .addHelpText(

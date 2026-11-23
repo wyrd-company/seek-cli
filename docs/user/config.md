@@ -1,79 +1,94 @@
 ---
-title: Configuration
-order: 3
+title: Set up provider keys
 product: seek
+order: 3
 ---
 
-Each provider reads its own API key. You only need keys for the providers you
-actually use — an unconfigured provider fails with a clear message and suggests
-alternatives you do have keys for.
+Give seek the API key of each provider you want to use, in the environment
+or in seek's configuration file, and check which keys it finds. You need a
+key only for the providers you use. To use a seek server that holds the keys
+instead, see [Use a seek server from the CLI](connect-to-a-server.md).
 
-## API keys
+![Terminal recording: seek config init creates the configuration file, and seek config show lists each key with its source and a masked value.](assets/config.gif)
 
-| Provider      | Env var / config key    | Used by                          |
-| ------------- | ----------------------- | -------------------------------- |
-| Parallel      | `PARALLEL_API_KEY`      | `web`, `research`, `scrape`      |
-| Exa           | `EXA_API_KEY`           | `web`, `scrape`                  |
-| Brave Search  | `BRAVE_SEARCH_API_KEY`  | `web brave search`               |
-| Brave Answers | `BRAVE_ANSWERS_API_KEY` | `web brave answers`, `research brave` |
-| Perplexity    | `PERPLEXITY_API_KEY`    | `web perplexity`, `research perplexity` |
-| Google/Gemini | `GEMINI_API_KEY`        | `research google`                |
-| Firecrawl     | `FIRECRAWL_API_KEY`     | `scrape firecrawl`               |
+## Find the variable for your provider
 
-Brave splits into two keys: the Search API and the Answers API are billed and
-provisioned separately, so `web brave search` and `web brave answers`
-(and `research brave`) can be configured independently.
+| Provider | Variable | Commands |
+| --- | --- | --- |
+| Parallel | `PARALLEL_API_KEY` | `seek web parallel`, `seek research parallel`, `seek scrape parallel` |
+| Exa | `EXA_API_KEY` | `seek web exa`, `seek scrape exa` |
+| Brave Search | `BRAVE_SEARCH_API_KEY` | `seek web brave search` |
+| Brave Answers | `BRAVE_ANSWERS_API_KEY` | `seek web brave answers`, `seek research brave` |
+| Perplexity | `PERPLEXITY_API_KEY` | `seek web perplexity`, `seek research perplexity` |
+| Google Gemini | `GEMINI_API_KEY` | `seek research google` |
+| Firecrawl | `FIRECRAWL_API_KEY` | `seek scrape firecrawl` |
 
-## Resolution order
+Brave issues separate keys for its Search and Answers APIs. The
+[configuration reference](reference/configuration.md) describes every
+variable.
 
-For each key, seek resolves the first source that has a non-empty value:
+## Set a key for one shell session
 
-1. **Process environment variable** — always wins. Useful for CI and one-off
-   overrides.
-2. **Config file** — a flat JSON object at the resolved config path.
+Export the variable. Replace `<exa-api-key>` with the key from your provider
+account:
 
-```bash
-export PARALLEL_API_KEY=…
-export EXA_API_KEY=…
+```sh
+export EXA_API_KEY=<exa-api-key>
 ```
 
-If `SEEK_SERVER_URL` is set, local keys are ignored and provider calls go
-through a seek server instead. See [Server mode](server).
+A variable in the environment takes precedence over the configuration file.
 
-## Config file
+## Keep keys in the configuration file
 
-The config path is resolved as:
+1. Create the file. seek writes it with a placeholder for every key, readable
+   only by you:
 
-1. `$XDG_CONFIG_HOME/seek/config.json` when `XDG_CONFIG_HOME` is set.
-2. `~/.config/seek/config.json` otherwise.
+   ```sh
+   seek config init
+   ```
 
-The file is a flat JSON object whose keys match the env var names above, so you
-never learn a second schema:
+   ```text
+   Created /home/<you>/.config/seek/config.json
+   Edit the file and fill in keys for the providers you want to use.
+   ```
 
-```json
-{
-  "EXA_API_KEY": "…",
-  "PERPLEXITY_API_KEY": "…"
-}
+   The file is `$XDG_CONFIG_HOME/seek/config.json`, or
+   `~/.config/seek/config.json` when `XDG_CONFIG_HOME` is not set. If the file
+   exists, `seek config init` stops; add `--force` to replace it.
+
+2. Open the file and fill in the keys you have. Leave the others empty or
+   remove them. A file with two keys looks like
+   [config.json](examples/config.json):
+
+   ```json
+   {
+     "EXA_API_KEY": "<exa-api-key>",
+     "PARALLEL_API_KEY": "<parallel-api-key>"
+   }
+   ```
+
+## Check which keys seek finds
+
+```sh
+seek config show
 ```
 
-Only string values are read; non-string values are ignored. If the file is not
-valid JSON (or not a JSON object), seek prints a warning and continues as if no
-config file were present.
+Each line names a key, where seek found it (`env`, `config`, or `—` for
+neither) and a masked value:
 
-## Managing the config file
+```text
+config: /home/<you>/.config/seek/config.json
 
-The `config` command group manages this file:
-
-```bash
-seek config path        # print the resolved config file path
-seek config init        # write a template with a placeholder for every key
-seek config init --force  # overwrite an existing config file
-seek config show        # show which keys are set, their source, and masked values
+  PARALLEL_API_KEY       —    (unset)    [parallel]
+  EXA_API_KEY            env  exa-…1234    [exa]
+  BRAVE_SEARCH_API_KEY   —    (unset)    [brave search]
+  BRAVE_ANSWERS_API_KEY  —    (unset)    [brave answers]
+  PERPLEXITY_API_KEY     —    (unset)    [perplexity]
+  GEMINI_API_KEY         —    (unset)    [google]
+  FIRECRAWL_API_KEY      —    (unset)    [firecrawl]
 ```
 
-- `config init` creates the config directory (mode `0700`) and writes the file
-  with mode `0600`. It fails if the file already exists unless `--force` is
-  given.
-- `config show` lists every known key, whether its value came from `env`,
-  `config`, or is unset (`—`), and a masked preview of the value.
+A command whose key is missing stops with exit status 2, names the variable
+to set, and lists the other providers of its group, marking those without a
+key. [How seek finds keys and tokens](credentials.md) explains the order seek
+reads them in.

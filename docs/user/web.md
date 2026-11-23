@@ -1,110 +1,76 @@
 ---
-title: web
-order: 5
+title: Search the web
 product: seek
+order: 4
 ---
 
-Real-time web search — fast, low-cost context for prompts and chatbots. Pick a
-provider subcommand; each returns rendered results, or raw JSON with `--json`.
+Run a real-time web search with one of seek's search providers, and get the
+results as text or JSON. You need the provider's key (see
+[Set up provider keys](config.md)) or a seek server (see
+[Use a seek server from the CLI](connect-to-a-server.md)).
 
-```bash
-seek web <provider> "<query...>" [options]
+![Terminal recording: seek web parallel prints two numbered results with titles, URLs and excerpts, then seek web exa prints results with scores.](assets/web-search.gif)
+
+## 1. Pick the command
+
+| You want | Command | Key |
+| --- | --- | --- |
+| Dense excerpts for an agent, for a broad question | `seek web parallel` | `PARALLEL_API_KEY` |
+| Pages found by meaning, such as papers or companies | `seek web exa` | `EXA_API_KEY` |
+| Pages from Brave's own index, with a freshness window | `seek web brave search` | `BRAVE_SEARCH_API_KEY` |
+| One AI answer with sources, from Brave | `seek web brave answers` | `BRAVE_ANSWERS_API_KEY` |
+| One short answer with citations, from Perplexity | `seek web perplexity` | `PERPLEXITY_API_KEY` |
+
+[Choosing a provider](providers.md) explains the trade-offs.
+
+## 2. Run the search
+
+Put the query after the command. Quote it, or seek joins the words for you:
+
+```sh
+seek web parallel "how do honeybees make honey"
 ```
 
-Providers: `parallel`, `exa`, `brave search`, `brave answers`, `perplexity`.
+`parallel`, `exa` and `brave search` print numbered results, each with its
+title, URL and text; `exa` adds a relevance score. `brave answers` and
+`perplexity` print an answer followed by its citations.
 
-## web parallel
+## 3. Narrow the search
 
-Relevant excerpts optimized for LLMs — one call replaces several keyword
-searches for broad or complex queries.
+Each provider has its own options. Common ones:
 
-```bash
-seek web parallel "compare common roof materials" -n 5
+```sh
+seek web parallel "how do honeybees make honey" -n 3 -c 400
+seek web exa "papers on honeybee foraging" --category "research paper" --start 2024-01-01
+seek web brave search "honey harvest season" --fresh pw --country GB
+seek web perplexity "how do honeybees make honey" --recency month
 ```
 
-| Option              | Description                                      |
-| ------------------- | ------------------------------------------------ |
-| `-n, --num <n>`     | Max results (default 10)                          |
-| `-c, --chars <n>`   | Max chars per result excerpt (default 1500)       |
-| `--objective <text>`| Objective passed to the ranker (defaults to query)|
-| `--mode <name>`     | Search mode: `basic` \| `advanced`                |
-| `--json`            | Emit raw JSON response                            |
+- `-n` sets the number of results for `parallel`, `exa` and `brave search`.
+- `-c` caps the characters of each `parallel` excerpt.
+- `--category`, `--start` and `--end` restrict `exa` to a category and a
+  publication window.
+- `--fresh` takes `pd`, `pw`, `pm` or `py` (past day, week, month or year)
+  for `brave search`.
+- `--recency` takes `hour`, `day`, `week` or `month` for `perplexity`.
 
-Output: ranked list of title, URL, and excerpt text.
+The [command reference](reference/commands/seek-web.md) lists every option of
+each search command, with its default.
 
-## web exa
+## 4. Get JSON for a script or an agent
 
-Neural semantic search — finds pages by meaning, best for conceptual queries.
+Add `--json` to print the provider's own response:
 
-```bash
-seek web exa "papers on archival paper longevity" \
-  --category "research paper" --text
+```sh
+seek web exa "papers on honeybee foraging" --json
 ```
 
-| Option               | Description                                                         |
-| -------------------- | ------------------------------------------------------------------- |
-| `-n, --num <n>`      | Number of results (default 10)                                       |
-| `-t, --type <type>`  | `auto` \| `fast` \| `neural` \| `instant` \| `deep-lite` \| `deep` \| `deep-reasoning` (default `auto`) |
-| `--category <name>`  | Restrict to a category (e.g. research paper, news, company, github)  |
-| `--text`             | Include full page text snippets                                      |
-| `--start <date>`     | Only pages published on/after `YYYY-MM-DD`                           |
-| `--end <date>`       | Only pages published on/before `YYYY-MM-DD`                          |
-| `--system <text>`    | System prompt to bias the search (sources to prefer, novelty, etc.)  |
-| `--json`             | Emit raw JSON response                                              |
+The response is the provider's format, unchanged: each provider's results
+have their own fields.
 
-Output: ranked list of title, URL, score, and text/highlights.
+## Check the result
 
-## web brave search
-
-Clean, structured snippets from an independent global web index — best for
-real-time facts. Uses `BRAVE_SEARCH_API_KEY`.
-
-```bash
-seek web brave search "seasonal garden preparation guidance" --fresh pw
-```
-
-| Option              | Description                                            |
-| ------------------- | ----------------------------------------------------- |
-| `-n, --num <n>`     | Number of results (default 10)                         |
-| `--fresh <window>`  | Freshness: `pd` (day) \| `pw` (week) \| `pm` (month) \| `py` (year) |
-| `--country <cc>`    | Two-letter country code (e.g. US, GB)                  |
-| `--json`            | Emit raw JSON response                                |
-
-Output: list of title, URL, and snippet.
-
-## web brave answers
-
-AI-generated answers backed by verifiable sources. Uses `BRAVE_ANSWERS_API_KEY`.
-
-```bash
-seek web brave answers "compare common bookbinding stitches" --citations
-```
-
-| Option              | Description                          |
-| ------------------- | ------------------------------------ |
-| `--language <code>` | Response language (default `en`)      |
-| `--citations`       | Request provider citation tags        |
-| `--entities`        | Request provider entity tags          |
-| `--country <cc>`    | Two-letter country code               |
-| `--json`            | Emit raw JSON response               |
-
-Output: answer text with a citations list appended.
-
-## web perplexity
-
-Synthesizes the web into a short, conversational answer with citations.
-
-```bash
-seek web perplexity "compare natural fibers for basket weaving"
-```
-
-| Option                 | Description                                              |
-| ---------------------- | ------------------------------------------------------- |
-| `--model <name>`       | Override model (default `sonar`; e.g. `sonar-pro`, `sonar-reasoning`) |
-| `--recency <window>`   | Restrict sources by recency: `hour` \| `day` \| `week` \| `month` |
-| `--mode <mode>`        | Search mode: `web` (default) \| `academic`               |
-| `--domains <list>`     | Comma-separated allow-list of domains                    |
-| `--max-tokens <n>`     | Cap response tokens                                      |
-| `--json`               | Emit raw JSON response                                  |
-
-Output: answer text with a citations list appended.
+A search that succeeds prints its results, or `(no results)`, and exits with
+status 0. A missing key exits with status 2 and names the variable to set; a
+provider error exits with status 1 and prints the HTTP status the provider
+returned.

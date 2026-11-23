@@ -1,80 +1,61 @@
 ---
-title: Installation
+title: Install seek
+product: seek
 order: 2
 install: true
-product: seek
 ---
 
-Install the native binary with Homebrew or a release archive, or run from
-source with Bun during development.
+Install the native `seek` binary with Homebrew or a release archive, or run
+it from source with Bun.
 
-## Homebrew
+![Terminal recording: seek --version prints the installed version, and seek --help lists the commands skill, web, research, scrape, config and serve.](assets/install.gif)
 
-```bash
+## With Homebrew
+
+On macOS or Linux:
+
+```sh
 brew install wyrd-company/tools/seek-cli
 ```
 
-This installs a prebuilt single-file `seek` binary on your `PATH`. No Bun
-runtime is required.
+This installs a single-file `seek` binary on your `PATH`. It needs no Bun
+runtime.
 
-## Release archives
+## From a release archive
 
-Each release attaches a `seek` binary for macOS and Linux, on arm64 and x86_64,
-as `seek-<os>-<arch>.tar.gz` (`macos` or `linux`; `arm64` or `x86_64`). For
-Linux x86_64:
+Each release attaches a `seek` binary for macOS and Linux, on arm64 and
+x86_64, as `seek-<os>-<arch>.tar.gz`, where `<os>` is `macos` or `linux` and
+`<arch>` is `arm64` or `x86_64`. For Linux on x86_64:
 
-```bash
+```sh
 curl -LO https://github.com/wyrd-company/seek-cli/releases/latest/download/seek-linux-x86_64.tar.gz
 tar -xzf seek-linux-x86_64.tar.gz
 sudo install seek /usr/local/bin/seek
 ```
 
-## From source (Bun)
+## From source
 
-seek is a [Bun](https://bun.sh) + TypeScript project. Bun 1.4.4 or later is
-the only prerequisite for running from source.
+Running from source needs [Bun](https://bun.sh) 1.4.4 or later and Git.
 
-```bash
+```sh
 git clone https://github.com/wyrd-company/seek-cli
 cd seek-cli
 bun install
+bun link
 ```
 
-Expose the `seek` command on your `PATH`:
+`bun link` puts the `seek` command from the clone on your `PATH`. To build a
+single-file binary instead, run `bun run build`, which writes `dist/seek`.
 
-```bash
-bun link            # links the `seek` bin from package.json
-```
+## Check the installation
 
-Or run it directly without linking:
-
-```bash
-bun run src/index.ts web parallel "your query"
-# or the dev script, which is the same entrypoint:
-bun run dev web parallel "your query"
-```
-
-## Build a native binary
-
-Compile a standalone, single-file executable (no Bun needed to run it):
-
-```bash
-bun run build       # -> dist/seek
-```
-
-A JavaScript bundle target is also available:
-
-```bash
-bun run build:js    # -> dist/seek.js
-```
-
-## Verify
-
-```bash
+```sh
 seek --version
 seek --help
 ```
 
-`seek --help` lists the top-level commands: `web`, `research`, `scrape`, and
-`config`. See [Configuration](config) to add provider API keys before running a
-query.
+`seek --version` prints the version, and `seek --help` lists the commands
+`skill`, `web`, `research`, `scrape`, `config` and `serve`.
+
+Next, [set up provider keys](config.md), or try seek without any key in
+[Run your first search](first-search.md).

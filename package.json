@@ -10,6 +10,7 @@
   "scripts": {
     "ci": "./scripts/ci.sh",
     "dev": "bun run src/index.ts",
+    "docs:reference": "bun scripts/docs/reference.ts",
     "build": "bun build src/index.ts --compile --outfile dist/seek",
     "build:js": "bun build src/index.ts --target=bun --outfile dist/seek.js",
     "publish:homebrew": "./scripts/publish-homebrew-tap.sh",

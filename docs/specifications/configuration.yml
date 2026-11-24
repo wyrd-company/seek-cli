@@ -138,9 +138,8 @@ description: >-
   servers, before any credential is resolved. Servers match when their URLs
   have the same scheme, lowercase host, port (explicit or the scheme's
   default) and path without a trailing slash, or the same canonical socket
-  path. Whether a proxy that needs a user name and password can be configured
-  for Vault is pending the operator's decision in `authenticated-vault-proxy`;
-  until then `proxy` carries a host and port only.
+  path. `proxy` carries a host and port only, and seek sends no proxy
+  credentials, as the operator decided in `authenticated-vault-proxy`.
 
 
   seek builds each Vault connection from the effective configuration alone:
@@ -235,7 +234,8 @@ validation-criteria: >-
   keywords registered as annotations. The examples in the schemas and in
   `docs/user/` validate, and the invalid fixtures under
   `tests/fixtures/invalid/` fail with the error each test names, including an
-  `address` or `proxy` carrying a user name and password, an `address` with a
+  `address` or `proxy` carrying a user name and password, which also covers
+  the proxy credentials seek 0.3 took from `HTTP_PROXY`, an `address` with a
   query, a `config show` entry with a plain `value` at a secret or
   `vault.auth` path, an entry with both `value` and `source`, and an
   unredacted credential in a URL value. `tests/configuration.test.ts` derives

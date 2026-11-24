@@ -177,3 +177,7 @@ seek config show
 
 For a server, add `--server`. Each Vault source shows its address, its
 namespace, its login mode and the layer that declared the login.
+
+After updating a client, [check which keys seek finds](config.md#check-which-keys-seek-finds)
+or [check its connection to a seek server](connect-to-a-server.md#3-check-the-setup).
+After updating a server, [start it and check its health](server.md#3-start-the-server).

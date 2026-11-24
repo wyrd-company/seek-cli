@@ -93,12 +93,24 @@ products:
               - research
               - scrape
               - connect-to-a-server
-              - server
-              - upgrade-from-0-3
               - agent-skill
           - group: Explanation
             pages: [overview, providers, credentials, research-jobs]
-          - group: Reference
+      - section: Administration
+        groups:
+          - group: How-to guides
+            pages: [server, upgrade-from-0-3]
+      - section: Developers
+        groups:
+          - group: Tutorials
+            pages: [server-client]
+          - group: How-to guides
+            pages: [script-research-jobs]
+          - group: Explanation
+            pages: [server-proxy]
+      - section: References
+        groups:
+          - group: Command line
             pages:
               - seek
               - seek-skill
@@ -126,16 +138,9 @@ products:
               - seek-config-show
               - seek-config-validate
               - seek-serve
-              - configuration
-      - section: Developers
-        groups:
-          - group: Tutorials
-            pages: [server-client]
-          - group: How-to guides
-            pages: [script-research-jobs]
-          - group: Explanation
-            pages: [server-proxy]
-          - group: Reference
+          - group: Configuration
+            pages: [configuration]
+          - group: API
             pages: [http-api, research-job-envelope]
     kinds:
       - kind: cli

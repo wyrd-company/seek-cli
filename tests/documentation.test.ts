@@ -585,8 +585,8 @@ const MUTATIONS: Mutation[] = [
   },
   {
     name: "a page has two homes in nav",
-    apply: (c) => edit(c, "docs/user/docs.yml", "pages: [server-proxy]", "pages: [server-proxy, web]"),
-    expect: "web has more than one home",
+    apply: (c) => edit(c, "docs/user/docs.yml", "pages: [configuration]", "pages: [configuration, server]"),
+    expect: "server has more than one home",
   },
 ];
 

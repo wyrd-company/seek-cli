@@ -125,7 +125,10 @@ same way: a group, a provider, the question or URLs, and options.
 Next:
 
 - [Set up provider keys](config.md) to search the real web.
+- [Use a seek server from the CLI](connect-to-a-server.md) to search through
+  a server your team runs.
 - [Search the web](web.md) with each search provider.
 - [Run a research job](research.md), which the practice server also answers.
-- Read [how seek is organized](overview.md), and look up every option in the
-  [command reference](reference/commands/seek.md).
+- Look up the options we used in the
+  [`seek web parallel` reference](reference/commands/seek-web-parallel.md),
+  or read [how seek is organized](overview.md).

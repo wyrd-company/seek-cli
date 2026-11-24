@@ -49,7 +49,7 @@ Redocly reports two warnings, which are expected: the repository has no licence 
 
 Pages in `user/` link only to other published pages, published assets and public product surfaces, never to a design document here, by a relative path or a GitHub URL. A reader who needs what a design document says gets it from a published explanation page or the generated reference. Examples and recordings use synthetic values and no credentials.
 
-Each page has one home in the `nav` of `user/docs.yml`: **Users** or **Developers**, then **Tutorials**, **How-to guides**, **Explanation** or **Reference**. Link pages by their file, `other.md#heading`. List every example, definition copy and recording in `assets`, and link it from a page.
+Each page has one home in the `nav` of `user/docs.yml`. Put guides and explanations under their primary audience (**Users**, **Administration** or **Developers**) and use **Tutorials**, **How-to guides** and **Explanation** for the kinds that audience needs. The shared **References** section groups pages by **Command line**, **Configuration** and **API**. Link across sections where readers need to continue, using relative paths such as `other.md#heading`. List every example, definition copy and recording in `assets`, and link it from a page.
 
 | Command | Does |
 |---|---|

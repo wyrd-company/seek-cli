@@ -59,3 +59,5 @@ seek --help
 
 Next, [set up provider keys](config.md), or try seek without any key in
 [Run your first search](first-search.md).
+If you already use seek 0.3, follow [Upgrade from seek 0.3](upgrade-from-0-3.md)
+before replacing your installation.

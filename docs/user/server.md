@@ -8,6 +8,8 @@ Run `seek serve`, or its container image, on a machine that holds the
 provider keys, so that CLIs elsewhere call providers through it with a client
 token. [How the seek server proxies provider calls](server-proxy.md) explains
 what the server does with each request.
+If you already run seek 0.3, see
+[how to update the server's configuration](upgrade-from-0-3.md#3-move-a-servers-settings-to-etcseekserveryml).
 
 ![Terminal recording: seek serve starts with a synthetic client token, prints its address and the providers it has keys for, and curl reads its health check.](assets/server.gif)
 
@@ -106,7 +108,8 @@ seek config show --server
 ```
 
 The [configuration reference](reference/configuration.md) lists every
-setting.
+setting. [How seek finds keys and tokens](credentials.md) explains how the
+server chooses a secret source.
 
 ## 3. Start the server
 
@@ -164,5 +167,7 @@ curl -s 'http://<server-host>:8787/healthz'
 ```
 
 Then point a CLI at it, as [Use a seek server from the CLI](connect-to-a-server.md)
-describes. A request for a provider the server has no key for returns HTTP
-503 and names the setting to configure.
+describes. To call it from your own code, follow
+[Call a seek server from your code](server-client.md). A request for a
+provider the server has no key for returns HTTP 503 and names the setting
+to configure.

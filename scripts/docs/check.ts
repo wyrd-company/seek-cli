@@ -22,8 +22,9 @@ export interface Failure {
 }
 
 const PRODUCT = "seek";
-const SECTIONS = ["Users", "Developers"];
-const GROUPS = ["Tutorials", "How-to guides", "Explanation", "Reference"];
+const SECTIONS = ["Users", "Administration", "Developers", "References"];
+const AUDIENCE_GROUPS = ["Tutorials", "How-to guides", "Explanation"];
+const REFERENCE_GROUPS = ["Command line", "Configuration", "API"];
 const FRONT_MATTER_KEYS = new Set(["title", "product", "order", "install", "relationships"]);
 const RESERVED_SLUGS = new Set(["changelog", "index"]);
 /** A link from a published page into the repository's private docs, as a GitHub URL. */
@@ -194,13 +195,14 @@ function checkNav(docs: Docs, fail: (check: string, where: string, message: stri
     if (sectionIndex === -1) fail("nav", where, `section ${JSON.stringify(section?.section)} is not one of ${SECTIONS.join(", ")}`);
     else if (sectionIndex <= lastSection) fail("nav", where, `section ${section.section} is out of order or repeated`);
     lastSection = Math.max(lastSection, sectionIndex);
+    const allowedGroups = section?.section === "References" ? REFERENCE_GROUPS : AUDIENCE_GROUPS;
     let lastGroup = -1;
     const groups = Array.isArray(section?.groups) ? section.groups : [];
     if (groups.length === 0) fail("nav", where, `section ${section?.section} has no groups`);
     for (const group of groups) {
-      const groupIndex = GROUPS.indexOf(group?.group);
+      const groupIndex = allowedGroups.indexOf(group?.group);
       const label = `${section?.section} > ${group?.group}`;
-      if (groupIndex === -1) fail("nav", where, `group ${label} is not one of ${GROUPS.join(", ")}`);
+      if (groupIndex === -1) fail("nav", where, `group ${label} is not one of ${allowedGroups.join(", ")}`);
       else if (groupIndex <= lastGroup) fail("nav", where, `group ${label} is out of order or repeated`);
       lastGroup = Math.max(lastGroup, groupIndex);
       const pages = Array.isArray(group?.pages) ? group.pages : [];

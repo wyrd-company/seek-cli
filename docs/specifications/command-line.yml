@@ -52,13 +52,19 @@ description: >-
   `r` or `q` before it starts Deep Research.
 
 
+  For `research brave` and `web brave answers`, seek sends the country and
+  language in the Brave Answers request when `--country` and `--language`
+  are supplied. It omits each field whose flag is absent.
+
+
   `EXIT_STATUSES` in `src/lib/exit-status.ts` defines the exit statuses, and
   every exit in the source takes its code from it. Exit status 0 means the
   command completed. Exit status 2 means a provider key is not set in direct
   mode: the message names the variable and the configuration file, and the
-  other commands of the same group follow, those with a key first and the rest
-  tagged `(no key set)`. Exit status 1 means any other failure. That covers a
-  parse error; an HTTP error, printed as `error: HTTP <status> <status text>
+  other providers in the same command group follow, those with a key first and
+  the rest tagged `(no key set)`. Research job commands `status` and `get` are
+  excluded from the suggestions. Exit status 1 means any other failure. That
+  covers a parse error; an HTTP error, printed as `error: HTTP <status> <status text>
   from <URL>: <body>`, where Brave Answers names itself in place of the URL,
   the body is cut at 500 characters, and the request's bearer token is
   replaced by `[redacted]` wherever it appears; research that ends without

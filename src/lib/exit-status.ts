@@ -21,7 +21,7 @@ export const EXIT_STATUSES = [
     code: 2,
     meaning:
       "A provider key is not set in direct mode. The message names the variable to set " +
-      "and lists the other commands of the same group.",
+      "and suggests other providers in the same command group.",
   },
 ] as const;
 

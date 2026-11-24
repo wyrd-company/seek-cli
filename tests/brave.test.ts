@@ -105,6 +105,21 @@ describe("braveAnswers", () => {
     expect(stripBraveAnswerTags(tagged)).toBe("Answer");
   });
 
+  test("omits unspecified country and language in both answer modes", async () => {
+    const fetchMock = mock(async () => new Response("data: [DONE]\n"));
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    for (const enableResearch of [false, true]) {
+      fetchMock.mockClear();
+      await braveAnswers("summarize example.com", { enableResearch });
+
+      const body = requestBody(fetchMock);
+      expect(body.enable_research).toBe(enableResearch);
+      expect(body).not.toHaveProperty("country");
+      expect(body).not.toHaveProperty("language");
+    }
+  });
+
   test("normalizes research-mode answer tags", async () => {
     const fetchMock = mock(async () =>
       new Response(

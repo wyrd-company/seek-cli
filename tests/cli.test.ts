@@ -21,7 +21,7 @@ interface CliResult {
   stderr: string;
 }
 
-function cli(args: string[]): CliResult {
+function cli(args: string[], settings: Record<string, string> = {}): CliResult {
   const env: Record<string, string> = {};
   for (const [key, value] of Object.entries(process.env)) {
     if (value !== undefined) env[key] = value;
@@ -32,7 +32,7 @@ function cli(args: string[]): CliResult {
   const result = Bun.spawnSync({
     cmd: [process.execPath, "run", "src/index.ts", ...args],
     cwd: process.cwd(),
-    env,
+    env: { ...env, ...settings },
     stdout: "pipe",
     stderr: "pipe",
   });
@@ -83,6 +83,9 @@ describe("CLI smoke tests", () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("--citations");
+    expect(result.stdout).toContain("Request provider citation tags");
+    expect(result.stdout).toContain("Response language. Omit to use the provider default.");
+    expect(result.stdout).not.toMatch(/\(default: "?en"?\)/i);
     expect(result.stdout).toContain("--entities");
     expect(result.stdout).not.toContain("--research");
   });
@@ -93,10 +96,20 @@ describe("CLI smoke tests", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("Brave Answers Deep Research");
     expect(result.stdout).toContain("--citations");
+    expect(result.stdout).toContain("Unsupported in Brave research mode.");
+    expect(result.stdout).not.toMatch(/\(default: "?(us|en)"?\)/i);
     expect(result.stdout).toContain("--entities");
     expect(result.stdout).not.toContain("--research");
     expect(result.stdout).toContain("synchronous");
     expect(result.stdout).not.toContain("\n  --async");
+  });
+
+  test("research brave rejects the released citations flag before looking up a key", () => {
+    const result = cli(["research", "brave", "synthetic question", "--citations"]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toBe("error: Brave Answers research mode does not support enableCitations.\n");
   });
 
   test("research google help documents interactive planning flags", () => {
@@ -165,5 +178,23 @@ describe("CLI smoke tests", () => {
     expect(result.stderr).toContain("Missing API key for parallel");
     expect(result.stderr).toContain("Other `seek web` providers you can try:");
     expect(result.stderr).toContain("seek web exa");
+  });
+
+  test("missing research keys suggest only other research providers with configured ones first", () => {
+    const result = cli(["research", "parallel", "synthetic question"], {
+      GEMINI_API_KEY: "synthetic-google-key",
+    });
+
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("Missing API key for parallel");
+    expect(result.stderr).toContain("Other `seek research` providers you can try:");
+    const suggestions = result.stderr.split("\n").filter((line) => line.startsWith("  seek research "));
+    expect(suggestions.map((line) => line.trim().split(/\s+/)[2])).toEqual([
+      "google", "brave", "perplexity",
+    ]);
+    expect(suggestions[0]).not.toContain("(no key set)");
+    expect(suggestions[1]).toEndWith("(no key set)");
+    expect(suggestions[2]).toEndWith("(no key set)");
   });
 });

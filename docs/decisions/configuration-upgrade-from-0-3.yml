@@ -5,6 +5,7 @@ relationships:
     - configuration
     - familiar-environment-names
     - authenticated-vault-proxy
+    - vault-redirects
 description: >-
   seek 0.3 reads a flat JSON file, `$XDG_CONFIG_HOME/seek/config.json` or
   `~/.config/seek/config.json`, whose keys are environment variable names, and
@@ -105,11 +106,13 @@ expected-outcomes:
       A server that kept settings in the JSON file, including the image with
       `/config/seek/config.json` mounted, starts without them. With no token
       it refuses to start; with a token it answers 503 for each provider whose
-      key it lacks. Its owner writes `/etc/seek/server.yml` with the same
-      mapping, except that `SEEK_SERVER_TOKEN` becomes `server.tokens`, and
-      mounts it at that path in the image. It then checks the server's file,
-      not the client's, with `seek config validate --server` and `seek config
-      show --server`.
+      key it lacks. Its owner writes `/etc/seek/server.yml` with the server's
+      own mapping: each provider key becomes `providers.<upstream>.api-key` as
+      for the client, and `SEEK_SERVER_TOKEN` becomes `server.tokens`.
+      `SEEK_SERVER_URL` is left out, because it is a client setting that the
+      seek 0.3 server ignored, and the server file has no `server.url`. The
+      owner mounts the file at that path in the image, then checks it with
+      `seek config validate --server` and `seek config show --server`.
     - >-
       A setup that read secrets through `SEEK_VAULT_PATH` gets none of them.
       Its owner gives each secret a `vault` source with the old path as `path`
@@ -137,9 +140,11 @@ expected-outcomes:
       directory that reaches it. Credential files can be reused as they are:
       seek removes surrounding whitespace from every secret, as seek 0.3 did
       for these files. A private certificate authority keeps working wherever
-      seek 0.3 found it, in `NODE_EXTRA_CA_CERTS` as the seek 0.3 server guide
-      shows, or in `SSL_CERT_FILE` or `SSL_CERT_DIR`; `vault.ca-cert` replaces
-      all of them for its server.
+      seek 0.3 found it: in `NODE_EXTRA_CA_CERTS`, as the seek 0.3 server
+      guide shows, in `SSL_CERT_FILE` or `SSL_CERT_DIR`, or in their built-in
+      locations. seek reads them when the configuration loads, so a change
+      takes effect at the next command or server restart, and `vault.ca-cert`
+      replaces all of them for its server.
     - >-
       The retained Vault variables now rank differently. In seek 0.3 an
       explicit `SEEK_VAULT_ADDR`, AppRole or token file won over the `VAULT_*`
@@ -182,3 +187,10 @@ expected-outcomes:
       JSON in the new shape is valid YAML and loads. A script that parses
       `seek config show` moves to `seek config show --json`, whose shape
       `configuration.show.schema.json` defines.
+    - >-
+      A seek 0.3 setup whose Vault answered with a redirect keeps working when
+      the redirect stays within the address's origin and base path. One that
+      relied on a redirect to another origin or outside the base path, such as
+      a standby node redirecting to the active node, fails with an error
+      naming the refused target until `vault.address` names the final address;
+      that refusal is pending the operator's decision in `vault-redirects`.

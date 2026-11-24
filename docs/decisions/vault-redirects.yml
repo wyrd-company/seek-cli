@@ -1,0 +1,44 @@
+$schema: https://refinery.systems/ontology/decision-record
+title: Vault redirects outside the configured server
+relationships:
+  related-to:
+    - configuration
+    - configuration-upgrade-from-0-3
+description: >-
+  seek 0.3 sends its Vault requests with Bun's `fetch`, which follows
+  redirects. Running the 0.3.2 Vault client on Bun 1.4.5 against synthetic
+  loopback servers, it followed a 307 for both a KV read and an AppRole login
+  to the same origin, re-sending the token and the login body, and it
+  followed a 307 to a different origin, sending `X-Vault-Token` and the
+  AppRole login body to that origin. The `configuration` specification binds
+  every Vault credential to the address it was configured for, and follows a
+  redirect only while it stays within that address's origin and base path,
+  which keeps the same-origin case working. This record decides what happens
+  to a redirect that leaves the origin or the base path, such as a Vault
+  standby node redirecting to the active node at another address.
+considered-options:
+  bound-redirects-only:
+    description: >-
+      seek follows a redirect only within the address's origin and base path,
+      and refuses any other with an error that names the refused origin and
+      path; the token and the login body are never sent there. A setup that
+      relied on such a redirect sets `vault.address` to the address the
+      redirect pointed to, such as the active node, a load balancer in front
+      of the cluster, or a node with request forwarding.
+    positive:
+      - No Vault token or AppRole secret ID can reach an origin or path that
+        was not configured, whatever a server or a man-in-the-middle answers.
+    negative:
+      - A seek 0.3 setup that reached its secret only through a redirect to
+        another origin, or outside the base path, fails with that error until
+        `vault.address` is changed to the final address.
+  follow-any-redirect:
+    description: >-
+      seek follows every redirect, as seek 0.3 did, re-sending the token and
+      the login body to wherever it points.
+    positive:
+      - Every seek 0.3 redirect case keeps working without a change.
+    negative:
+      - A redirect can deliver the token or the AppRole secret ID to an origin
+        the configuration never named, which the binding rules exist to
+        prevent.

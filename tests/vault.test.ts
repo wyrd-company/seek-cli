@@ -400,6 +400,25 @@ describe("resolution", () => {
     ]);
   });
 
+  test("a unix:// address reaches an agent socket", async () => {
+    const socket = join(tempDir("seek-sock-"), "agent.sock");
+    const paths: string[] = [];
+    const agent = Bun.serve({
+      unix: socket,
+      fetch(req) {
+        paths.push(new URL(req.url).pathname);
+        return Response.json({ data: { data: { SEEK_SERVER_TOKEN: "synthetic-client-token" } } });
+      },
+    });
+    stops.push(() => agent.stop(true));
+    const seekStub = seekServer();
+    const file = clientFile(seekStub.url, [`address: unix://${socket}`, "auth: { mode: none }"]);
+    const result = await seek([...SEARCH, "--config", file]);
+    expect(result.stderr).toBe("");
+    expect(paths).toEqual(["/v1/secret/data/clients/cli"]);
+    expect(seekStub.authorizations).toEqual(["Bearer synthetic-client-token"]);
+  });
+
   test("an empty namespace selects the root, even under an exported BAO_NAMESPACE", async () => {
     const exported = vault({});
     const store = vault({ secrets: TOKEN_SECRET });

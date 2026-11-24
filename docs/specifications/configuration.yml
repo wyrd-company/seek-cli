@@ -11,12 +11,11 @@ description: >-
   configurations. The client configuration is read by the `web`, `research`
   and `scrape` commands, and the server configuration by `seek serve`; `seek
   config` inspects either. `seek skill`, `--help` and `--version` read
-  neither. Three
-  JSON Schema 2020-12 definitions beside this document define them:
-  `configuration.client.schema.json` and `configuration.server.schema.json`
-  each define one configuration file, and `configuration.secrets.schema.json`
-  defines the shapes both share: a secret source, the provider keys and the
-  Vault or OpenBao connection. Every environment variable and flag that sets
+  neither. Three JSON Schema 2020-12 definitions beside this document define
+  them: `configuration.client.schema.json` and
+  `configuration.server.schema.json` each define one configuration file, and
+  `configuration.secrets.schema.json` defines the shapes both share: a secret
+  source, the provider keys and the Vault or OpenBao connection. Every environment variable and flag that sets
   a setting is derived from these schemas.
 
 
@@ -58,9 +57,9 @@ description: >-
   from standard input for one run; a run takes at most one. Configuration
   flags are accepted by every command that reads that configuration and are
   listed in its help under `Configuration options`, after the command's own
-  options. `--config`,
-  `SEEK_CONFIG`, `--help`, `-h`, `--version` and `-V` name no setting, and
-  `--config` has no short form because `-c` is `--chars`.
+  options. `--config`, `SEEK_CONFIG`, `--help`, `-h`, `--version` and `-V`
+  name no setting, and `--config` has no short form because `-c` is
+  `--chars`.
 
 
   An alias is another environment variable for a setting, listed under

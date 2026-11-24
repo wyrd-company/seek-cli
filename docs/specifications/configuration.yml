@@ -44,7 +44,8 @@ description: >-
   Vault `auth` mapping replace the lower layer's mapping whole, and so does a
   `command` array. An unset environment variable or an omitted flag leaves the
   lower layers' value; an explicit empty string, `false` or `0` replaces it.
-  An empty alias counts as unset.
+  An environment value has its surrounding whitespace removed before it is
+  read, and an alias that is then empty counts as unset.
 
 
   Each setting's environment variable is `SEEK_` followed by its YAML path in
@@ -100,17 +101,20 @@ description: >-
 
 
   A secret is a mapping with exactly one source key. `value` is the secret
-  itself. `file` names a file whose content, less one trailing newline, is the
-  secret; seek reads it each time it resolves the secret. `command` is an
-  argument array that seek runs without a shell, in the directory of the file
-  that declared it, or the working directory when an environment variable or
-  flag declared it; its trimmed standard output is the secret, a non-zero exit
-  status is a failure, and `timeout` (`10s`) stops it. Errors name a helper
-  only by its program, the array's first element, and its number of arguments.
-  `vault` names one field of a Vault or OpenBao KV secret with `path` and
-  `key`, and may set `address`, `namespace`, `mount`, `kv-version`, `ca-cert`,
-  `proxy` and `auth` for that secret. A credential inside `vault.auth`, the
-  `token` or the AppRole `secret-id`, takes `value`, `file` or `command`. A
+  itself. `file` names a file whose content is the secret; seek reads it each
+  time it resolves the secret. `command` is an argument array that seek runs
+  without a shell, in the directory of the file that declared it, or the
+  working directory when an environment variable or flag declared it; its
+  trimmed standard output is the secret, a non-zero exit status is a failure,
+  and `timeout` (`10s`) stops it. Errors name a helper only by its program,
+  the array's first element, and its number of arguments. `vault` names one
+  field of a Vault or OpenBao KV secret with `path` and `key`, and may set
+  `address`, `namespace`, `mount`, `kv-version`, `ca-cert`, `proxy` and `auth`
+  for that secret. A credential inside `vault.auth`, the `token` or the
+  AppRole `secret-id`, takes `value`, `file` or `command`. Every resolved
+  secret, a Vault token or AppRole secret ID included, has its surrounding
+  whitespace removed, as seek 0.3 did for its Vault credentials and server
+  secrets, and a secret that is empty after that counts as a failed source. A
   secret resolves from its one source; when that source fails, the command or
   the server reports the failure and reads no other source.
 
@@ -118,40 +122,45 @@ description: >-
   The top-level `vault` mapping holds defaults that merge across layers:
   `address`, `namespace`, `mount` (`secret`), `kv-version` (`2`), `ca-cert`,
   `proxy` and `auth`. After the merge they fill each field a secret's `vault`
-  block leaves unset, except `auth`: a block that declares its own `auth`
-  takes none of the top-level one. `auth.mode` is `token`, `approle` (with
-  `mount`, `role-id` and `secret-id`) or `none`. Every `auth` mapping,
-  top-level or a secret's own, is bound to the server in effect in the layer
-  that declared it: the `address` of its own block, else the top-level
-  `address` merged up to and including that layer. With no server in effect it
-  is unbound. An alias token is the exception described above: it is bound to
-  its own family's address when that is set. A `vault` block uses its own
-  `auth` mapping when it declares one, and the merged top-level mapping
-  otherwise, and only when that mapping is bound to the block's effective
-  server. A block whose mapping is unbound, or bound to a different server,
-  fails validation, which names both servers, before any credential is
-  resolved. Servers match when their URLs have the same scheme, lowercase
-  host, port (explicit or the scheme's default) and path without a trailing
-  slash, or the same canonical socket path. Whether a proxy that needs a user
-  name and password can be configured for Vault is pending the operator's
-  decision in `authenticated-vault-proxy`; until then `proxy` carries a host
-  and port only.
+  block leaves unset, except `auth`. An empty `namespace` is set, not unset:
+  it selects the root namespace, and seek sends no `X-Vault-Namespace` header.
+  As for `auth`, a block that declares its own `auth` takes none of the
+  top-level one. `auth.mode` is `token`, `approle` (with `mount`, `role-id`
+  and `secret-id`) or `none`. Every `auth` mapping, top-level or a secret's
+  own, is bound to the server in effect in the layer that declared it: the
+  `address` of its own block, else the top-level `address` merged up to and
+  including that layer. With no server in effect it is unbound. An alias token
+  is the exception described above: it is bound to its own family's address
+  when that is set. A `vault` block uses its own `auth` mapping when it
+  declares one, and the merged top-level mapping otherwise, and only when that
+  mapping is bound to the block's effective server. A block whose mapping is
+  unbound, or bound to a different server, fails validation, which names both
+  servers, before any credential is resolved. Servers match when their URLs
+  have the same scheme, lowercase host, port (explicit or the scheme's
+  default) and path without a trailing slash, or the same canonical socket
+  path. Whether a proxy that needs a user name and password can be configured
+  for Vault is pending the operator's decision in `authenticated-vault-proxy`;
+  until then `proxy` carries a host and port only.
 
 
   seek builds each Vault connection from the effective configuration alone:
   its address, its namespace header, its token, its certificate authorities
-  and the `proxy` it sends through, if one is set. It always verifies the
-  server's certificate, whatever `NODE_TLS_REJECT_UNAUTHORIZED` says. When the
-  effective `vault` block sets `ca-cert`, the connection trusts exactly the
-  certificate authorities in that file; otherwise it trusts the runtime's
-  default store, which is the system's certificate authorities plus the bundle
-  `NODE_EXTRA_CA_CERTS` names when seek starts, as seek 0.3 did. It reads no
-  `BAO_*` or `VAULT_*` variable other than the aliases above, uses no proxy
-  that `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` or `NO_PROXY` would select,
-  and follows no redirect: a 3xx response to a KV read or an AppRole login is
-  an error. A request's URL is the address, with its base path kept, followed
-  by `/v1/` and the route, whose mount, path and AppRole mount lose their
-  leading and trailing slashes, as in seek 0.3, and are then split into
+  and the `proxy` it sends through, if one is set. When the effective `vault`
+  block sets `ca-cert`, the connection trusts exactly the certificate
+  authorities in that file. Otherwise it trusts Bun's default store, as seek
+  0.3 did: the root certificates bundled with Bun, the certificates in the
+  OpenSSL default file and directory (`SSL_CERT_FILE` and `SSL_CERT_DIR`, or
+  their built-in locations), the bundle `NODE_EXTRA_CA_CERTS` names, and the
+  operating system's store when `NODE_USE_SYSTEM_CA=1`; these are read when
+  seek starts. Either way seek verifies the certificate chain and that the
+  certificate names the address's host, whatever
+  `NODE_TLS_REJECT_UNAUTHORIZED` says, and never replaces the host check. It
+  reads no `BAO_*` or `VAULT_*` variable other than the aliases above, uses no
+  proxy that `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` or `NO_PROXY` would
+  select, and follows no redirect: a 3xx response to a KV read or an AppRole
+  login is an error. A request's URL is the address, with its base path kept,
+  followed by `/v1/` and the route, whose mount, path and AppRole mount lose
+  their leading and trailing slashes, as in seek 0.3, and are then split into
   segments, each percent-encoded; an empty, `.` or `..` segment is a
   validation error, and seek checks that the final URL keeps the address's
   origin and base path before it attaches a token. An `address` or `proxy`
@@ -270,26 +279,34 @@ validation-criteria: >-
   `VAULT_HEADERS`, `VAULT_PROXY_ADDR`, `VAULT_HTTP_PROXY`, `HTTP_PROXY`,
   `HTTPS_PROXY`, `ALL_PROXY` and `NODE_TLS_REJECT_UNAUTHORIZED=0`. They
   require that no sentinel reaches a request or a connection, and, for both a
-  KV read and an AppRole login against a server whose certificate comes from a
-  private authority, that the server is rejected with no `ca-cert` and no
-  `NODE_EXTRA_CA_CERTS`, accepted with that authority in `NODE_EXTRA_CA_CERTS`
-  and no `ca-cert`, accepted with it as `ca-cert`, and rejected when `ca-cert`
-  names another authority even though `NODE_EXTRA_CA_CERTS` names the right
-  one, all while `NODE_TLS_REJECT_UNAUTHORIZED=0` is set; that a 3xx answer to
-  a KV read or an AppRole login is an error, and that both operations against
-  an address with a base path such as `/team-a` reach routes under that path.
-  A mount, path or AppRole mount written with leading and trailing slashes,
-  such as `/team/seek/`, reaches the same route as without them, and an empty
-  or dot segment inside one fails validation. A read-sharing test puts two
-  secrets at the same KV location with different `auth` mappings or `ca-cert`
-  and requires two reads. Redaction tests give a helper a synthetic sensitive
-  argument and require it absent from errors and from both `config show`
-  formats. Inspection tests require `config show` and `config validate` to
-  redact as described while a command source would write a marker file, a
-  secret file is unreadable and a Vault stub counts zero requests. Write tests
-  run `config init` and `config path` with a new explicit `--config` path on a
-  fresh installation, and require the file to be created with mode 0600.
-  Without `--force`, a target that exists, or that appears after the command
-  starts, must be left unchanged with exit status 1. With `--force`, the
-  target must be replaced, and a failed write must leave the existing file
-  unchanged.
+  KV read and an AppRole login against a server whose certificate a private
+  authority signed for `localhost`, all while `NODE_TLS_REJECT_UNAUTHORIZED=0`
+  is set: that the server is rejected with no trust input; accepted with that
+  authority in `NODE_EXTRA_CA_CERTS`, in `SSL_CERT_FILE`, in a hashed
+  `SSL_CERT_DIR`, or as `ca-cert`; rejected when `ca-cert` names another
+  authority even though all three process inputs hold the right one; and
+  rejected when reached as `127.0.0.1`, whose name the certificate does not
+  carry. A public site is accepted with no input, through the bundled roots;
+  that a 3xx answer to a KV read or an AppRole login is an error, and that
+  both operations against an address with a base path such as `/team-a` reach
+  routes under that path. A mount, path or AppRole mount written with leading
+  and trailing slashes, such as `/team/seek/`, reaches the same route as
+  without them, and an empty or dot segment inside one fails validation. A
+  read-sharing test puts two secrets at the same KV location with different
+  `auth` mappings or `ca-cert` and requires two reads. Resolution tests give a
+  token file, an AppRole secret-ID file, a helper and a `value` a synthetic
+  secret with surrounding spaces and a trailing newline, and require the bare
+  secret in the request and the AppRole login body. A namespace test exports
+  `BAO_NAMESPACE=tenant-a` and gives a secret `namespace: ""` for another
+  server, and requires `config show` to report the root namespace and the
+  request to carry no namespace header. Redaction tests give a helper a
+  synthetic sensitive argument and require it absent from errors and from both
+  `config show` formats. Inspection tests require `config show` and `config
+  validate` to redact as described while a command source would write a marker
+  file, a secret file is unreadable and a Vault stub counts zero requests.
+  Write tests run `config init` and `config path` with a new explicit
+  `--config` path on a fresh installation, and require the file to be created
+  with mode 0600. Without `--force`, a target that exists, or that appears
+  after the command starts, must be left unchanged with exit status 1. With
+  `--force`, the target must be replaced, and a failed write must leave the
+  existing file unchanged.

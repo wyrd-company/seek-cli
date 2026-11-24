@@ -6,25 +6,34 @@ relationships:
     - familiar-environment-names
 description: >-
   seek 0.3 reads a flat JSON file, `$XDG_CONFIG_HOME/seek/config.json` or
-  `~/.config/seek/config.json`, whose keys are environment variable names,
-  and reads its Vault and OpenBao settings only from eight `SEEK_VAULT_*`
-  environment variables: `SEEK_VAULT_PATH`, `SEEK_VAULT_ADDR`,
+  `~/.config/seek/config.json`, whose keys are environment variable names, and
+  reads its Vault and OpenBao settings from environment variables only:
+  `SEEK_VAULT_PATH`, `SEEK_VAULT_ADDR`, `SEEK_VAULT_MOUNT`,
+  `SEEK_VAULT_KV_VERSION`, `SEEK_VAULT_ROLE_ID`, `SEEK_VAULT_SECRET_ID`,
+  `SEEK_VAULT_SECRET_ID_FILE`, `SEEK_VAULT_APPROLE_MOUNT`,
+  `SEEK_VAULT_TOKEN_FILE` and `SEEK_VAULT_REFRESH_SECONDS`, with `VAULT_ADDR`
+  and `BAO_ADDR` for the address, `VAULT_NAMESPACE` and `BAO_NAMESPACE` for
+  the namespace, and `VAULT_TOKEN` and `BAO_TOKEN` for a token, each `VAULT_*`
+  before its `BAO_*` twin. The server image reads the JSON file at
+  `/config/seek/config.json`. At run time seek 0.3 takes each secret from the
+  first place that holds a value that is not blank: for the server, and for
+  the CLI's client token in server mode, the environment, then Vault, then the
+  JSON file; for the CLI's provider keys, the environment, then the JSON file.
+  The `configuration` specification replaces the JSON file with one YAML file
+  per configuration and one source per secret, ranked by layer. Eight of the
+  Vault variables have no place in it: `SEEK_VAULT_PATH`, `SEEK_VAULT_ADDR`,
   `SEEK_VAULT_ROLE_ID`, `SEEK_VAULT_SECRET_ID`, `SEEK_VAULT_SECRET_ID_FILE`,
   `SEEK_VAULT_APPROLE_MOUNT`, `SEEK_VAULT_TOKEN_FILE` and
-  `SEEK_VAULT_REFRESH_SECONDS`. The server image reads that file at
-  `/config/seek/config.json`. At run time seek 0.3 picks each secret from the
-  first place that holds a value that is not blank: for the server, the
-  environment, then Vault, then the JSON file; for the CLI's provider keys,
-  the environment, then the JSON file. The `configuration` specification
-  replaces both with one YAML file per configuration and one source per
-  secret, ranked by layer. This record decides what a release that
-  implements the specification does with a setup that still uses the JSON
-  file or the eight variables. Whether the provider key variables and
-  `SEEK_SERVER_TOKEN` stay is `familiar-environment-names`. Under every
-  option, `seek config path` prints the YAML file's path, `seek config init`
-  writes YAML, `seek config show` prints a new format with `<redacted>` in
-  place of a key's first and last four characters, and a file with an
-  unknown key stops a command with exit status 1.
+  `SEEK_VAULT_REFRESH_SECONDS`. `SEEK_VAULT_MOUNT`, `SEEK_VAULT_KV_VERSION`
+  and the `VAULT_*` and `BAO_*` aliases keep a place, with `BAO_*` first. This
+  record decides what a release that implements the specification does with a
+  setup that still uses the JSON file or the eight variables. Whether the
+  provider key variables and `SEEK_SERVER_TOKEN` stay is
+  `familiar-environment-names`. Under every option, `seek config path` prints
+  the YAML file's path, `seek config init` writes YAML, `seek config show`
+  prints a new format with `<redacted>` in place of a key's first and last
+  four characters, and a file with an unknown key, such as an old flat key
+  like `EXA_API_KEY`, stops a command with exit status 1.
 considered-options:
   replace-and-migrate:
     description: >-
@@ -100,34 +109,50 @@ expected-outcomes:
       mounts it at that path in the image.
     - >-
       A setup that read secrets through `SEEK_VAULT_PATH` gets none of them.
-      Its owner gives each secret a `vault` source with the old path as
-      `path` and the old variable name as `key`, so the KV secret in Vault or
-      OpenBao keeps its fields. `SEEK_VAULT_ADDR` becomes `vault.address`;
+      Its owner gives each secret a `vault` source with the old path as `path`
+      and the old variable name as `key`, so the KV secret in Vault or OpenBao
+      keeps its fields. `SEEK_VAULT_ADDR` becomes `vault.address`;
       `SEEK_VAULT_ROLE_ID`, `SEEK_VAULT_SECRET_ID_FILE` and
       `SEEK_VAULT_APPROLE_MOUNT` become `vault.auth` with `mode: approle`,
       `role-id`, `secret-id: { file: ... }` and `mount`; a secret ID set in
       `SEEK_VAULT_SECRET_ID` moves into a file, or into
       `SEEK_VAULT_AUTH_SECRET_ID_VALUE` with `SEEK_VAULT_AUTH_MODE=approle`
       and `SEEK_VAULT_AUTH_ROLE_ID` set beside it; `SEEK_VAULT_TOKEN_FILE`
-      becomes `vault.auth` with `mode: token` and `token: { file: ... }`;
-      and `SEEK_VAULT_REFRESH_SECONDS` becomes the server's
-      `server.secret-refresh-seconds`. `SEEK_VAULT_MOUNT`,
-      `SEEK_VAULT_KV_VERSION`, `BAO_ADDR`, `VAULT_ADDR`, `BAO_TOKEN`,
-      `VAULT_TOKEN`, `BAO_NAMESPACE` and `VAULT_NAMESPACE` keep working, with
-      `BAO_*` now ranked above `VAULT_*` and every environment variable above
-      the file. A relative token or secret ID path written into a file is
-      relative to that file's directory.
+      becomes `vault.auth` with `mode: token` and `token: { file: ... }`; and
+      `SEEK_VAULT_REFRESH_SECONDS` becomes the server's
+      `server.secret-refresh-seconds`. A relative token or secret ID path
+      written into a file is relative to that file's directory.
+    - >-
+      The retained Vault variables now rank differently. In seek 0.3 an
+      explicit `SEEK_VAULT_ADDR`, AppRole or token file won over the `VAULT_*`
+      and `BAO_*` address and token variables; now every environment variable,
+      alias or derived, outranks the file, `BAO_*` outranks `VAULT_*`, and a
+      derived `SEEK_VAULT_AUTH_*` outranks the token aliases. Where `BAO_ADDR`
+      or `VAULT_ADDR` is exported for another server, the owner either unsets
+      it for seek or gives each secret its own `vault` block with both
+      `address` and `auth`, since a block's own address takes no top-level
+      login bound to a different server. Where `BAO_TOKEN` or `VAULT_TOKEN` is
+      exported for the same server that the file's AppRole or token-file login
+      uses, the token replaces that login; the owner unsets it for seek, sets
+      the login with the derived `SEEK_VAULT_AUTH_*` variables, or puts `auth`
+      on each secret's own `vault` block. A token alias is bound to its own
+      family's address when that is set, so `VAULT_TOKEN` exported beside a
+      different `BAO_ADDR` and `VAULT_ADDR` fails validation until the pair
+      matches. `seek config show` confirms the result: each Vault source shows
+      its address, its `auth` mode and the layer that declared it.
     - >-
       seek 0.3 reached Vault through any proxy that `HTTP_PROXY`,
       `HTTPS_PROXY` or `ALL_PROXY` selected. A setup that needs one sets
-      `vault.proxy`.
+      `vault.proxy`, which takes a host and port only; a proxy that requires a
+      user name and password cannot be configured for Vault.
     - >-
-      Each secret has one source. A setup that relied on seek 0.3 falling
-      back to the JSON value when a Vault field was absent or blank keeps
-      the field set, or chooses the source it wants.
+      Each secret has one source. A setup that relied on seek 0.3 falling back
+      to the JSON value when a Vault field was absent or blank keeps the field
+      set, or chooses the source it wants.
     - >-
-      Scripts change. `seek config path` names the YAML file, `seek config
-      init` writes YAML, and a script that writes JSON there gets exit status
-      1, naming the unknown key. A script that parses `seek config show`
-      moves to `seek config show --json`, whose shape
+      Scripts change. `seek config path` names the YAML file, and `seek config
+      init` writes YAML. A script that writes the old flat keys, such as
+      `EXA_API_KEY`, to that path gets exit status 1, naming the unknown key;
+      JSON in the new shape is valid YAML and loads. A script that parses
+      `seek config show` moves to `seek config show --json`, whose shape
       `configuration.show.schema.json` defines.

@@ -165,9 +165,12 @@ expected-outcomes:
       the layer that declared it.
     - >-
       seek 0.3 reached Vault through any proxy that `HTTP_PROXY`,
-      `HTTPS_PROXY` or `ALL_PROXY` selected. A setup that needs one sets
-      `vault.proxy`, a host and port. Whether a proxy that needs a password
-      can be configured is pending in `authenticated-vault-proxy`.
+      `HTTPS_PROXY` or `ALL_PROXY` selected, and passed on a user name and
+      password written in that proxy's address. A setup that needs a proxy
+      sets `vault.proxy`, a host and port. A Vault reachable only through a
+      proxy that needs a password can no longer be reached, as the operator
+      decided in `authenticated-vault-proxy`; its owner gives seek a direct
+      route to Vault or a proxy that needs no credentials.
     - >-
       Each secret has one source. A setup that relied on seek 0.3 falling back
       to the JSON value when a Vault field was absent or blank keeps the field

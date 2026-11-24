@@ -39,3 +39,28 @@ considered-options:
     negative:
       - One more secret setting, with its environment variables, flags,
         redaction and tests, for a setup no current user is known to have.
+decision-outcome:
+  chosen-option: no-authenticated-proxy
+  justification: >-
+    The operator, Bob, answered "drop it" when asked whether a Vault
+    reachable only through a password-protected proxy should still be
+    supported. The answer is recorded on the epic's task 1 in workspace
+    commit 8b21fad.
+expected-outcomes:
+  positive:
+    - >-
+      No proxy credential exists in seek's settings, its inspection output,
+      its errors or its code, and `vault.proxy` stays a host and port that
+      can be printed whole.
+  negative:
+    - >-
+      A seek 0.3 setup that reached Vault through a proxy named by
+      `HTTP_PROXY`, `HTTPS_PROXY` or `ALL_PROXY` with a user name and
+      password in its address loses that route on upgrade: seek ignores those
+      variables for Vault, and `vault.proxy` rejects credentials. Its owner
+      gives seek a direct route to Vault or a proxy that needs no credentials,
+      set as `vault.proxy`. Nothing warns; the first Vault read or AppRole
+      login fails with the connection error.
+    - >-
+      Provider calls are outside this decision: they still use the proxy
+      variables as before.

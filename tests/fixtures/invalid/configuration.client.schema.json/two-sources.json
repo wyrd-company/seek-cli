@@ -1,0 +1,1 @@
+{ "providers": { "exa": { "api-key": { "file": "/run/secrets/exa", "command": ["op", "read"] } } } }

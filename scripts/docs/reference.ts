@@ -14,6 +14,8 @@ import { dirname, join, relative } from "node:path";
 import type { Argument, Command, Option } from "commander";
 import { createProgram } from "../../src/program.ts";
 import { EXIT_STATUSES } from "../../src/lib/exit-status.ts";
+import { settings, stdinFlag, type ConfigurationKind, type Leaf } from "../../src/lib/settings.ts";
+import { CONFIGURATION_GROUP } from "../../src/lib/options.ts";
 import { cell, code, prose, table } from "./markdown.ts";
 import { DEFINITIONS, filesUnder, REFERENCE_DIR, ROOT, SPECIFICATIONS_DIR as SPECIFICATIONS } from "./paths.ts";
 
@@ -53,17 +55,9 @@ export function commandFile(path: string[]): string {
   return `commands/${path.join("-")}.md`;
 }
 
-/** Builds the program with the built-in defaults, whatever the environment that runs the generator sets. */
+/** Builds the program. No option default comes from the environment, so the reference is the same wherever it is generated. */
 export function programWithBuiltInDefaults(): Command {
-  const saved = { host: process.env.SEEK_SERVER_HOST, port: process.env.SEEK_SERVER_PORT };
-  delete process.env.SEEK_SERVER_HOST;
-  delete process.env.SEEK_SERVER_PORT;
-  try {
-    return createProgram();
-  } finally {
-    if (saved.host !== undefined) process.env.SEEK_SERVER_HOST = saved.host;
-    if (saved.port !== undefined) process.env.SEEK_SERVER_PORT = saved.port;
-  }
+  return createProgram();
 }
 
 /** Full help as `seek <path> --help` prints it to a pipe: 80 columns, no colour. */
@@ -111,7 +105,9 @@ function commandPage(entry: CommandEntry, entries: CommandEntry[], order: number
     body.push("## Arguments", table(["Argument", "Required", "Description", "Default"], args.map(argumentRow)));
   }
 
-  const options = help.visibleOptions(command);
+  const visible = help.visibleOptions(command);
+  const configurationOptions = visible.filter((option) => option.helpGroupHeading === CONFIGURATION_GROUP);
+  const options = visible.filter((option) => option.helpGroupHeading !== CONFIGURATION_GROUP);
   body.push(
     "## Options",
     table(
@@ -127,6 +123,15 @@ function commandPage(entry: CommandEntry, entries: CommandEntry[], order: number
       }),
     ),
   );
+
+  if (configurationOptions.length > 0) {
+    const href = relative(dirname(commandFile(path)), "configuration.md");
+    body.push(
+      "## Configuration options",
+      `These flags set the configuration this command reads; the [configuration reference](${href}) describes each setting.`,
+      table(["Option", "Description"], configurationOptions.map((option) => [code(help.optionTerm(option)), cell(option.description ?? "")])),
+    );
+  }
 
   const children = entries.filter((e) => e.command.parent === command);
   if (children.length > 0) {
@@ -208,27 +213,72 @@ function settingsTable(schema: Schema): string {
   return table(["Key", "Type", "Accepted values", "Default", "Example", "Description"], rows);
 }
 
+function leafAccepted(leaf: Leaf): string {
+  return accepted(leaf.schema) || (leaf.schema.anyOf ? "A URI, or empty" : "");
+}
+
+function configurationSection(kind: ConfigurationKind, definition: string): string[] {
+  const schema = readJson(definition);
+  const model = settings(kind);
+  const plain = model.leaves.filter((leaf) => !leaf.mapping);
+  const secrets = model.mappings.filter((m) => m.def === "secret" || m.dotted === "vault.auth");
+  const flags = (leaf: Leaf) => [leaf.flag, ...(leaf.type === "boolean" && leaf.flag ? [leaf.flag.replace(/^--/, "--no-")] : []), ...leaf.flagAliases].filter(Boolean).map((f) => code(f!)).join(", ");
+  const env = (leaf: Leaf) => [leaf.env, ...leaf.envAliases].map((e) => code(e)).join(", ");
+  return [
+    `## ${prose(schema.title)}`,
+    prose(schema.description),
+    `Definition: [${definition}](${definition}) (JSON Schema 2020-12), with the shared shapes in [${DEFINITIONS.configurationSecrets}](${DEFINITIONS.configurationSecrets}).`,
+    `### ${prose(schema.title)} settings`,
+    table(
+      ["Setting", "Type", "Accepted values", "Default", "Environment", "Flag", "Description"],
+      plain.map((leaf) => [code(leaf.dotted), typeOf(leaf.schema), leafAccepted(leaf), leaf.default === undefined ? "" : code(String(leaf.default)), env(leaf), flags(leaf), cell(leaf.description)]),
+    ),
+    `### ${prose(schema.title)} secrets`,
+    "Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a higher layer replaces either whole. The fields of each are listed below with their environment variables and flags.",
+    table(
+      ["Setting", "Environment aliases", "Stdin flag", "Description"],
+      secrets.map((m) => [
+        code(m.dotted),
+        m.envAliases.map((a) => code(a)).join(", "),
+        m.def === "secret" ? code(stdinFlag(m.dotted)) : "",
+        cell(m.description),
+      ]),
+    ),
+    `### ${prose(schema.title)} source fields`,
+    table(
+      ["Setting", "Type", "Accepted values", "Default", "Environment", "Flag"],
+      model.leaves.filter((leaf) => leaf.mapping).map((leaf) => [code(leaf.dotted), typeOf(leaf.schema), leafAccepted(leaf), leaf.default === undefined ? "" : code(String(leaf.default)), code(leaf.env), leaf.flag ? code(leaf.flag) : "none"]),
+    ),
+  ];
+}
+
+function sourceRows(): string[][] {
+  const defs = readJson(DEFINITIONS.configurationSecrets).$defs as Record<string, Schema>;
+  const rows: string[][] = [];
+  for (const name of ["secret-value", "secret-file", "secret-command", "secret-vault"]) {
+    for (const [field, property] of Object.entries(defs[name]!.properties as Record<string, Schema>)) {
+      const resolved = property.$ref ? defs[property.$ref.split("/").pop()!]! : property;
+      rows.push([code(field), typeOf(resolved), cell(property.description ?? resolved.description ?? "")]);
+    }
+  }
+  return rows;
+}
+
 function configurationPage(): string {
-  const file = readJson(DEFINITIONS.configurationFile);
-  const environment = readJson(DEFINITIONS.configurationEnvironment);
-  const other = (schema: Schema) =>
-    schema.additionalProperties && typeof schema.additionalProperties === "object" && schema.additionalProperties.description
-      ? `Other keys: ${prose(schema.additionalProperties.description)}`
-      : schema.additionalProperties === false
-        ? "Other keys are rejected."
-        : "";
+  const show = readJson(DEFINITIONS.configurationShow);
   return page("Configuration reference", ORDER.configuration, [
-    "The settings seek reads from its configuration file and from its environment, generated from their JSON Schema definitions.",
-    `## ${prose(file.title)}`,
-    prose(file.description),
-    `Definition: [${DEFINITIONS.configurationFile}](${DEFINITIONS.configurationFile}) (JSON Schema 2020-12). Type: ${file.type}.`,
-    settingsTable(file),
-    other(file),
-    `## ${prose(environment.title)}`,
-    prose(environment.description),
-    `Definition: [${DEFINITIONS.configurationEnvironment}](${DEFINITIONS.configurationEnvironment}) (JSON Schema 2020-12). Type: ${environment.type}; every value is a string.`,
-    settingsTable(environment),
-    other(environment),
+    "The settings seek reads, generated from their JSON Schema definitions: one schema for the client configuration and one for the server configuration, which share the secret, provider and Vault shapes.",
+    "## Names",
+    `Each setting's environment variable is ${code("SEEK_")} followed by its YAML path in upper case, with dots and hyphens replaced by underscores, and its flag is ${code("--")} followed by its path with dots replaced by hyphens. A ${code("value")} has an environment variable and no flag, a boolean flag also has a ${code("--no-")} form, and a ${code("command")} array is written as a JSON array. ${code("--config")} and ${code("SEEK_CONFIG")} name the one configuration file to read in place of the default files.`,
+    "## Secret sources",
+    prose(readJson(DEFINITIONS.configurationSecrets).$defs.secret.description),
+    table(["Field", "Type", "Description"], sourceRows()),
+    ...configurationSection("client", DEFINITIONS.configurationClient),
+    ...configurationSection("server", DEFINITIONS.configurationServer),
+    `## ${prose(show.title)}`,
+    prose(show.description),
+    `Definition: [${DEFINITIONS.configurationShow}](${DEFINITIONS.configurationShow}) (JSON Schema 2020-12).`,
+    table(["Field", "Type", "Accepted values", "Required", "Description"], fieldRows(show)),
   ]);
 }
 

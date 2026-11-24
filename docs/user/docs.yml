@@ -23,15 +23,18 @@ assets:
   - assets/script-research-jobs.gif
   - examples/practice-server.mjs
   - examples/server-client.mjs
-  - examples/config.json
-  - examples/client-config.json
+  - examples/client.yml
+  - examples/client-with-server.yml
+  - examples/server.yml
   - examples/research-job-submitted.json
   - examples/research-job-result.json
   - examples/health.response.json
   - examples/unauthorized.response.json
   - reference/http-api.openapi.yml
-  - reference/configuration.file.schema.json
-  - reference/configuration.environment.schema.json
+  - reference/configuration.client.schema.json
+  - reference/configuration.server.schema.json
+  - reference/configuration.secrets.schema.json
+  - reference/configuration.show.schema.json
   - reference/research-job-envelope.schema.json
 products:
   seek:
@@ -91,6 +94,7 @@ products:
               - scrape
               - connect-to-a-server
               - server
+              - upgrade-from-0-3
               - agent-skill
           - group: Explanation
             pages: [overview, providers, credentials, research-jobs]
@@ -120,6 +124,7 @@ products:
               - seek-config-path
               - seek-config-init
               - seek-config-show
+              - seek-config-validate
               - seek-serve
               - configuration
       - section: Developers
@@ -171,6 +176,6 @@ products:
             label: Server image
             command: >-
               docker run --rm -p 8787:8787
-              -e SEEK_SERVER_TOKEN="$(openssl rand -hex 32)"
-              -e EXA_API_KEY="$EXA_API_KEY"
+              -e SEEK_SERVER_TOKENS_VALUE="$(openssl rand -hex 32)"
+              -e SEEK_PROVIDERS_EXA_API_KEY_VALUE="$EXA_API_KEY"
               ghcr.io/wyrd-company/seek-server:latest

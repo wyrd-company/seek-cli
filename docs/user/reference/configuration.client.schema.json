@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "configuration.client.schema.json",
+  "title": "seek client configuration",
+  "description": "The client configuration, read by every seek command except `seek serve`: `/etc/seek/client.yml`, then `$XDG_CONFIG_HOME/seek/client.yml` (`~/.config/seek/client.yml` when `XDG_CONFIG_HOME` is unset, empty or relative), which overrides it. `--config <path>` or `SEEK_CONFIG` names one file in place of both. Each field also has an environment variable and a flag, derived from its path as the configuration specification describes.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "server": {
+      "description": "The seek server the CLI calls providers through. Without `server.url` the CLI calls each provider directly with its key from `providers`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "description": "Base URL of a seek server. When it is set, the CLI sends every provider call to `<url>/v1/proxy/<upstream>` with the client token and does not use `providers`. Trailing slashes are removed. An empty value turns server mode off. Inspection and errors print it with any user name, password, query or fragment replaced by `<redacted>`.",
+          "type": "string",
+          "anyOf": [
+            {
+              "format": "uri",
+              "pattern": "^https?://[^/]"
+            },
+            {
+              "maxLength": 0
+            }
+          ],
+          "examples": ["https://seek.internal.example"]
+        },
+        "token": {
+          "description": "The client token the CLI sends to the seek server as `Authorization: Bearer <token>`. It is one token. The CLI reads it only when a command calls the server.",
+          "$ref": "configuration.secrets.schema.json#/$defs/secret"
+        }
+      }
+    },
+    "providers": {
+      "$ref": "configuration.secrets.schema.json#/$defs/providers"
+    },
+    "vault": {
+      "$ref": "configuration.secrets.schema.json#/$defs/vault"
+    }
+  },
+  "examples": [
+    {
+      "providers": {
+        "exa": {
+          "api-key": {
+            "file": "~/.config/seek/secrets/exa"
+          }
+        },
+        "parallel": {
+          "api-key": {
+            "command": ["op", "read", "op://Private/Parallel/credential"]
+          }
+        }
+      }
+    },
+    {
+      "server": {
+        "url": "https://seek.internal.example",
+        "token": {
+          "vault": {
+            "path": "clients/my-seek-cli",
+            "key": "SEEK_SERVER_TOKEN"
+          }
+        }
+      },
+      "vault": {
+        "address": "https://bao.internal.example",
+        "auth": {
+          "mode": "token",
+          "token": {
+            "file": "~/.vault-token"
+          }
+        }
+      }
+    }
+  ]
+}

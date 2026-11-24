@@ -4,28 +4,37 @@ product: seek
 order: 3
 ---
 
-Give seek the API key of each provider you want to use, in the environment
+Give seek the API key of each provider you want to use, for one shell session
 or in seek's configuration file, and check which keys it finds. You need a
 key only for the providers you use. To use a seek server that holds the keys
 instead, see [Use a seek server from the CLI](connect-to-a-server.md).
+Coming from seek 0.3? [Upgrade from seek 0.3](upgrade-from-0-3.md) lists
+what to rename.
 
-![Terminal recording: seek config init creates the configuration file, and seek config show lists each key with its source and a masked value.](assets/config.gif)
+![Terminal recording: seek config init writes the configuration file, and seek config show lists each setting with the layer that set it and the Exa key's source redacted.](assets/config.gif)
 
-## Find the variable for your provider
+## Find the setting for your provider
 
-| Provider | Variable | Commands |
-| --- | --- | --- |
-| Parallel | `PARALLEL_API_KEY` | `seek web parallel`, `seek research parallel`, `seek scrape parallel` |
-| Exa | `EXA_API_KEY` | `seek web exa`, `seek scrape exa` |
-| Brave Search | `BRAVE_SEARCH_API_KEY` | `seek web brave search` |
-| Brave Answers | `BRAVE_ANSWERS_API_KEY` | `seek web brave answers`, `seek research brave` |
-| Perplexity | `PERPLEXITY_API_KEY` | `seek web perplexity`, `seek research perplexity` |
-| Google Gemini | `GEMINI_API_KEY` | `seek research google` |
-| Firecrawl | `FIRECRAWL_API_KEY` | `seek scrape firecrawl` |
+Each provider's key is one setting, `providers.<provider>.api-key`. Its
+environment variables are named after it:
 
-Brave issues separate keys for its Search and Answers APIs. The
-[configuration reference](reference/configuration.md) describes every
-variable.
+| Provider | Setting | Environment variable for the key itself | Commands |
+| --- | --- | --- | --- |
+| Parallel | `providers.parallel.api-key` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE` | `seek web parallel`, `seek research parallel`, `seek scrape parallel` |
+| Exa | `providers.exa.api-key` | `SEEK_PROVIDERS_EXA_API_KEY_VALUE` | `seek web exa`, `seek scrape exa` |
+| Brave Search | `providers.brave-search.api-key` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VALUE` | `seek web brave search` |
+| Brave Answers | `providers.brave-answers.api-key` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VALUE` | `seek web brave answers`, `seek research brave` |
+| Perplexity | `providers.perplexity.api-key` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE` | `seek web perplexity`, `seek research perplexity` |
+| Google Gemini | `providers.google.api-key` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE` | `seek research google` |
+| Firecrawl | `providers.firecrawl.api-key` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VALUE` | `seek scrape firecrawl` |
+
+Brave issues separate keys for its Search and Answers APIs. A key names one
+source: the key itself (`value`), a file that holds it (`file`), a credential
+helper that prints it (`command`), or a field of a Vault or OpenBao secret
+(`vault`). Each source has its own variable, such as
+`SEEK_PROVIDERS_EXA_API_KEY_FILE`, and, except `value`, its own flag, such as
+`--providers-exa-api-key-file`. The
+[configuration reference](reference/configuration.md) lists every setting.
 
 ## Set a key for one shell session
 
@@ -33,39 +42,58 @@ Export the variable. Replace `<exa-api-key>` with the key from your provider
 account:
 
 ```sh
-export EXA_API_KEY=<exa-api-key>
+export SEEK_PROVIDERS_EXA_API_KEY_VALUE=<exa-api-key>
 ```
 
-A variable in the environment takes precedence over the configuration file.
+A variable takes precedence over the configuration file, and a flag over
+both.
 
 ## Keep keys in the configuration file
 
-1. Create the file. seek writes it with a placeholder for every key, readable
-   only by you:
+1. Create the file. seek writes a commented template, readable only by you:
 
    ```sh
    seek config init
    ```
 
    ```text
-   Created /home/<you>/.config/seek/config.json
-   Edit the file and fill in keys for the providers you want to use.
+   Created /home/<you>/.config/seek/client.yml
+   Uncomment the settings you use, then check them with seek config validate.
    ```
 
-   The file is `$XDG_CONFIG_HOME/seek/config.json`, or
-   `~/.config/seek/config.json` when `XDG_CONFIG_HOME` is not set. If the file
+   The file is `$XDG_CONFIG_HOME/seek/client.yml`, or
+   `~/.config/seek/client.yml` when `XDG_CONFIG_HOME` is not set. If the file
    exists, `seek config init` stops; add `--force` to replace it.
 
-2. Open the file and fill in the keys you have. Leave the others empty or
-   remove them. A file with two keys looks like
-   [config.json](examples/config.json):
+2. Name a source for each key you have. Keep each key in a file of its own,
+   or read it from your password manager's command-line tool. A file with two
+   keys looks like [client.yml](examples/client.yml):
 
-   ```json
-   {
-     "EXA_API_KEY": "<exa-api-key>",
-     "PARALLEL_API_KEY": "<parallel-api-key>"
-   }
+   ```yaml
+   providers:
+     exa:
+       api-key:
+         file: ~/.config/seek/secrets/exa
+     parallel:
+       api-key:
+         command: ["op", "read", "op://Private/Parallel/credential"]
    ```
+
+   A relative `file` path starts in the configuration file's folder. seek
+   runs a `command` without a shell and reads the key from what it prints.
+
+3. Check the file:
+
+   ```sh
+   seek config validate
+   ```
+
+   ```text
+   The seek client configuration is valid (/home/<you>/.config/seek/client.yml).
+   ```
+
+   An unknown setting, a wrong type or a key with two sources fails with exit
+   status 1, naming the setting and the file, variable or flag that set it.
 
 ## Check which keys seek finds
 
@@ -73,22 +101,36 @@ A variable in the environment takes precedence over the configuration file.
 seek config show
 ```
 
-Each line names a key, where seek found it (`env`, `config`, or `—` for
-neither) and a masked value:
+Each line names a setting, its value or source, and the layer that set it.
+Secrets appear as their source, never their value:
 
 ```text
-config: /home/<you>/.config/seek/config.json
+seek client configuration
+files: /home/<you>/.config/seek/client.yml
 
-  PARALLEL_API_KEY       —    (unset)    [parallel]
-  EXA_API_KEY            env  exa-…1234    [exa]
-  BRAVE_SEARCH_API_KEY   —    (unset)    [brave search]
-  BRAVE_ANSWERS_API_KEY  —    (unset)    [brave answers]
-  PERPLEXITY_API_KEY     —    (unset)    [perplexity]
-  GEMINI_API_KEY         —    (unset)    [google]
-  FIRECRAWL_API_KEY      —    (unset)    [firecrawl]
+server.url  (unset)
+server.token  (unset)
+providers.parallel.api-key  (unset)
+providers.exa.api-key = value <redacted>  (env SEEK_PROVIDERS_EXA_API_KEY_VALUE)
+providers.brave-search.api-key  (unset)
+providers.brave-answers.api-key  (unset)
+providers.perplexity.api-key  (unset)
+providers.google.api-key  (unset)
+providers.firecrawl.api-key  (unset)
+vault.address  (unset)
+vault.namespace  (unset)
+vault.mount = secret  (default)
+vault.kv-version = 2  (default)
+vault.ca-cert  (unset)
+vault.proxy  (unset)
+vault.auth  (unset)
 ```
 
-A command whose key is missing stops with exit status 2, names the variable
-to set, and lists the other providers of its group, marking those without a
-key. [How seek finds keys and tokens](credentials.md) explains the order seek
-reads them in.
+`seek config show` and `seek config validate` never read a key file, run a
+helper or contact Vault. Scripts read the same information with
+`seek config show --json`.
+
+A command whose key is missing stops with exit status 2, names the setting
+and its variables, and lists the other providers of its group, marking those
+without a key. [How seek finds keys and tokens](credentials.md) explains the
+layers seek reads.

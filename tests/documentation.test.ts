@@ -3,7 +3,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync }
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { UPSTREAMS, type UpstreamId, type UpstreamSpec } from "../src/lib/upstreams.ts";
-import { SecretResolver } from "../src/server/secrets.ts";
+import { staticSecrets } from "./support.ts";
 import { startServer } from "../src/server/server.ts";
 import { compileDefinitions, EXAMPLES, validateExample } from "../scripts/docs/validate.ts";
 import { createProgram } from "../src/program.ts";
@@ -110,7 +110,7 @@ function startRealServer(): { url: string; close(): void } {
   const server = startServer({
     hostname: "127.0.0.1",
     port: 0,
-    secrets: new SecretResolver(null, { SEEK_SERVER_TOKEN: "practice-token", EXA_API_KEY: "exa-synthetic-key", PARALLEL_API_KEY: "parallel-synthetic-key" }, () => ({})),
+    secrets: staticSecrets("practice-token", { exa: "exa-synthetic-key", parallel: "parallel-synthetic-key" }),
     upstreams,
     log: () => {},
   });
@@ -148,7 +148,7 @@ describe("Run your first search", () => {
     test(`each search prints what the page shows, through ${target}`, async () => {
       const server = target === "the practice server" ? await startPractice() : startRealServer();
       try {
-        const env = cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN: "practice-token" });
+        const env = cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN_VALUE: "practice-token" });
         for (const command of [`seek web parallel "${QUERY}"`, `seek web parallel "${QUERY}" -n 1 --json`]) {
           const step = await seek(command, env);
           expect(step.exitCode).toBe(0);
@@ -165,7 +165,7 @@ describe("Run a research job", () => {
   test("submission, two status lookups and the result print what the page shows", async () => {
     const server = await startPractice();
     try {
-      const env = cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN: "practice-token" });
+      const env = cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN_VALUE: "practice-token" });
       const steps: Array<[string, number]> = [
         [`seek research parallel "${QUERY}" --async`, 0],
         ["seek research status parallel -- trun_practice_1", 0],
@@ -185,7 +185,7 @@ describe("Run a research job", () => {
   test("the envelope examples are what seek prints", async () => {
     const server = await startPractice();
     try {
-      const env = cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN: "practice-token" });
+      const env = cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN_VALUE: "practice-token" });
       const submitted = await seek(`seek research parallel "${QUERY}" --async --json`, env);
       expect(submitted.stdout).toBe(page("examples/research-job-submitted.json"));
       const early = await seek("seek research get --json parallel -- trun_practice_1", env);
@@ -213,7 +213,7 @@ describe("Track a research job from a script", () => {
         .filter((b) => b.language === "sh")
         .map((b) => b.content)
         .join("\n");
-      const env = cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN: "practice-token" });
+      const env = cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN_VALUE: "practice-token" });
       const step = await run(["bash", "-euo", "pipefail", "-c", script], { env: { ...env, PATH: `${bin}:${env.PATH}` } });
       expect(step.stderr).toBe("");
       expect(step.exitCode).toBe(0);
@@ -253,7 +253,7 @@ describe("Extract the content of a page", () => {
     const server = await startPractice();
     try {
       const command = "seek scrape exa https://example.com/honey";
-      const step = await seek(command, cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN: "practice-token" }));
+      const step = await seek(command, cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN_VALUE: "practice-token" }));
       expect(step.exitCode).toBe(0);
       expectPageShows("scrape.md", command, step.stdout);
     } finally {
@@ -271,7 +271,7 @@ describe("Call a seek server from your code", () => {
         for (const runtime of runtimes) {
           for (const [token, exitCode] of [["practice-token", 0], ["wrong-token", 1]] as const) {
             const step = await run([runtime, "docs/user/examples/server-client.mjs", QUERY], {
-              env: cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN: token }),
+              env: cleanEnv({ SEEK_SERVER_URL: server.url, SEEK_SERVER_TOKEN_VALUE: token }),
             });
             expect(step.exitCode).toBe(exitCode);
             expectPageShows("server-client.md", `node server-client.mjs "${QUERY}"`, step.stdout);
@@ -285,25 +285,38 @@ describe("Call a seek server from your code", () => {
 });
 
 describe("Set up provider keys and use a server", () => {
-  test("seek config init and seek config show print what the page shows", async () => {
-    const env = cleanEnv({ EXA_API_KEY: "exa-synthetic-key-1234" });
+  test("seek config init, validate and show print what the page shows", async () => {
+    const env = cleanEnv({ SEEK_PROVIDERS_EXA_API_KEY_VALUE: "exa-synthetic-key-1234" });
     const placeholder = (text: string) => text.replaceAll(env.HOME!, "/home/<you>");
     const init = await seek("seek config init", env);
     expect(init.exitCode).toBe(0);
     expectPageShows("config.md", "seek config init", placeholder(init.stdout));
+    const validate = await seek("seek config validate", env);
+    expect(validate.exitCode).toBe(0);
+    expectPageShows("config.md", "seek config validate", placeholder(validate.stdout));
     const show = await seek("seek config show", env);
+    expect(show.stdout).not.toContain("exa-synthetic-key-1234");
     expectPageShows("config.md", "seek config show", placeholder(show.stdout));
   });
 
+  test("the configuration file the page shows is the example, and it validates", async () => {
+    const shown = blocks(page("config.md")).find((b) => b.language === "yaml")!.content;
+    expect(`${shown}\n`).toBe(page("examples/client.yml").split("\n").slice(1).join("\n"));
+    const home = cleanEnv();
+    const file = join(home.HOME!, "client.yml");
+    writeFileSync(file, page("examples/client.yml"));
+    expect((await seek(`seek config validate --config ${file}`, home)).exitCode).toBe(0);
+  });
+
   test("seek config show names the server as the page shows", async () => {
-    const env = cleanEnv({ SEEK_SERVER_URL: "https://seek.internal.example", SEEK_SERVER_TOKEN: "synthetic-client-token" });
+    const env = cleanEnv({ SEEK_SERVER_URL: "https://seek.internal.example", SEEK_SERVER_TOKEN_VALUE: "synthetic-client-token" });
     const show = await seek("seek config show", env);
-    const head = show.stdout.replaceAll(env.HOME!, "/home/<you>").split("\n").slice(0, 3).join("\n");
-    expectPageShows("connect-to-a-server.md", "seek config show", head);
+    const lines = show.stdout.split("\n").filter((line) => line.startsWith("server.")).join("\n");
+    expectPageShows("connect-to-a-server.md", "seek config show", lines);
   });
 
   test("seek serve starts and answers its health check as the page shows", async () => {
-    const env = cleanEnv({ SEEK_SERVER_TOKEN: "synthetic-client-token", EXA_API_KEY: "exa-synthetic-key-1234" });
+    const env = cleanEnv({ SEEK_SERVER_TOKENS_VALUE: "synthetic-client-token", SEEK_PROVIDERS_EXA_API_KEY_VALUE: "exa-synthetic-key-1234" });
     const server = Bun.spawn({
       cmd: [process.execPath, "run", join(ROOT, "src/index.ts"), "serve", "--host", "0.0.0.0", "--port", "0"],
       cwd: ROOT,
@@ -386,9 +399,17 @@ describe("command lines in the pages", () => {
 describe("invalid fixtures fail validation with the expected error", () => {
   const validators = compileDefinitions(ROOT);
   const cases: Array<[string, { kind: "schema"; definition: string }, string]> = [
-    ["configuration.file.schema.json/server-url-not-a-uri.json", { kind: "schema", definition: "configuration.file.schema.json" }, '/SEEK_SERVER_URL must match format "uri"'],
-    ["configuration.file.schema.json/key-not-a-string.json", { kind: "schema", definition: "configuration.file.schema.json" }, "/EXA_API_KEY must be string"],
-    ["configuration.environment.schema.json/kv-version-3.json", { kind: "schema", definition: "configuration.environment.schema.json" }, "/SEEK_VAULT_KV_VERSION must be equal to one of the allowed values"],
+    ["configuration.client.schema.json/address-with-credentials.json", { kind: "schema", definition: "configuration.client.schema.json" }, "/vault/address must match pattern"],
+    ["configuration.client.schema.json/proxy-with-credentials.json", { kind: "schema", definition: "configuration.client.schema.json" }, "/vault/proxy must match pattern"],
+    ["configuration.client.schema.json/address-with-query.json", { kind: "schema", definition: "configuration.client.schema.json" }, "/vault/address must match pattern"],
+    ["configuration.client.schema.json/two-sources.json", { kind: "schema", definition: "configuration.client.schema.json" }, "/providers/exa/api-key must match exactly one schema in oneOf"],
+    ["configuration.client.schema.json/vault-without-key.json", { kind: "schema", definition: "configuration.client.schema.json" }, "/providers/exa/api-key/vault must have required property 'key'"],
+    ["configuration.client.schema.json/flat-0-3-key.json", { kind: "schema", definition: "configuration.client.schema.json" }, "/ must NOT have additional properties"],
+    ["configuration.server.schema.json/server-url.json", { kind: "schema", definition: "configuration.server.schema.json" }, "/server must NOT have additional properties"],
+    ["configuration.show.schema.json/plain-value-at-secret.json", { kind: "schema", definition: "configuration.show.schema.json" }, "/settings/0 must match exactly one schema in oneOf"],
+    ["configuration.show.schema.json/plain-value-at-auth.json", { kind: "schema", definition: "configuration.show.schema.json" }, "/settings/0 must match exactly one schema in oneOf"],
+    ["configuration.show.schema.json/value-and-source.json", { kind: "schema", definition: "configuration.show.schema.json" }, "/settings/0 must match exactly one schema in oneOf"],
+    ["configuration.show.schema.json/unredacted-url.json", { kind: "schema", definition: "configuration.show.schema.json" }, "/settings/0/value must match pattern"],
     ["research-job-envelope.schema.json/terminal-mismatch.json", { kind: "schema", definition: "research-job-envelope.schema.json" }, "/terminal must be equal to constant"],
     ["research-job-envelope.schema.json/result-before-completion.json", { kind: "schema", definition: "research-job-envelope.schema.json" }, "/status must be equal to constant"],
     ["research-job-envelope.schema.json/unknown-provider.json", { kind: "schema", definition: "research-job-envelope.schema.json" }, "/locator/provider must be equal to one of the allowed values"],
@@ -405,10 +426,20 @@ describe("invalid fixtures fail validation with the expected error", () => {
     expect(validateExample(validators, { kind: "openapi", method: "get", path: "/healthz", status: "200" }, value)).toContain("/status must be equal to constant");
   });
 
-  test("every published JSON example validates", () => {
+  test("each redacted form of a URL is valid config show output", () => {
+    const fixture = JSON.parse(readFileSync(join(ROOT, "tests/fixtures/invalid/configuration.show.schema.json/unredacted-url.json"), "utf8"));
+    const check = { kind: "schema", definition: "configuration.show.schema.json" } as const;
+    for (const value of ["https://<redacted>@seek.internal.example", "https://seek.internal.example/base?<redacted>", "https://seek.internal.example#<redacted>", "https://<redacted>@seek.internal.example/b?<redacted>#<redacted>"]) {
+      fixture.settings[0].value = value;
+      expect(validateExample(validators, check, fixture), value).toBe("");
+    }
+  });
+
+  test("every published JSON and YAML example validates", () => {
     for (const [example, check] of Object.entries(EXAMPLES)) {
       if (check.kind === "script") continue;
-      expect(validateExample(validators, check, JSON.parse(page(example))), example).toBe("");
+      const text = page(example);
+      expect(validateExample(validators, check, example.endsWith(".yml") ? Bun.YAML.parse(text) : JSON.parse(text)), example).toBe("");
     }
   });
 });
@@ -486,8 +517,8 @@ const MUTATIONS: Mutation[] = [
   },
   {
     name: "an example does not validate",
-    apply: (c) => edit(c, "docs/user/examples/client-config.json", '"https://seek.internal.example"', '"not a url"'),
-    expect: 'examples: docs/user/examples/client-config.json: does not validate: /SEEK_SERVER_URL must match format "uri"',
+    apply: (c) => edit(c, "docs/user/examples/client-with-server.yml", "address: https://bao.internal.example", "address: https://synthetic-user:synthetic-password@bao.internal.example"),
+    expect: "examples: docs/user/examples/client-with-server.yml: does not validate: /vault/address must match pattern",
   },
   {
     name: "a link names a page that does not exist",
@@ -501,7 +532,7 @@ const MUTATIONS: Mutation[] = [
   },
   {
     name: "a download does not exist",
-    apply: (c) => edit(c, "docs/user/config.md", "(examples/config.json)", "(examples/missing.json)"),
+    apply: (c) => edit(c, "docs/user/config.md", "(examples/client.yml)", "(examples/missing.json)"),
     expect: "download does not exist: examples/missing.json",
   },
   {
@@ -544,13 +575,13 @@ const MUTATIONS: Mutation[] = [
   },
   {
     name: "an asset loses its only owning-page link",
-    apply: (c) => edit(c, "docs/user/connect-to-a-server.md", "[client-config.json](examples/client-config.json)", "client-config.json"),
-    expect: "lists examples/client-config.json, but no seek page links to it by its relative path and no product field names it",
+    apply: (c) => edit(c, "docs/user/connect-to-a-server.md", "[client-with-server.yml](examples/client-with-server.yml)", "client-with-server.yml"),
+    expect: "lists examples/client-with-server.yml, but no seek page links to it by its relative path and no product field names it",
   },
   {
     name: "a published example is not listed in assets",
-    apply: (c) => edit(c, "docs/user/docs.yml", "  - examples/config.json\n", ""),
-    expect: "assets: docs/user/examples/config.json: is published with the docs but not listed in docs.yml assets",
+    apply: (c) => edit(c, "docs/user/docs.yml", "  - examples/client.yml\n", ""),
+    expect: "assets: docs/user/examples/client.yml: is published with the docs but not listed in docs.yml assets",
   },
   {
     name: "a page has two homes in nav",

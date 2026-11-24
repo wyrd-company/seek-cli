@@ -118,7 +118,7 @@ describe("research job envelopes conform to research-job-envelope.schema.json", 
   const validate = new Ajv2020({ strict: true }).compile(schema);
   const originalFetch = globalThis.fetch;
   const savedServer = process.env.SEEK_SERVER_URL;
-  const keys = ["GEMINI_API_KEY", "PARALLEL_API_KEY", "PERPLEXITY_API_KEY"];
+  const keys = ["SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE", "SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE", "SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE"];
   beforeEach(() => {
     delete process.env.SEEK_SERVER_URL;
     for (const key of keys) process.env[key] = "synthetic-key";

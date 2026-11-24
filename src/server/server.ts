@@ -1,9 +1,9 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { isUpstreamId, UPSTREAMS, type UpstreamId, type UpstreamSpec } from "../lib/upstreams.ts";
-import type { SecretResolver } from "./secrets.ts";
+import type { ServerSecrets } from "./secrets.ts";
 
 export interface ServerOptions {
-  secrets: SecretResolver;
+  secrets: ServerSecrets;
   /** Skip client token checks. Only for trusted networks. */
   allowUnauthenticated?: boolean;
   /** Override upstream specs (used by tests). */
@@ -74,7 +74,7 @@ export function createHandler(opts: ServerOptions): (req: Request) => Promise<Re
     if (!url.pathname.startsWith(PROXY_PREFIX)) return json(404, { error: "not found" });
 
     if (!opts.allowUnauthenticated) {
-      const accepted = await opts.secrets.serverTokens();
+      const accepted = await opts.secrets.tokens();
       const presented = bearerToken(req);
       if (accepted.length === 0 || !presented || !tokenMatches(presented, accepted)) {
         return json(401, { error: "missing or invalid seek server token" }, { "www-authenticate": "Bearer" });
@@ -91,10 +91,10 @@ export function createHandler(opts: ServerOptions): (req: Request) => Promise<Re
     }
     const spec = upstreams[id];
 
-    const key = await opts.secrets.get(spec.envVar);
+    const key = await opts.secrets.providerKey(spec.id);
     if (!key) {
       return json(503, {
-        error: `seek server has no API key configured for ${spec.label} (${spec.envVar})`,
+        error: `seek server has no API key configured for ${spec.label} (${spec.setting})`,
       });
     }
 

@@ -1,0 +1,1 @@
+{ "server": { "url": "https://seek.internal.example", "tokens": { "file": "/run/secrets/tokens" } } }

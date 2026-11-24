@@ -62,16 +62,16 @@ function taskRun(
 }
 
 beforeEach(() => {
-  process.env.GEMINI_API_KEY = "test-google-key";
-  process.env.PARALLEL_API_KEY = "test-parallel-key";
-  process.env.PERPLEXITY_API_KEY = "test-perplexity-key";
+  process.env.SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE = "test-google-key";
+  process.env.SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE = "test-parallel-key";
+  process.env.SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE = "test-perplexity-key";
 });
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  delete process.env.GEMINI_API_KEY;
-  delete process.env.PARALLEL_API_KEY;
-  delete process.env.PERPLEXITY_API_KEY;
+  delete process.env.SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE;
+  delete process.env.SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE;
+  delete process.env.SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE;
 });
 
 describe("async provider primitives", () => {

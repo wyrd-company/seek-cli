@@ -127,10 +127,11 @@ function checkExamples(root: string, fail: (check: string, where: string, messag
       continue;
     }
     let value: unknown;
+    const yaml = example.endsWith(".yml");
     try {
-      value = JSON.parse(text);
+      value = yaml ? Bun.YAML.parse(text) : JSON.parse(text);
     } catch (error) {
-      fail("examples", where, `is not valid JSON: ${(error as Error).message}`);
+      fail("examples", where, `is not valid ${yaml ? "YAML" : "JSON"}: ${(error as Error).message}`);
       continue;
     }
     try {

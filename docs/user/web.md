@@ -15,11 +15,11 @@ results as text or JSON. You need the provider's key (see
 
 | You want | Command | Key |
 | --- | --- | --- |
-| Dense excerpts for an agent, for a broad question | `seek web parallel` | `PARALLEL_API_KEY` |
-| Pages found by meaning, such as papers or companies | `seek web exa` | `EXA_API_KEY` |
-| Pages from Brave's own index, with a freshness window | `seek web brave search` | `BRAVE_SEARCH_API_KEY` |
-| One AI answer with sources, from Brave | `seek web brave answers` | `BRAVE_ANSWERS_API_KEY` |
-| One short answer with citations, from Perplexity | `seek web perplexity` | `PERPLEXITY_API_KEY` |
+| Dense excerpts for an agent, for a broad question | `seek web parallel` | `providers.parallel.api-key` |
+| Pages found by meaning, such as papers or companies | `seek web exa` | `providers.exa.api-key` |
+| Pages from Brave's own index, with a freshness window | `seek web brave search` | `providers.brave-search.api-key` |
+| One AI answer with sources, from Brave | `seek web brave answers` | `providers.brave-answers.api-key` |
+| One short answer with citations, from Perplexity | `seek web perplexity` | `providers.perplexity.api-key` |
 
 [Choosing a provider](providers.md) explains the trade-offs.
 

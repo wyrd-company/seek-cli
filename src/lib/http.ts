@@ -1,3 +1,5 @@
+import { redactUrl } from "./redact.ts";
+
 export interface HttpOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   headers?: Record<string, string>;
@@ -15,7 +17,7 @@ export class HttpError extends Error {
       statusText = statusText.replaceAll(token, "[redacted]");
       body = body.replaceAll(token, "[redacted]");
     }
-    super(`HTTP ${status} ${statusText} from ${url}: ${truncate(body, 500)}`);
+    super(`HTTP ${status} ${statusText} from ${redactUrl(url)}: ${truncate(body, 500)}`);
     this.name = "HttpError";
     this.status = status;
     this.body = body;

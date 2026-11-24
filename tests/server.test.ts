@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test
 import { braveAnswers } from "../src/providers/brave.ts";
 import { exaSearch } from "../src/providers/exa.ts";
 import { UPSTREAMS, type UpstreamId, type UpstreamSpec } from "../src/lib/upstreams.ts";
-import { SecretResolver } from "../src/server/secrets.ts";
+import { staticSecrets } from "./support.ts";
 import { startServer } from "../src/server/server.ts";
 
 interface SeenRequest {
@@ -46,16 +46,11 @@ const fakeUpstreams = Object.fromEntries(
   ]),
 ) as Record<UpstreamId, UpstreamSpec>;
 
-const serverEnv: Record<string, string> = {
-  SEEK_SERVER_TOKEN: "old-token, client-token",
-  EXA_API_KEY: "server-exa-key",
-  BRAVE_ANSWERS_API_KEY: "server-brave-key",
-};
 
 const seekServer = startServer({
   hostname: "127.0.0.1",
   port: 0,
-  secrets: new SecretResolver(null, serverEnv, () => ({})),
+  secrets: staticSecrets("old-token, client-token", { exa: "server-exa-key", "brave-answers": "server-brave-key" }),
   upstreams: fakeUpstreams,
   log: () => {},
 });
@@ -69,7 +64,7 @@ afterAll(() => {
 afterEach(() => {
   seen = [];
   delete process.env.SEEK_SERVER_URL;
-  delete process.env.SEEK_SERVER_TOKEN;
+  delete process.env.SEEK_SERVER_TOKEN_VALUE;
 });
 
 describe("seek serve proxy", () => {
@@ -148,7 +143,7 @@ describe("seek serve proxy", () => {
       headers: { authorization: "Bearer client-token" },
     });
     expect(res.status).toBe(503);
-    expect(((await res.json()) as { error: string }).error).toContain("PARALLEL_API_KEY");
+    expect(((await res.json()) as { error: string }).error).toContain("providers.parallel.api-key");
     expect(seen).toHaveLength(0);
   });
 
@@ -163,14 +158,14 @@ describe("seek serve proxy", () => {
 describe("CLI remote mode", () => {
   test("provider calls route through the server without local keys", async () => {
     process.env.SEEK_SERVER_URL = `${base}/`;
-    process.env.SEEK_SERVER_TOKEN = "client-token";
-    const saved = process.env.EXA_API_KEY;
-    delete process.env.EXA_API_KEY;
+    process.env.SEEK_SERVER_TOKEN_VALUE = "client-token";
+    const saved = process.env.SEEK_PROVIDERS_EXA_API_KEY_VALUE;
+    delete process.env.SEEK_PROVIDERS_EXA_API_KEY_VALUE;
     try {
       const result = await exaSearch("roof materials", { numResults: 2 });
       expect(result.requestId).toBe("r1");
     } finally {
-      if (saved !== undefined) process.env.EXA_API_KEY = saved;
+      if (saved !== undefined) process.env.SEEK_PROVIDERS_EXA_API_KEY_VALUE = saved;
     }
     expect(seen[0]?.path).toBe("/exa/search");
     expect(seen[0]?.headers["x-api-key"]).toBe("server-exa-key");
@@ -179,7 +174,7 @@ describe("CLI remote mode", () => {
 
   test("streams server-sent events through the server", async () => {
     process.env.SEEK_SERVER_URL = base;
-    process.env.SEEK_SERVER_TOKEN = "client-token";
+    process.env.SEEK_SERVER_TOKEN_VALUE = "client-token";
     const result = await braveAnswers("hi");
     expect(result.choices?.[0]?.message?.content).toBe("hello world");
     expect(seen[0]?.path).toBe("/brave-answers/chat/completions");
@@ -187,17 +182,3 @@ describe("CLI remote mode", () => {
   });
 });
 
-describe("SecretResolver", () => {
-  test("prefers env, then vault, then config", async () => {
-    const vault = { get: async (name: string) => ({ A: "vault-a", B: "vault-b" })[name] };
-    const resolver = new SecretResolver(
-      vault,
-      { A: "env-a" },
-      () => ({ A: "cfg-a", B: "cfg-b", C: "cfg-c" }),
-    );
-    expect(await resolver.get("A")).toBe("env-a");
-    expect(await resolver.get("B")).toBe("vault-b");
-    expect(await resolver.get("C")).toBe("cfg-c");
-    expect(await resolver.get("D")).toBeUndefined();
-  });
-});

@@ -17,13 +17,13 @@ upstream names one provider API with its own base URL and key:
 
 | Upstream | Forwards to | Key |
 | --- | --- | --- |
-| `parallel` | `https://api.parallel.ai` | `PARALLEL_API_KEY` |
-| `exa` | `https://api.exa.ai` | `EXA_API_KEY` |
-| `brave-search` | `https://api.search.brave.com/res/v1` | `BRAVE_SEARCH_API_KEY` |
-| `brave-answers` | `https://api.search.brave.com/res/v1` | `BRAVE_ANSWERS_API_KEY` |
-| `perplexity` | `https://api.perplexity.ai` | `PERPLEXITY_API_KEY` |
-| `google` | `https://generativelanguage.googleapis.com/v1beta` | `GEMINI_API_KEY` |
-| `firecrawl` | `https://api.firecrawl.dev` | `FIRECRAWL_API_KEY` |
+| `parallel` | `https://api.parallel.ai` | `providers.parallel.api-key` |
+| `exa` | `https://api.exa.ai` | `providers.exa.api-key` |
+| `brave-search` | `https://api.search.brave.com/res/v1` | `providers.brave-search.api-key` |
+| `brave-answers` | `https://api.search.brave.com/res/v1` | `providers.brave-answers.api-key` |
+| `perplexity` | `https://api.perplexity.ai` | `providers.perplexity.api-key` |
+| `google` | `https://generativelanguage.googleapis.com/v1beta` | `providers.google.api-key` |
+| `firecrawl` | `https://api.firecrawl.dev` | `providers.firecrawl.api-key` |
 
 For example, Exa's `POST /search` is `POST /v1/proxy/exa/search`. The URL
 parser resolves `.` and `..` segments before the server reads the path. The
@@ -35,7 +35,7 @@ Search and Answers use separate keys.
 ## What the server changes
 
 - **Credentials.** The server accepts a request only with a client token as
-  `Authorization: Bearer <token>`, unless it was started with `--no-auth`. It removes that header, cookies, and any
+  `Authorization: Bearer <token>`, unless its `server.require-token` is false. It removes that header, cookies, and any
   header a provider uses for its key, then adds the provider's own key
   header. A client never holds a provider key, and the provider never sees a
   client token.

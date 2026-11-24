@@ -31,12 +31,12 @@ function requestBody(fetchMock: ReturnType<typeof mock>): Record<string, unknown
 }
 
 beforeEach(() => {
-  process.env.PARALLEL_API_KEY = "test-parallel-key";
+  process.env.SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE = "test-parallel-key";
 });
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  delete process.env.PARALLEL_API_KEY;
+  delete process.env.SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE;
 });
 
 describe("parallelSearch", () => {

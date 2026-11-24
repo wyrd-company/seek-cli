@@ -1,0 +1,1 @@
+{ "configuration": "client", "files": [], "warnings": [], "settings": [{ "path": "server.url", "value": "https://synthetic-user:synthetic-password@seek.internal.example", "layer": { "kind": "env", "name": "SEEK_SERVER_URL" } }] }

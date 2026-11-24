@@ -30,7 +30,7 @@ Definition: [http-api.openapi.yml](http-api.openapi.yml) (OpenAPI 3.1.1, API ver
 
 Type: `http`, scheme `bearer`.
 
-A client token the server accepts, sent as `Authorization: Bearer <token>`. The scheme name is case-insensitive. The server accepts each entry of its comma-separated `SEEK_SERVER_TOKEN`. A server started with `--no-auth` accepts requests without a token.
+A client token the server accepts, sent as `Authorization: Bearer <token>`. The scheme name is case-insensitive. The server accepts each entry of its comma-separated `server.tokens`. A server whose `server.require-token` is false accepts requests without a token.
 
 ## health
 
@@ -60,7 +60,7 @@ Example `200` response (`application/json`):
 
 ## parallel
 
-Forwards to https://api.parallel.ai and adds the `x-api-key` header from `PARALLEL_API_KEY`.
+Forwards to https://api.parallel.ai and adds the `x-api-key` header from `providers.parallel.api-key`.
 
 ### `POST /v1/proxy/parallel/v1/search`
 
@@ -184,7 +184,7 @@ Responses:
 
 ## exa
 
-Forwards to https://api.exa.ai and adds the `x-api-key` header from `EXA_API_KEY`.
+Forwards to https://api.exa.ai and adds the `x-api-key` header from `providers.exa.api-key`.
 
 ### `POST /v1/proxy/exa/search`
 
@@ -236,7 +236,7 @@ Responses:
 
 ## brave-search
 
-Forwards to https://api.search.brave.com/res/v1 and adds the `X-Subscription-Token` header from `BRAVE_SEARCH_API_KEY`.
+Forwards to https://api.search.brave.com/res/v1 and adds the `X-Subscription-Token` header from `providers.brave-search.api-key`.
 
 ### `GET /v1/proxy/brave-search/web/search`
 
@@ -258,7 +258,7 @@ Responses:
 
 ## brave-answers
 
-Forwards to https://api.search.brave.com/res/v1 and adds the `X-Subscription-Token` header from `BRAVE_ANSWERS_API_KEY`.
+Forwards to https://api.search.brave.com/res/v1 and adds the `X-Subscription-Token` header from `providers.brave-answers.api-key`.
 
 ### `POST /v1/proxy/brave-answers/chat/completions`
 
@@ -286,7 +286,7 @@ Responses:
 
 ## perplexity
 
-Forwards to https://api.perplexity.ai and adds the `Authorization: Bearer` header from `PERPLEXITY_API_KEY`.
+Forwards to https://api.perplexity.ai and adds the `Authorization: Bearer` header from `providers.perplexity.api-key`.
 
 ### `POST /v1/proxy/perplexity/chat/completions`
 
@@ -362,7 +362,7 @@ Responses:
 
 ## google
 
-Forwards to https://generativelanguage.googleapis.com/v1beta and adds the `x-goog-api-key` header from `GEMINI_API_KEY`.
+Forwards to https://generativelanguage.googleapis.com/v1beta and adds the `x-goog-api-key` header from `providers.google.api-key`.
 
 ### `POST /v1/proxy/google/interactions`
 
@@ -414,7 +414,7 @@ Responses:
 
 ## firecrawl
 
-Forwards to https://api.firecrawl.dev and adds the `Authorization: Bearer` header from `FIRECRAWL_API_KEY`.
+Forwards to https://api.firecrawl.dev and adds the `Authorization: Bearer` header from `providers.firecrawl.api-key`.
 
 ### `POST /v1/proxy/firecrawl/v2/scrape`
 
@@ -514,7 +514,7 @@ Example (`application/json`):
 
 ```json
 {
-  "error": "seek server has no API key configured for exa (EXA_API_KEY)"
+  "error": "seek server has no API key configured for exa (providers.exa.api-key)"
 }
 ```
 

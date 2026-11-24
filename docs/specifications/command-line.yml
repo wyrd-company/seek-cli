@@ -14,9 +14,21 @@ description: >-
   `skill`. Under `web` are `parallel`, `exa`, `brave` and `perplexity`.
   Under `web brave` are `search` and `answers`. Under `research` are `brave`,
   `parallel`, `google`, `perplexity`, `status` and `get`. Under `scrape` are
-  `exa`, `parallel` and `firecrawl`. Under `config` are `path`, `init` and
-  `show`. The root also takes `--version` (`-V`). Every command takes `-h`
-  and `--help`, and a parse error prints the error and then the command's help.
+  `exa`, `parallel` and `firecrawl`. Under `config` are `path`, `init`,
+  `show` and `validate`. The root also takes `--version` (`-V`). Every command
+  takes `-h` and `--help`, and a parse error prints the error and then the
+  command's help.
+
+
+  Every command that reads a configuration takes `--config <path>` and the
+  flags that the `configuration` specification derives from that
+  configuration's schema, listed in its help under `Configuration options`
+  after the command's own options: the provider commands take the client
+  configuration's flags and `seek serve` the server's. `seek config show` and
+  `seek config validate` take both and inspect the client configuration, or
+  the server configuration with `--server`; `seek config path` and `seek
+  config init` take `--config` and `--server`. In help, a term too long for
+  the description column prints its description on the next line.
 
 
   A provider command's text arguments are variadic and joined with single
@@ -59,10 +71,10 @@ description: >-
 
   `EXIT_STATUSES` in `src/lib/exit-status.ts` defines the exit statuses, and
   every exit in the source takes its code from it. Exit status 0 means the
-  command completed. Exit status 2 means a provider key is not set in direct
-  mode: the message names the variable and the configuration file, and the
-  other providers in the same command group follow, those with a key first and
-  the rest tagged `(no key set)`. Research job commands `status` and `get` are
+  command completed. Exit status 2 means a provider key has no source in
+  direct mode: the message names the setting, its environment variables and
+  the user configuration file, and the other providers in the same command
+  group follow, those with a key first and the rest tagged `(no key set)`. Research job commands `status` and `get` are
   excluded from the suggestions. Exit status 1 means any other failure. That
   covers a parse error; an HTTP error, printed as `error: HTTP <status> <status text>
   from <URL>: <body>`, where Brave Answers names itself in place of the URL,
@@ -71,7 +83,10 @@ description: >-
   completing; `research get` for a job that has not completed; a Firecrawl
   response with `success: false` in rendered mode; `config init` when the file
   exists and `--force` is absent; and `research brave --citations`, which seek
-  rejects before any request because Brave research does not take citations.
+  rejects before any request because Brave research does not take citations;
+  a configuration that fails validation, printed as one `error:` line for
+  each problem before any secret is read or request sent, and `config
+  validate` when it does; and a secret source that fails to resolve.
   If a write to stdout fails because the reader closed the pipe, seek exits
   quietly with status 1. Other errors print as `error: <message>`.
 
@@ -79,7 +94,7 @@ description: >-
   `seek skill` prints the bundled skill, `skills/seek/SKILL.md` as it was when
   seek was built, byte for byte. `seek serve` runs the server that the
   `http-api` specification defines; it refuses to start without a client token
-  unless `--no-auth` is given, and stops on SIGINT or SIGTERM.
+  while `server.require-token` is true, and stops on SIGINT or SIGTERM.
 format: cli
 validation-criteria: >-
   `tests/program.test.ts` renders the help of every command that

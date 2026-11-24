@@ -3,9 +3,10 @@ import type { Command } from "commander";
 import { createProgram } from "./program.ts";
 import { EXIT } from "./lib/exit-status.ts";
 import { HttpError } from "./lib/http.ts";
-import { MissingEnvError } from "./lib/env.ts";
-import { KNOWN_KEYS, loadConfig } from "./lib/config.ts";
-import { remoteServerUrl } from "./lib/upstreams.ts";
+import { assertValid, ConfigurationError, loadConfiguration } from "./lib/config.ts";
+import { configurationFlags, configurationKinds } from "./lib/options.ts";
+import { SecretSourceError } from "./lib/secrets.ts";
+import { clientContext, MissingProviderKeyError, useClientConfiguration, type UpstreamId } from "./lib/upstreams.ts";
 
 process.stdout.on("error", (err: NodeJS.ErrnoException) => {
   if (err.code !== "EPIPE") process.stderr.write(`error: ${err.message}\n`);
@@ -17,21 +18,34 @@ const program = createProgram();
 let activeCommand: Command | null = null;
 program.hook("preAction", (_thisCommand, actionCommand) => {
   activeCommand = actionCommand;
+  const kinds = configurationKinds(actionCommand);
+  // Provider commands load the client configuration once, before their action runs.
+  if (kinds.length === 1 && kinds[0] === "client") {
+    useClientConfiguration(assertValid(loadConfiguration({ kind: "client", ...configurationFlags(actionCommand) })));
+  }
 });
 
-function providerKey(cmd: Command): string | undefined {
+/** The upstream whose key each provider command needs, keyed as `<parent>:<command>` or `<command>`. */
+const KEYED_COMMANDS: ReadonlyArray<readonly [scope: string, upstream: UpstreamId]> = [
+  ["parallel", "parallel"],
+  ["exa", "exa"],
+  ["web:brave", "brave-search"],
+  ["research:brave", "brave-answers"],
+  ["perplexity", "perplexity"],
+  ["google", "google"],
+  ["firecrawl", "firecrawl"],
+];
+
+function providerKey(cmd: Command): UpstreamId | undefined {
   const scopedName = cmd.parent ? `${cmd.parent.name()}:${cmd.name()}` : cmd.name();
-  const entry = KNOWN_KEYS.find(([, p]) => p === scopedName) ??
-    KNOWN_KEYS.find(([, p]) => p === cmd.name());
-  return entry?.[0];
+  const entry = KEYED_COMMANDS.find(([scope]) => scope === scopedName) ??
+    KEYED_COMMANDS.find(([scope]) => scope === cmd.name());
+  return entry?.[1];
 }
 
-function providerHasKey(envVar: string | undefined): boolean {
-  if (envVar === undefined) return true;
-  // A seek server holds the keys; assume every provider is available.
-  if (remoteServerUrl() !== null) return true;
-  if (process.env[envVar]) return true;
-  return Boolean(loadConfig()[envVar]);
+function providerHasKey(upstream: UpstreamId | undefined): boolean {
+  if (upstream === undefined) return true;
+  return clientContext().hasKey(upstream);
 }
 
 function printAlternatives(cmd: Command): void {
@@ -56,12 +70,16 @@ function printAlternatives(cmd: Command): void {
 }
 
 program.parseAsync(process.argv).catch((err: unknown) => {
-  if (err instanceof MissingEnvError) {
+  if (err instanceof MissingProviderKeyError) {
     process.stderr.write(`error: ${err.message}\n`);
     if (activeCommand) printAlternatives(activeCommand);
     process.exit(EXIT.missingProviderKey);
   }
-  if (err instanceof HttpError) {
+  if (err instanceof ConfigurationError) {
+    for (const line of err.errors) process.stderr.write(`error: ${line}\n`);
+    process.exit(EXIT.failure);
+  }
+  if (err instanceof HttpError || err instanceof SecretSourceError) {
     process.stderr.write(`error: ${err.message}\n`);
     process.exit(EXIT.failure);
   }

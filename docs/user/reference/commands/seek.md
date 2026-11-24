@@ -29,7 +29,7 @@ seek [options] [command]
 | [`seek web`](seek-web.md) | Real-time web search — fast, low-cost context for prompts and chatbots. |
 | [`seek research`](seek-research.md) | Autonomous deep research — multi-step investigation that browses, verifies, and compiles reports. |
 | [`seek scrape`](seek-scrape.md) | Targeted page extraction — clean text, markdown, or JSON from a known URL. |
-| [`seek config`](seek-config.md) | Manage seek's config file. Stores API keys so you don't have to export env vars each session. |
+| [`seek config`](seek-config.md) | Inspect and create seek's configuration: the client's, or with --server the server's. Never reads a secret. |
 | [`seek serve`](seek-serve.md) | Run a seek back-end that holds provider API keys and proxies CLI calls to providers. |
 
 ## Exit statuses
@@ -39,8 +39,8 @@ Every command exits with one of these statuses.
 | Code | Name | Meaning |
 | --- | --- | --- |
 | `0` | `success` | The command completed. |
-| `1` | `failure` | The command failed: a parse error, an HTTP error, research that did not complete, a result requested for an unfinished job, or another error, printed on stderr. If a write to stdout fails because the reader closed the pipe, seek exits quietly. |
-| `2` | `missingProviderKey` | A provider key is not set in direct mode. The message names the variable to set and suggests other providers in the same command group. |
+| `1` | `failure` | The command failed: a parse error, a configuration error, a secret source that failed, an HTTP error, research that did not complete, a result requested for an unfinished job, or another error, printed on stderr. If a write to stdout fails because the reader closed the pipe, seek exits quietly. |
+| `2` | `missingProviderKey` | A provider key has no source in direct mode. The message names the setting and its environment variables, and suggests other providers in the same command group. |
 
 ## Help
 
@@ -64,8 +64,8 @@ Commands:
                    browses, verifies, and compiles reports.
   scrape           Targeted page extraction — clean text, markdown, or JSON from
                    a known URL.
-  config           Manage seek's config file. Stores API keys so you don't have
-                   to export env vars each session.
+  config           Inspect and create seek's configuration: the client's, or
+                   with --server the server's. Never reads a secret.
   serve [options]  Run a seek back-end that holds provider API keys and proxies
                    CLI calls to providers.
   help [command]   display help for command

@@ -3,17 +3,6 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const API_KEY_ENV_VARS = [
-  "PARALLEL_API_KEY",
-  "EXA_API_KEY",
-  "BRAVE_SEARCH_API_KEY",
-  "BRAVE_ANSWERS_API_KEY",
-  "PERPLEXITY_API_KEY",
-  "GEMINI_API_KEY",
-  "FIRECRAWL_API_KEY",
-  "SEEK_SERVER_URL",
-  "SEEK_SERVER_TOKEN",
-];
 
 interface CliResult {
   exitCode: number;
@@ -23,10 +12,10 @@ interface CliResult {
 
 function cli(args: string[], settings: Record<string, string> = {}): CliResult {
   const env: Record<string, string> = {};
+  // Only seek's own variables configure it, so a clean environment holds none of them.
   for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined) env[key] = value;
+    if (value !== undefined && !/^(SEEK_|BAO_|VAULT_)/.test(key)) env[key] = value;
   }
-  for (const key of API_KEY_ENV_VARS) env[key] = "";
   env.XDG_CONFIG_HOME = mkdtempSync(join(tmpdir(), "seek-cli-test-"));
 
   const result = Bun.spawnSync({
@@ -182,7 +171,7 @@ describe("CLI smoke tests", () => {
 
   test("missing research keys suggest only other research providers with configured ones first", () => {
     const result = cli(["research", "parallel", "synthetic question"], {
-      GEMINI_API_KEY: "synthetic-google-key",
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE: "synthetic-google-key",
     });
 
     expect(result.exitCode).toBe(2);

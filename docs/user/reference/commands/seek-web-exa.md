@@ -36,6 +36,198 @@ seek web exa [options] <query...>
 | `--json` | Emit raw JSON response |  |
 | `-h, --help` | display help for command |  |
 
+## Configuration options
+
+These flags set the configuration this command reads; the [configuration reference](../configuration.md) describes each setting.
+
+| Option | Description |
+| --- | --- |
+| `--config <path>` | Read this configuration file in place of the default files (env: SEEK_CONFIG) |
+| `--server-url <url>` | Set server.url (env: SEEK_SERVER_URL) |
+| `--server-token-file <path>` | Set server.token.file (env: SEEK_SERVER_TOKEN_FILE) |
+| `--server-token-command <json>` | Set server.token.command as a JSON array (env: SEEK_SERVER_TOKEN_COMMAND) |
+| `--server-token-timeout <duration>` | Set server.token.timeout (env: SEEK_SERVER_TOKEN_TIMEOUT) |
+| `--server-token-vault-path <path>` | Set server.token.vault.path (env: SEEK_SERVER_TOKEN_VAULT_PATH) |
+| `--server-token-vault-key <key>` | Set server.token.vault.key (env: SEEK_SERVER_TOKEN_VAULT_KEY) |
+| `--server-token-vault-address <url>` | Set server.token.vault.address (env: SEEK_SERVER_TOKEN_VAULT_ADDRESS) |
+| `--server-token-vault-namespace <namespace>` | Set server.token.vault.namespace (env: SEEK_SERVER_TOKEN_VAULT_NAMESPACE) |
+| `--server-token-vault-mount <mount>` | Set server.token.vault.mount (env: SEEK_SERVER_TOKEN_VAULT_MOUNT) |
+| `--server-token-vault-kv-version <number>` | Set server.token.vault.kv-version (env: SEEK_SERVER_TOKEN_VAULT_KV_VERSION) |
+| `--server-token-vault-ca-cert <path>` | Set server.token.vault.ca-cert (env: SEEK_SERVER_TOKEN_VAULT_CA_CERT) |
+| `--server-token-vault-proxy <url>` | Set server.token.vault.proxy (env: SEEK_SERVER_TOKEN_VAULT_PROXY) |
+| `--server-token-vault-auth-mode <mode>` | Set server.token.vault.auth.mode (env: SEEK_SERVER_TOKEN_VAULT_AUTH_MODE) |
+| `--server-token-vault-auth-token-file <path>` | Set server.token.vault.auth.token.file (env: SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_FILE) |
+| `--server-token-vault-auth-token-command <json>` | Set server.token.vault.auth.token.command as a JSON array (env: SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_COMMAND) |
+| `--server-token-vault-auth-token-timeout <duration>` | Set server.token.vault.auth.token.timeout (env: SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_TIMEOUT) |
+| `--server-token-vault-auth-mount <mount>` | Set server.token.vault.auth.mount (env: SEEK_SERVER_TOKEN_VAULT_AUTH_MOUNT) |
+| `--server-token-vault-auth-role-id <role-id>` | Set server.token.vault.auth.role-id (env: SEEK_SERVER_TOKEN_VAULT_AUTH_ROLE_ID) |
+| `--server-token-vault-auth-secret-id-file <path>` | Set server.token.vault.auth.secret-id.file (env: SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_FILE) |
+| `--server-token-vault-auth-secret-id-command <json>` | Set server.token.vault.auth.secret-id.command as a JSON array (env: SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_COMMAND) |
+| `--server-token-vault-auth-secret-id-timeout <duration>` | Set server.token.vault.auth.secret-id.timeout (env: SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_TIMEOUT) |
+| `--providers-parallel-api-key-file <path>` | Set providers.parallel.api-key.file (env: SEEK_PROVIDERS_PARALLEL_API_KEY_FILE) |
+| `--providers-parallel-api-key-command <json>` | Set providers.parallel.api-key.command as a JSON array (env: SEEK_PROVIDERS_PARALLEL_API_KEY_COMMAND) |
+| `--providers-parallel-api-key-timeout <duration>` | Set providers.parallel.api-key.timeout (env: SEEK_PROVIDERS_PARALLEL_API_KEY_TIMEOUT) |
+| `--providers-parallel-api-key-vault-path <path>` | Set providers.parallel.api-key.vault.path (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PATH) |
+| `--providers-parallel-api-key-vault-key <key>` | Set providers.parallel.api-key.vault.key (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_KEY) |
+| `--providers-parallel-api-key-vault-address <url>` | Set providers.parallel.api-key.vault.address (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_ADDRESS) |
+| `--providers-parallel-api-key-vault-namespace <namespace>` | Set providers.parallel.api-key.vault.namespace (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_NAMESPACE) |
+| `--providers-parallel-api-key-vault-mount <mount>` | Set providers.parallel.api-key.vault.mount (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_MOUNT) |
+| `--providers-parallel-api-key-vault-kv-version <number>` | Set providers.parallel.api-key.vault.kv-version (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_KV_VERSION) |
+| `--providers-parallel-api-key-vault-ca-cert <path>` | Set providers.parallel.api-key.vault.ca-cert (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_CA_CERT) |
+| `--providers-parallel-api-key-vault-proxy <url>` | Set providers.parallel.api-key.vault.proxy (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PROXY) |
+| `--providers-parallel-api-key-vault-auth-mode <mode>` | Set providers.parallel.api-key.vault.auth.mode (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_MODE) |
+| `--providers-parallel-api-key-vault-auth-token-file <path>` | Set providers.parallel.api-key.vault.auth.token.file (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_FILE) |
+| `--providers-parallel-api-key-vault-auth-token-command <json>` | Set providers.parallel.api-key.vault.auth.token.command as a JSON array (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_COMMAND) |
+| `--providers-parallel-api-key-vault-auth-token-timeout <duration>` | Set providers.parallel.api-key.vault.auth.token.timeout (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT) |
+| `--providers-parallel-api-key-vault-auth-mount <mount>` | Set providers.parallel.api-key.vault.auth.mount (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_MOUNT) |
+| `--providers-parallel-api-key-vault-auth-role-id <role-id>` | Set providers.parallel.api-key.vault.auth.role-id (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_ROLE_ID) |
+| `--providers-parallel-api-key-vault-auth-secret-id-file <path>` | Set providers.parallel.api-key.vault.auth.secret-id.file (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_FILE) |
+| `--providers-parallel-api-key-vault-auth-secret-id-command <json>` | Set providers.parallel.api-key.vault.auth.secret-id.command as a JSON array (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND) |
+| `--providers-parallel-api-key-vault-auth-secret-id-timeout <duration>` | Set providers.parallel.api-key.vault.auth.secret-id.timeout (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT) |
+| `--providers-exa-api-key-file <path>` | Set providers.exa.api-key.file (env: SEEK_PROVIDERS_EXA_API_KEY_FILE) |
+| `--providers-exa-api-key-command <json>` | Set providers.exa.api-key.command as a JSON array (env: SEEK_PROVIDERS_EXA_API_KEY_COMMAND) |
+| `--providers-exa-api-key-timeout <duration>` | Set providers.exa.api-key.timeout (env: SEEK_PROVIDERS_EXA_API_KEY_TIMEOUT) |
+| `--providers-exa-api-key-vault-path <path>` | Set providers.exa.api-key.vault.path (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_PATH) |
+| `--providers-exa-api-key-vault-key <key>` | Set providers.exa.api-key.vault.key (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_KEY) |
+| `--providers-exa-api-key-vault-address <url>` | Set providers.exa.api-key.vault.address (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_ADDRESS) |
+| `--providers-exa-api-key-vault-namespace <namespace>` | Set providers.exa.api-key.vault.namespace (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_NAMESPACE) |
+| `--providers-exa-api-key-vault-mount <mount>` | Set providers.exa.api-key.vault.mount (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_MOUNT) |
+| `--providers-exa-api-key-vault-kv-version <number>` | Set providers.exa.api-key.vault.kv-version (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_KV_VERSION) |
+| `--providers-exa-api-key-vault-ca-cert <path>` | Set providers.exa.api-key.vault.ca-cert (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_CA_CERT) |
+| `--providers-exa-api-key-vault-proxy <url>` | Set providers.exa.api-key.vault.proxy (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_PROXY) |
+| `--providers-exa-api-key-vault-auth-mode <mode>` | Set providers.exa.api-key.vault.auth.mode (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_MODE) |
+| `--providers-exa-api-key-vault-auth-token-file <path>` | Set providers.exa.api-key.vault.auth.token.file (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_FILE) |
+| `--providers-exa-api-key-vault-auth-token-command <json>` | Set providers.exa.api-key.vault.auth.token.command as a JSON array (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_COMMAND) |
+| `--providers-exa-api-key-vault-auth-token-timeout <duration>` | Set providers.exa.api-key.vault.auth.token.timeout (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT) |
+| `--providers-exa-api-key-vault-auth-mount <mount>` | Set providers.exa.api-key.vault.auth.mount (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_MOUNT) |
+| `--providers-exa-api-key-vault-auth-role-id <role-id>` | Set providers.exa.api-key.vault.auth.role-id (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_ROLE_ID) |
+| `--providers-exa-api-key-vault-auth-secret-id-file <path>` | Set providers.exa.api-key.vault.auth.secret-id.file (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_FILE) |
+| `--providers-exa-api-key-vault-auth-secret-id-command <json>` | Set providers.exa.api-key.vault.auth.secret-id.command as a JSON array (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND) |
+| `--providers-exa-api-key-vault-auth-secret-id-timeout <duration>` | Set providers.exa.api-key.vault.auth.secret-id.timeout (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT) |
+| `--providers-brave-search-api-key-file <path>` | Set providers.brave-search.api-key.file (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_FILE) |
+| `--providers-brave-search-api-key-command <json>` | Set providers.brave-search.api-key.command as a JSON array (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_COMMAND) |
+| `--providers-brave-search-api-key-timeout <duration>` | Set providers.brave-search.api-key.timeout (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_TIMEOUT) |
+| `--providers-brave-search-api-key-vault-path <path>` | Set providers.brave-search.api-key.vault.path (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PATH) |
+| `--providers-brave-search-api-key-vault-key <key>` | Set providers.brave-search.api-key.vault.key (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_KEY) |
+| `--providers-brave-search-api-key-vault-address <url>` | Set providers.brave-search.api-key.vault.address (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_ADDRESS) |
+| `--providers-brave-search-api-key-vault-namespace <namespace>` | Set providers.brave-search.api-key.vault.namespace (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_NAMESPACE) |
+| `--providers-brave-search-api-key-vault-mount <mount>` | Set providers.brave-search.api-key.vault.mount (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_MOUNT) |
+| `--providers-brave-search-api-key-vault-kv-version <number>` | Set providers.brave-search.api-key.vault.kv-version (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_KV_VERSION) |
+| `--providers-brave-search-api-key-vault-ca-cert <path>` | Set providers.brave-search.api-key.vault.ca-cert (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_CA_CERT) |
+| `--providers-brave-search-api-key-vault-proxy <url>` | Set providers.brave-search.api-key.vault.proxy (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PROXY) |
+| `--providers-brave-search-api-key-vault-auth-mode <mode>` | Set providers.brave-search.api-key.vault.auth.mode (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_MODE) |
+| `--providers-brave-search-api-key-vault-auth-token-file <path>` | Set providers.brave-search.api-key.vault.auth.token.file (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_FILE) |
+| `--providers-brave-search-api-key-vault-auth-token-command <json>` | Set providers.brave-search.api-key.vault.auth.token.command as a JSON array (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_COMMAND) |
+| `--providers-brave-search-api-key-vault-auth-token-timeout <duration>` | Set providers.brave-search.api-key.vault.auth.token.timeout (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT) |
+| `--providers-brave-search-api-key-vault-auth-mount <mount>` | Set providers.brave-search.api-key.vault.auth.mount (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_MOUNT) |
+| `--providers-brave-search-api-key-vault-auth-role-id <role-id>` | Set providers.brave-search.api-key.vault.auth.role-id (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_ROLE_ID) |
+| `--providers-brave-search-api-key-vault-auth-secret-id-file <path>` | Set providers.brave-search.api-key.vault.auth.secret-id.file (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_FILE) |
+| `--providers-brave-search-api-key-vault-auth-secret-id-command <json>` | Set providers.brave-search.api-key.vault.auth.secret-id.command as a JSON array (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND) |
+| `--providers-brave-search-api-key-vault-auth-secret-id-timeout <duration>` | Set providers.brave-search.api-key.vault.auth.secret-id.timeout (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT) |
+| `--providers-brave-answers-api-key-file <path>` | Set providers.brave-answers.api-key.file (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_FILE) |
+| `--providers-brave-answers-api-key-command <json>` | Set providers.brave-answers.api-key.command as a JSON array (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_COMMAND) |
+| `--providers-brave-answers-api-key-timeout <duration>` | Set providers.brave-answers.api-key.timeout (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_TIMEOUT) |
+| `--providers-brave-answers-api-key-vault-path <path>` | Set providers.brave-answers.api-key.vault.path (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PATH) |
+| `--providers-brave-answers-api-key-vault-key <key>` | Set providers.brave-answers.api-key.vault.key (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_KEY) |
+| `--providers-brave-answers-api-key-vault-address <url>` | Set providers.brave-answers.api-key.vault.address (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_ADDRESS) |
+| `--providers-brave-answers-api-key-vault-namespace <namespace>` | Set providers.brave-answers.api-key.vault.namespace (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_NAMESPACE) |
+| `--providers-brave-answers-api-key-vault-mount <mount>` | Set providers.brave-answers.api-key.vault.mount (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_MOUNT) |
+| `--providers-brave-answers-api-key-vault-kv-version <number>` | Set providers.brave-answers.api-key.vault.kv-version (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_KV_VERSION) |
+| `--providers-brave-answers-api-key-vault-ca-cert <path>` | Set providers.brave-answers.api-key.vault.ca-cert (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_CA_CERT) |
+| `--providers-brave-answers-api-key-vault-proxy <url>` | Set providers.brave-answers.api-key.vault.proxy (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PROXY) |
+| `--providers-brave-answers-api-key-vault-auth-mode <mode>` | Set providers.brave-answers.api-key.vault.auth.mode (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_MODE) |
+| `--providers-brave-answers-api-key-vault-auth-token-file <path>` | Set providers.brave-answers.api-key.vault.auth.token.file (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_FILE) |
+| `--providers-brave-answers-api-key-vault-auth-token-command <json>` | Set providers.brave-answers.api-key.vault.auth.token.command as a JSON array (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_COMMAND) |
+| `--providers-brave-answers-api-key-vault-auth-token-timeout <duration>` | Set providers.brave-answers.api-key.vault.auth.token.timeout (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT) |
+| `--providers-brave-answers-api-key-vault-auth-mount <mount>` | Set providers.brave-answers.api-key.vault.auth.mount (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_MOUNT) |
+| `--providers-brave-answers-api-key-vault-auth-role-id <role-id>` | Set providers.brave-answers.api-key.vault.auth.role-id (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_ROLE_ID) |
+| `--providers-brave-answers-api-key-vault-auth-secret-id-file <path>` | Set providers.brave-answers.api-key.vault.auth.secret-id.file (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_FILE) |
+| `--providers-brave-answers-api-key-vault-auth-secret-id-command <json>` | Set providers.brave-answers.api-key.vault.auth.secret-id.command as a JSON array (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND) |
+| `--providers-brave-answers-api-key-vault-auth-secret-id-timeout <duration>` | Set providers.brave-answers.api-key.vault.auth.secret-id.timeout (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT) |
+| `--providers-perplexity-api-key-file <path>` | Set providers.perplexity.api-key.file (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_FILE) |
+| `--providers-perplexity-api-key-command <json>` | Set providers.perplexity.api-key.command as a JSON array (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_COMMAND) |
+| `--providers-perplexity-api-key-timeout <duration>` | Set providers.perplexity.api-key.timeout (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_TIMEOUT) |
+| `--providers-perplexity-api-key-vault-path <path>` | Set providers.perplexity.api-key.vault.path (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PATH) |
+| `--providers-perplexity-api-key-vault-key <key>` | Set providers.perplexity.api-key.vault.key (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_KEY) |
+| `--providers-perplexity-api-key-vault-address <url>` | Set providers.perplexity.api-key.vault.address (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_ADDRESS) |
+| `--providers-perplexity-api-key-vault-namespace <namespace>` | Set providers.perplexity.api-key.vault.namespace (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_NAMESPACE) |
+| `--providers-perplexity-api-key-vault-mount <mount>` | Set providers.perplexity.api-key.vault.mount (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_MOUNT) |
+| `--providers-perplexity-api-key-vault-kv-version <number>` | Set providers.perplexity.api-key.vault.kv-version (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_KV_VERSION) |
+| `--providers-perplexity-api-key-vault-ca-cert <path>` | Set providers.perplexity.api-key.vault.ca-cert (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_CA_CERT) |
+| `--providers-perplexity-api-key-vault-proxy <url>` | Set providers.perplexity.api-key.vault.proxy (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PROXY) |
+| `--providers-perplexity-api-key-vault-auth-mode <mode>` | Set providers.perplexity.api-key.vault.auth.mode (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_MODE) |
+| `--providers-perplexity-api-key-vault-auth-token-file <path>` | Set providers.perplexity.api-key.vault.auth.token.file (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_FILE) |
+| `--providers-perplexity-api-key-vault-auth-token-command <json>` | Set providers.perplexity.api-key.vault.auth.token.command as a JSON array (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_COMMAND) |
+| `--providers-perplexity-api-key-vault-auth-token-timeout <duration>` | Set providers.perplexity.api-key.vault.auth.token.timeout (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT) |
+| `--providers-perplexity-api-key-vault-auth-mount <mount>` | Set providers.perplexity.api-key.vault.auth.mount (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_MOUNT) |
+| `--providers-perplexity-api-key-vault-auth-role-id <role-id>` | Set providers.perplexity.api-key.vault.auth.role-id (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_ROLE_ID) |
+| `--providers-perplexity-api-key-vault-auth-secret-id-file <path>` | Set providers.perplexity.api-key.vault.auth.secret-id.file (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_FILE) |
+| `--providers-perplexity-api-key-vault-auth-secret-id-command <json>` | Set providers.perplexity.api-key.vault.auth.secret-id.command as a JSON array (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND) |
+| `--providers-perplexity-api-key-vault-auth-secret-id-timeout <duration>` | Set providers.perplexity.api-key.vault.auth.secret-id.timeout (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT) |
+| `--providers-google-api-key-file <path>` | Set providers.google.api-key.file (env: SEEK_PROVIDERS_GOOGLE_API_KEY_FILE) |
+| `--providers-google-api-key-command <json>` | Set providers.google.api-key.command as a JSON array (env: SEEK_PROVIDERS_GOOGLE_API_KEY_COMMAND) |
+| `--providers-google-api-key-timeout <duration>` | Set providers.google.api-key.timeout (env: SEEK_PROVIDERS_GOOGLE_API_KEY_TIMEOUT) |
+| `--providers-google-api-key-vault-path <path>` | Set providers.google.api-key.vault.path (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PATH) |
+| `--providers-google-api-key-vault-key <key>` | Set providers.google.api-key.vault.key (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_KEY) |
+| `--providers-google-api-key-vault-address <url>` | Set providers.google.api-key.vault.address (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_ADDRESS) |
+| `--providers-google-api-key-vault-namespace <namespace>` | Set providers.google.api-key.vault.namespace (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_NAMESPACE) |
+| `--providers-google-api-key-vault-mount <mount>` | Set providers.google.api-key.vault.mount (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_MOUNT) |
+| `--providers-google-api-key-vault-kv-version <number>` | Set providers.google.api-key.vault.kv-version (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_KV_VERSION) |
+| `--providers-google-api-key-vault-ca-cert <path>` | Set providers.google.api-key.vault.ca-cert (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_CA_CERT) |
+| `--providers-google-api-key-vault-proxy <url>` | Set providers.google.api-key.vault.proxy (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PROXY) |
+| `--providers-google-api-key-vault-auth-mode <mode>` | Set providers.google.api-key.vault.auth.mode (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_MODE) |
+| `--providers-google-api-key-vault-auth-token-file <path>` | Set providers.google.api-key.vault.auth.token.file (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_FILE) |
+| `--providers-google-api-key-vault-auth-token-command <json>` | Set providers.google.api-key.vault.auth.token.command as a JSON array (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_COMMAND) |
+| `--providers-google-api-key-vault-auth-token-timeout <duration>` | Set providers.google.api-key.vault.auth.token.timeout (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT) |
+| `--providers-google-api-key-vault-auth-mount <mount>` | Set providers.google.api-key.vault.auth.mount (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_MOUNT) |
+| `--providers-google-api-key-vault-auth-role-id <role-id>` | Set providers.google.api-key.vault.auth.role-id (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_ROLE_ID) |
+| `--providers-google-api-key-vault-auth-secret-id-file <path>` | Set providers.google.api-key.vault.auth.secret-id.file (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_FILE) |
+| `--providers-google-api-key-vault-auth-secret-id-command <json>` | Set providers.google.api-key.vault.auth.secret-id.command as a JSON array (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND) |
+| `--providers-google-api-key-vault-auth-secret-id-timeout <duration>` | Set providers.google.api-key.vault.auth.secret-id.timeout (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT) |
+| `--providers-firecrawl-api-key-file <path>` | Set providers.firecrawl.api-key.file (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_FILE) |
+| `--providers-firecrawl-api-key-command <json>` | Set providers.firecrawl.api-key.command as a JSON array (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_COMMAND) |
+| `--providers-firecrawl-api-key-timeout <duration>` | Set providers.firecrawl.api-key.timeout (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_TIMEOUT) |
+| `--providers-firecrawl-api-key-vault-path <path>` | Set providers.firecrawl.api-key.vault.path (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PATH) |
+| `--providers-firecrawl-api-key-vault-key <key>` | Set providers.firecrawl.api-key.vault.key (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_KEY) |
+| `--providers-firecrawl-api-key-vault-address <url>` | Set providers.firecrawl.api-key.vault.address (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_ADDRESS) |
+| `--providers-firecrawl-api-key-vault-namespace <namespace>` | Set providers.firecrawl.api-key.vault.namespace (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_NAMESPACE) |
+| `--providers-firecrawl-api-key-vault-mount <mount>` | Set providers.firecrawl.api-key.vault.mount (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_MOUNT) |
+| `--providers-firecrawl-api-key-vault-kv-version <number>` | Set providers.firecrawl.api-key.vault.kv-version (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_KV_VERSION) |
+| `--providers-firecrawl-api-key-vault-ca-cert <path>` | Set providers.firecrawl.api-key.vault.ca-cert (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_CA_CERT) |
+| `--providers-firecrawl-api-key-vault-proxy <url>` | Set providers.firecrawl.api-key.vault.proxy (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PROXY) |
+| `--providers-firecrawl-api-key-vault-auth-mode <mode>` | Set providers.firecrawl.api-key.vault.auth.mode (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_MODE) |
+| `--providers-firecrawl-api-key-vault-auth-token-file <path>` | Set providers.firecrawl.api-key.vault.auth.token.file (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_FILE) |
+| `--providers-firecrawl-api-key-vault-auth-token-command <json>` | Set providers.firecrawl.api-key.vault.auth.token.command as a JSON array (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_COMMAND) |
+| `--providers-firecrawl-api-key-vault-auth-token-timeout <duration>` | Set providers.firecrawl.api-key.vault.auth.token.timeout (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT) |
+| `--providers-firecrawl-api-key-vault-auth-mount <mount>` | Set providers.firecrawl.api-key.vault.auth.mount (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_MOUNT) |
+| `--providers-firecrawl-api-key-vault-auth-role-id <role-id>` | Set providers.firecrawl.api-key.vault.auth.role-id (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_ROLE_ID) |
+| `--providers-firecrawl-api-key-vault-auth-secret-id-file <path>` | Set providers.firecrawl.api-key.vault.auth.secret-id.file (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_FILE) |
+| `--providers-firecrawl-api-key-vault-auth-secret-id-command <json>` | Set providers.firecrawl.api-key.vault.auth.secret-id.command as a JSON array (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND) |
+| `--providers-firecrawl-api-key-vault-auth-secret-id-timeout <duration>` | Set providers.firecrawl.api-key.vault.auth.secret-id.timeout (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT) |
+| `--vault-address <url>` | Set vault.address (env: SEEK_VAULT_ADDRESS, BAO_ADDR, VAULT_ADDR) |
+| `--vault-namespace <namespace>` | Set vault.namespace (env: SEEK_VAULT_NAMESPACE, BAO_NAMESPACE, VAULT_NAMESPACE) |
+| `--vault-mount <mount>` | Set vault.mount (env: SEEK_VAULT_MOUNT) |
+| `--vault-kv-version <number>` | Set vault.kv-version (env: SEEK_VAULT_KV_VERSION) |
+| `--vault-ca-cert <path>` | Set vault.ca-cert (env: SEEK_VAULT_CA_CERT) |
+| `--vault-proxy <url>` | Set vault.proxy (env: SEEK_VAULT_PROXY) |
+| `--vault-auth-mode <mode>` | Set vault.auth.mode (env: SEEK_VAULT_AUTH_MODE) |
+| `--vault-auth-token-file <path>` | Set vault.auth.token.file (env: SEEK_VAULT_AUTH_TOKEN_FILE) |
+| `--vault-auth-token-command <json>` | Set vault.auth.token.command as a JSON array (env: SEEK_VAULT_AUTH_TOKEN_COMMAND) |
+| `--vault-auth-token-timeout <duration>` | Set vault.auth.token.timeout (env: SEEK_VAULT_AUTH_TOKEN_TIMEOUT) |
+| `--vault-auth-mount <mount>` | Set vault.auth.mount (env: SEEK_VAULT_AUTH_MOUNT) |
+| `--vault-auth-role-id <role-id>` | Set vault.auth.role-id (env: SEEK_VAULT_AUTH_ROLE_ID) |
+| `--vault-auth-secret-id-file <path>` | Set vault.auth.secret-id.file (env: SEEK_VAULT_AUTH_SECRET_ID_FILE) |
+| `--vault-auth-secret-id-command <json>` | Set vault.auth.secret-id.command as a JSON array (env: SEEK_VAULT_AUTH_SECRET_ID_COMMAND) |
+| `--vault-auth-secret-id-timeout <duration>` | Set vault.auth.secret-id.timeout (env: SEEK_VAULT_AUTH_SECRET_ID_TIMEOUT) |
+| `--server-token-stdin` | Read server.token from standard input for this run |
+| `--providers-parallel-api-key-stdin` | Read providers.parallel.api-key from standard input for this run |
+| `--providers-exa-api-key-stdin` | Read providers.exa.api-key from standard input for this run |
+| `--providers-brave-search-api-key-stdin` | Read providers.brave-search.api-key from standard input for this run |
+| `--providers-brave-answers-api-key-stdin` | Read providers.brave-answers.api-key from standard input for this run |
+| `--providers-perplexity-api-key-stdin` | Read providers.perplexity.api-key from standard input for this run |
+| `--providers-google-api-key-stdin` | Read providers.google.api-key from standard input for this run |
+| `--providers-firecrawl-api-key-stdin` | Read providers.firecrawl.api-key from standard input for this run |
+
 ## Exit statuses
 
 `seek web exa` exits with one of the [exit statuses of `seek`](seek.md#exit-statuses).
@@ -66,4 +258,529 @@ Options:
                       novelty, etc.)
   --json              Emit raw JSON response
   -h, --help          display help for command
+
+Configuration options:
+  --config <path>     Read this configuration file in place of the default files
+                      (env: SEEK_CONFIG)
+  --server-url <url>  Set server.url (env: SEEK_SERVER_URL)
+  --server-token-file <path>
+      Set server.token.file (env: SEEK_SERVER_TOKEN_FILE)
+  --server-token-command <json>
+      Set server.token.command as a JSON array (env: SEEK_SERVER_TOKEN_COMMAND)
+  --server-token-timeout <duration>
+      Set server.token.timeout (env: SEEK_SERVER_TOKEN_TIMEOUT)
+  --server-token-vault-path <path>
+      Set server.token.vault.path (env: SEEK_SERVER_TOKEN_VAULT_PATH)
+  --server-token-vault-key <key>
+      Set server.token.vault.key (env: SEEK_SERVER_TOKEN_VAULT_KEY)
+  --server-token-vault-address <url>
+      Set server.token.vault.address (env: SEEK_SERVER_TOKEN_VAULT_ADDRESS)
+  --server-token-vault-namespace <namespace>
+      Set server.token.vault.namespace (env: SEEK_SERVER_TOKEN_VAULT_NAMESPACE)
+  --server-token-vault-mount <mount>
+      Set server.token.vault.mount (env: SEEK_SERVER_TOKEN_VAULT_MOUNT)
+  --server-token-vault-kv-version <number>
+      Set server.token.vault.kv-version (env:
+      SEEK_SERVER_TOKEN_VAULT_KV_VERSION)
+  --server-token-vault-ca-cert <path>
+      Set server.token.vault.ca-cert (env: SEEK_SERVER_TOKEN_VAULT_CA_CERT)
+  --server-token-vault-proxy <url>
+      Set server.token.vault.proxy (env: SEEK_SERVER_TOKEN_VAULT_PROXY)
+  --server-token-vault-auth-mode <mode>
+      Set server.token.vault.auth.mode (env: SEEK_SERVER_TOKEN_VAULT_AUTH_MODE)
+  --server-token-vault-auth-token-file <path>
+      Set server.token.vault.auth.token.file (env:
+      SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_FILE)
+  --server-token-vault-auth-token-command <json>
+      Set server.token.vault.auth.token.command as a JSON array (env:
+      SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_COMMAND)
+  --server-token-vault-auth-token-timeout <duration>
+      Set server.token.vault.auth.token.timeout (env:
+      SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_TIMEOUT)
+  --server-token-vault-auth-mount <mount>
+      Set server.token.vault.auth.mount (env:
+      SEEK_SERVER_TOKEN_VAULT_AUTH_MOUNT)
+  --server-token-vault-auth-role-id <role-id>
+      Set server.token.vault.auth.role-id (env:
+      SEEK_SERVER_TOKEN_VAULT_AUTH_ROLE_ID)
+  --server-token-vault-auth-secret-id-file <path>
+      Set server.token.vault.auth.secret-id.file (env:
+      SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_FILE)
+  --server-token-vault-auth-secret-id-command <json>
+      Set server.token.vault.auth.secret-id.command as a JSON array (env:
+      SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_COMMAND)
+  --server-token-vault-auth-secret-id-timeout <duration>
+      Set server.token.vault.auth.secret-id.timeout (env:
+      SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_TIMEOUT)
+  --providers-parallel-api-key-file <path>
+      Set providers.parallel.api-key.file (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_FILE)
+  --providers-parallel-api-key-command <json>
+      Set providers.parallel.api-key.command as a JSON array (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_COMMAND)
+  --providers-parallel-api-key-timeout <duration>
+      Set providers.parallel.api-key.timeout (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_TIMEOUT)
+  --providers-parallel-api-key-vault-path <path>
+      Set providers.parallel.api-key.vault.path (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PATH)
+  --providers-parallel-api-key-vault-key <key>
+      Set providers.parallel.api-key.vault.key (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_KEY)
+  --providers-parallel-api-key-vault-address <url>
+      Set providers.parallel.api-key.vault.address (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_ADDRESS)
+  --providers-parallel-api-key-vault-namespace <namespace>
+      Set providers.parallel.api-key.vault.namespace (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_NAMESPACE)
+  --providers-parallel-api-key-vault-mount <mount>
+      Set providers.parallel.api-key.vault.mount (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_MOUNT)
+  --providers-parallel-api-key-vault-kv-version <number>
+      Set providers.parallel.api-key.vault.kv-version (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_KV_VERSION)
+  --providers-parallel-api-key-vault-ca-cert <path>
+      Set providers.parallel.api-key.vault.ca-cert (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_CA_CERT)
+  --providers-parallel-api-key-vault-proxy <url>
+      Set providers.parallel.api-key.vault.proxy (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PROXY)
+  --providers-parallel-api-key-vault-auth-mode <mode>
+      Set providers.parallel.api-key.vault.auth.mode (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_MODE)
+  --providers-parallel-api-key-vault-auth-token-file <path>
+      Set providers.parallel.api-key.vault.auth.token.file (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_FILE)
+  --providers-parallel-api-key-vault-auth-token-command <json>
+      Set providers.parallel.api-key.vault.auth.token.command as a JSON array
+      (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_COMMAND)
+  --providers-parallel-api-key-vault-auth-token-timeout <duration>
+      Set providers.parallel.api-key.vault.auth.token.timeout (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT)
+  --providers-parallel-api-key-vault-auth-mount <mount>
+      Set providers.parallel.api-key.vault.auth.mount (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_MOUNT)
+  --providers-parallel-api-key-vault-auth-role-id <role-id>
+      Set providers.parallel.api-key.vault.auth.role-id (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_ROLE_ID)
+  --providers-parallel-api-key-vault-auth-secret-id-file <path>
+      Set providers.parallel.api-key.vault.auth.secret-id.file (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_FILE)
+  --providers-parallel-api-key-vault-auth-secret-id-command <json>
+      Set providers.parallel.api-key.vault.auth.secret-id.command as a JSON
+      array (env: SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND)
+  --providers-parallel-api-key-vault-auth-secret-id-timeout <duration>
+      Set providers.parallel.api-key.vault.auth.secret-id.timeout (env:
+      SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT)
+  --providers-exa-api-key-file <path>
+      Set providers.exa.api-key.file (env: SEEK_PROVIDERS_EXA_API_KEY_FILE)
+  --providers-exa-api-key-command <json>
+      Set providers.exa.api-key.command as a JSON array (env:
+      SEEK_PROVIDERS_EXA_API_KEY_COMMAND)
+  --providers-exa-api-key-timeout <duration>
+      Set providers.exa.api-key.timeout (env:
+      SEEK_PROVIDERS_EXA_API_KEY_TIMEOUT)
+  --providers-exa-api-key-vault-path <path>
+      Set providers.exa.api-key.vault.path (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_PATH)
+  --providers-exa-api-key-vault-key <key>
+      Set providers.exa.api-key.vault.key (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_KEY)
+  --providers-exa-api-key-vault-address <url>
+      Set providers.exa.api-key.vault.address (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_ADDRESS)
+  --providers-exa-api-key-vault-namespace <namespace>
+      Set providers.exa.api-key.vault.namespace (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_NAMESPACE)
+  --providers-exa-api-key-vault-mount <mount>
+      Set providers.exa.api-key.vault.mount (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_MOUNT)
+  --providers-exa-api-key-vault-kv-version <number>
+      Set providers.exa.api-key.vault.kv-version (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_KV_VERSION)
+  --providers-exa-api-key-vault-ca-cert <path>
+      Set providers.exa.api-key.vault.ca-cert (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_CA_CERT)
+  --providers-exa-api-key-vault-proxy <url>
+      Set providers.exa.api-key.vault.proxy (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_PROXY)
+  --providers-exa-api-key-vault-auth-mode <mode>
+      Set providers.exa.api-key.vault.auth.mode (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_MODE)
+  --providers-exa-api-key-vault-auth-token-file <path>
+      Set providers.exa.api-key.vault.auth.token.file (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_FILE)
+  --providers-exa-api-key-vault-auth-token-command <json>
+      Set providers.exa.api-key.vault.auth.token.command as a JSON array (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_COMMAND)
+  --providers-exa-api-key-vault-auth-token-timeout <duration>
+      Set providers.exa.api-key.vault.auth.token.timeout (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT)
+  --providers-exa-api-key-vault-auth-mount <mount>
+      Set providers.exa.api-key.vault.auth.mount (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_MOUNT)
+  --providers-exa-api-key-vault-auth-role-id <role-id>
+      Set providers.exa.api-key.vault.auth.role-id (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_ROLE_ID)
+  --providers-exa-api-key-vault-auth-secret-id-file <path>
+      Set providers.exa.api-key.vault.auth.secret-id.file (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_FILE)
+  --providers-exa-api-key-vault-auth-secret-id-command <json>
+      Set providers.exa.api-key.vault.auth.secret-id.command as a JSON array
+      (env: SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND)
+  --providers-exa-api-key-vault-auth-secret-id-timeout <duration>
+      Set providers.exa.api-key.vault.auth.secret-id.timeout (env:
+      SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT)
+  --providers-brave-search-api-key-file <path>
+      Set providers.brave-search.api-key.file (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_FILE)
+  --providers-brave-search-api-key-command <json>
+      Set providers.brave-search.api-key.command as a JSON array (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_COMMAND)
+  --providers-brave-search-api-key-timeout <duration>
+      Set providers.brave-search.api-key.timeout (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_TIMEOUT)
+  --providers-brave-search-api-key-vault-path <path>
+      Set providers.brave-search.api-key.vault.path (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PATH)
+  --providers-brave-search-api-key-vault-key <key>
+      Set providers.brave-search.api-key.vault.key (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_KEY)
+  --providers-brave-search-api-key-vault-address <url>
+      Set providers.brave-search.api-key.vault.address (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_ADDRESS)
+  --providers-brave-search-api-key-vault-namespace <namespace>
+      Set providers.brave-search.api-key.vault.namespace (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_NAMESPACE)
+  --providers-brave-search-api-key-vault-mount <mount>
+      Set providers.brave-search.api-key.vault.mount (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_MOUNT)
+  --providers-brave-search-api-key-vault-kv-version <number>
+      Set providers.brave-search.api-key.vault.kv-version (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_KV_VERSION)
+  --providers-brave-search-api-key-vault-ca-cert <path>
+      Set providers.brave-search.api-key.vault.ca-cert (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_CA_CERT)
+  --providers-brave-search-api-key-vault-proxy <url>
+      Set providers.brave-search.api-key.vault.proxy (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PROXY)
+  --providers-brave-search-api-key-vault-auth-mode <mode>
+      Set providers.brave-search.api-key.vault.auth.mode (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_MODE)
+  --providers-brave-search-api-key-vault-auth-token-file <path>
+      Set providers.brave-search.api-key.vault.auth.token.file (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_FILE)
+  --providers-brave-search-api-key-vault-auth-token-command <json>
+      Set providers.brave-search.api-key.vault.auth.token.command as a JSON
+      array (env: SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_COMMAND)
+  --providers-brave-search-api-key-vault-auth-token-timeout <duration>
+      Set providers.brave-search.api-key.vault.auth.token.timeout (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT)
+  --providers-brave-search-api-key-vault-auth-mount <mount>
+      Set providers.brave-search.api-key.vault.auth.mount (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_MOUNT)
+  --providers-brave-search-api-key-vault-auth-role-id <role-id>
+      Set providers.brave-search.api-key.vault.auth.role-id (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_ROLE_ID)
+  --providers-brave-search-api-key-vault-auth-secret-id-file <path>
+      Set providers.brave-search.api-key.vault.auth.secret-id.file (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_FILE)
+  --providers-brave-search-api-key-vault-auth-secret-id-command <json>
+      Set providers.brave-search.api-key.vault.auth.secret-id.command as a JSON
+      array (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND)
+  --providers-brave-search-api-key-vault-auth-secret-id-timeout <duration>
+      Set providers.brave-search.api-key.vault.auth.secret-id.timeout (env:
+      SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT)
+  --providers-brave-answers-api-key-file <path>
+      Set providers.brave-answers.api-key.file (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_FILE)
+  --providers-brave-answers-api-key-command <json>
+      Set providers.brave-answers.api-key.command as a JSON array (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_COMMAND)
+  --providers-brave-answers-api-key-timeout <duration>
+      Set providers.brave-answers.api-key.timeout (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_TIMEOUT)
+  --providers-brave-answers-api-key-vault-path <path>
+      Set providers.brave-answers.api-key.vault.path (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PATH)
+  --providers-brave-answers-api-key-vault-key <key>
+      Set providers.brave-answers.api-key.vault.key (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_KEY)
+  --providers-brave-answers-api-key-vault-address <url>
+      Set providers.brave-answers.api-key.vault.address (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_ADDRESS)
+  --providers-brave-answers-api-key-vault-namespace <namespace>
+      Set providers.brave-answers.api-key.vault.namespace (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_NAMESPACE)
+  --providers-brave-answers-api-key-vault-mount <mount>
+      Set providers.brave-answers.api-key.vault.mount (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_MOUNT)
+  --providers-brave-answers-api-key-vault-kv-version <number>
+      Set providers.brave-answers.api-key.vault.kv-version (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_KV_VERSION)
+  --providers-brave-answers-api-key-vault-ca-cert <path>
+      Set providers.brave-answers.api-key.vault.ca-cert (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_CA_CERT)
+  --providers-brave-answers-api-key-vault-proxy <url>
+      Set providers.brave-answers.api-key.vault.proxy (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PROXY)
+  --providers-brave-answers-api-key-vault-auth-mode <mode>
+      Set providers.brave-answers.api-key.vault.auth.mode (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_MODE)
+  --providers-brave-answers-api-key-vault-auth-token-file <path>
+      Set providers.brave-answers.api-key.vault.auth.token.file (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_FILE)
+  --providers-brave-answers-api-key-vault-auth-token-command <json>
+      Set providers.brave-answers.api-key.vault.auth.token.command as a JSON
+      array (env: SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_COMMAND)
+  --providers-brave-answers-api-key-vault-auth-token-timeout <duration>
+      Set providers.brave-answers.api-key.vault.auth.token.timeout (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT)
+  --providers-brave-answers-api-key-vault-auth-mount <mount>
+      Set providers.brave-answers.api-key.vault.auth.mount (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_MOUNT)
+  --providers-brave-answers-api-key-vault-auth-role-id <role-id>
+      Set providers.brave-answers.api-key.vault.auth.role-id (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_ROLE_ID)
+  --providers-brave-answers-api-key-vault-auth-secret-id-file <path>
+      Set providers.brave-answers.api-key.vault.auth.secret-id.file (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_FILE)
+  --providers-brave-answers-api-key-vault-auth-secret-id-command <json>
+      Set providers.brave-answers.api-key.vault.auth.secret-id.command as a JSON
+      array (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND)
+  --providers-brave-answers-api-key-vault-auth-secret-id-timeout <duration>
+      Set providers.brave-answers.api-key.vault.auth.secret-id.timeout (env:
+      SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT)
+  --providers-perplexity-api-key-file <path>
+      Set providers.perplexity.api-key.file (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_FILE)
+  --providers-perplexity-api-key-command <json>
+      Set providers.perplexity.api-key.command as a JSON array (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_COMMAND)
+  --providers-perplexity-api-key-timeout <duration>
+      Set providers.perplexity.api-key.timeout (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_TIMEOUT)
+  --providers-perplexity-api-key-vault-path <path>
+      Set providers.perplexity.api-key.vault.path (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PATH)
+  --providers-perplexity-api-key-vault-key <key>
+      Set providers.perplexity.api-key.vault.key (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_KEY)
+  --providers-perplexity-api-key-vault-address <url>
+      Set providers.perplexity.api-key.vault.address (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_ADDRESS)
+  --providers-perplexity-api-key-vault-namespace <namespace>
+      Set providers.perplexity.api-key.vault.namespace (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_NAMESPACE)
+  --providers-perplexity-api-key-vault-mount <mount>
+      Set providers.perplexity.api-key.vault.mount (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_MOUNT)
+  --providers-perplexity-api-key-vault-kv-version <number>
+      Set providers.perplexity.api-key.vault.kv-version (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_KV_VERSION)
+  --providers-perplexity-api-key-vault-ca-cert <path>
+      Set providers.perplexity.api-key.vault.ca-cert (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_CA_CERT)
+  --providers-perplexity-api-key-vault-proxy <url>
+      Set providers.perplexity.api-key.vault.proxy (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PROXY)
+  --providers-perplexity-api-key-vault-auth-mode <mode>
+      Set providers.perplexity.api-key.vault.auth.mode (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_MODE)
+  --providers-perplexity-api-key-vault-auth-token-file <path>
+      Set providers.perplexity.api-key.vault.auth.token.file (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_FILE)
+  --providers-perplexity-api-key-vault-auth-token-command <json>
+      Set providers.perplexity.api-key.vault.auth.token.command as a JSON array
+      (env: SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_COMMAND)
+  --providers-perplexity-api-key-vault-auth-token-timeout <duration>
+      Set providers.perplexity.api-key.vault.auth.token.timeout (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT)
+  --providers-perplexity-api-key-vault-auth-mount <mount>
+      Set providers.perplexity.api-key.vault.auth.mount (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_MOUNT)
+  --providers-perplexity-api-key-vault-auth-role-id <role-id>
+      Set providers.perplexity.api-key.vault.auth.role-id (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_ROLE_ID)
+  --providers-perplexity-api-key-vault-auth-secret-id-file <path>
+      Set providers.perplexity.api-key.vault.auth.secret-id.file (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_FILE)
+  --providers-perplexity-api-key-vault-auth-secret-id-command <json>
+      Set providers.perplexity.api-key.vault.auth.secret-id.command as a JSON
+      array (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND)
+  --providers-perplexity-api-key-vault-auth-secret-id-timeout <duration>
+      Set providers.perplexity.api-key.vault.auth.secret-id.timeout (env:
+      SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT)
+  --providers-google-api-key-file <path>
+      Set providers.google.api-key.file (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_FILE)
+  --providers-google-api-key-command <json>
+      Set providers.google.api-key.command as a JSON array (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_COMMAND)
+  --providers-google-api-key-timeout <duration>
+      Set providers.google.api-key.timeout (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_TIMEOUT)
+  --providers-google-api-key-vault-path <path>
+      Set providers.google.api-key.vault.path (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PATH)
+  --providers-google-api-key-vault-key <key>
+      Set providers.google.api-key.vault.key (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_KEY)
+  --providers-google-api-key-vault-address <url>
+      Set providers.google.api-key.vault.address (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_ADDRESS)
+  --providers-google-api-key-vault-namespace <namespace>
+      Set providers.google.api-key.vault.namespace (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_NAMESPACE)
+  --providers-google-api-key-vault-mount <mount>
+      Set providers.google.api-key.vault.mount (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_MOUNT)
+  --providers-google-api-key-vault-kv-version <number>
+      Set providers.google.api-key.vault.kv-version (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_KV_VERSION)
+  --providers-google-api-key-vault-ca-cert <path>
+      Set providers.google.api-key.vault.ca-cert (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_CA_CERT)
+  --providers-google-api-key-vault-proxy <url>
+      Set providers.google.api-key.vault.proxy (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PROXY)
+  --providers-google-api-key-vault-auth-mode <mode>
+      Set providers.google.api-key.vault.auth.mode (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_MODE)
+  --providers-google-api-key-vault-auth-token-file <path>
+      Set providers.google.api-key.vault.auth.token.file (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_FILE)
+  --providers-google-api-key-vault-auth-token-command <json>
+      Set providers.google.api-key.vault.auth.token.command as a JSON array
+      (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_COMMAND)
+  --providers-google-api-key-vault-auth-token-timeout <duration>
+      Set providers.google.api-key.vault.auth.token.timeout (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT)
+  --providers-google-api-key-vault-auth-mount <mount>
+      Set providers.google.api-key.vault.auth.mount (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_MOUNT)
+  --providers-google-api-key-vault-auth-role-id <role-id>
+      Set providers.google.api-key.vault.auth.role-id (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_ROLE_ID)
+  --providers-google-api-key-vault-auth-secret-id-file <path>
+      Set providers.google.api-key.vault.auth.secret-id.file (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_FILE)
+  --providers-google-api-key-vault-auth-secret-id-command <json>
+      Set providers.google.api-key.vault.auth.secret-id.command as a JSON array
+      (env: SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND)
+  --providers-google-api-key-vault-auth-secret-id-timeout <duration>
+      Set providers.google.api-key.vault.auth.secret-id.timeout (env:
+      SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT)
+  --providers-firecrawl-api-key-file <path>
+      Set providers.firecrawl.api-key.file (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_FILE)
+  --providers-firecrawl-api-key-command <json>
+      Set providers.firecrawl.api-key.command as a JSON array (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_COMMAND)
+  --providers-firecrawl-api-key-timeout <duration>
+      Set providers.firecrawl.api-key.timeout (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_TIMEOUT)
+  --providers-firecrawl-api-key-vault-path <path>
+      Set providers.firecrawl.api-key.vault.path (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PATH)
+  --providers-firecrawl-api-key-vault-key <key>
+      Set providers.firecrawl.api-key.vault.key (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_KEY)
+  --providers-firecrawl-api-key-vault-address <url>
+      Set providers.firecrawl.api-key.vault.address (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_ADDRESS)
+  --providers-firecrawl-api-key-vault-namespace <namespace>
+      Set providers.firecrawl.api-key.vault.namespace (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_NAMESPACE)
+  --providers-firecrawl-api-key-vault-mount <mount>
+      Set providers.firecrawl.api-key.vault.mount (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_MOUNT)
+  --providers-firecrawl-api-key-vault-kv-version <number>
+      Set providers.firecrawl.api-key.vault.kv-version (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_KV_VERSION)
+  --providers-firecrawl-api-key-vault-ca-cert <path>
+      Set providers.firecrawl.api-key.vault.ca-cert (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_CA_CERT)
+  --providers-firecrawl-api-key-vault-proxy <url>
+      Set providers.firecrawl.api-key.vault.proxy (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PROXY)
+  --providers-firecrawl-api-key-vault-auth-mode <mode>
+      Set providers.firecrawl.api-key.vault.auth.mode (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_MODE)
+  --providers-firecrawl-api-key-vault-auth-token-file <path>
+      Set providers.firecrawl.api-key.vault.auth.token.file (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_FILE)
+  --providers-firecrawl-api-key-vault-auth-token-command <json>
+      Set providers.firecrawl.api-key.vault.auth.token.command as a JSON array
+      (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_COMMAND)
+  --providers-firecrawl-api-key-vault-auth-token-timeout <duration>
+      Set providers.firecrawl.api-key.vault.auth.token.timeout (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT)
+  --providers-firecrawl-api-key-vault-auth-mount <mount>
+      Set providers.firecrawl.api-key.vault.auth.mount (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_MOUNT)
+  --providers-firecrawl-api-key-vault-auth-role-id <role-id>
+      Set providers.firecrawl.api-key.vault.auth.role-id (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_ROLE_ID)
+  --providers-firecrawl-api-key-vault-auth-secret-id-file <path>
+      Set providers.firecrawl.api-key.vault.auth.secret-id.file (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_FILE)
+  --providers-firecrawl-api-key-vault-auth-secret-id-command <json>
+      Set providers.firecrawl.api-key.vault.auth.secret-id.command as a JSON
+      array (env: SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND)
+  --providers-firecrawl-api-key-vault-auth-secret-id-timeout <duration>
+      Set providers.firecrawl.api-key.vault.auth.secret-id.timeout (env:
+      SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT)
+  --vault-address <url>
+      Set vault.address (env: SEEK_VAULT_ADDRESS, BAO_ADDR, VAULT_ADDR)
+  --vault-namespace <namespace>
+      Set vault.namespace (env: SEEK_VAULT_NAMESPACE, BAO_NAMESPACE,
+      VAULT_NAMESPACE)
+  --vault-mount <mount>
+      Set vault.mount (env: SEEK_VAULT_MOUNT)
+  --vault-kv-version <number>
+      Set vault.kv-version (env: SEEK_VAULT_KV_VERSION)
+  --vault-ca-cert <path>
+      Set vault.ca-cert (env: SEEK_VAULT_CA_CERT)
+  --vault-proxy <url>
+      Set vault.proxy (env: SEEK_VAULT_PROXY)
+  --vault-auth-mode <mode>
+      Set vault.auth.mode (env: SEEK_VAULT_AUTH_MODE)
+  --vault-auth-token-file <path>
+      Set vault.auth.token.file (env: SEEK_VAULT_AUTH_TOKEN_FILE)
+  --vault-auth-token-command <json>
+      Set vault.auth.token.command as a JSON array (env:
+      SEEK_VAULT_AUTH_TOKEN_COMMAND)
+  --vault-auth-token-timeout <duration>
+      Set vault.auth.token.timeout (env: SEEK_VAULT_AUTH_TOKEN_TIMEOUT)
+  --vault-auth-mount <mount>
+      Set vault.auth.mount (env: SEEK_VAULT_AUTH_MOUNT)
+  --vault-auth-role-id <role-id>
+      Set vault.auth.role-id (env: SEEK_VAULT_AUTH_ROLE_ID)
+  --vault-auth-secret-id-file <path>
+      Set vault.auth.secret-id.file (env: SEEK_VAULT_AUTH_SECRET_ID_FILE)
+  --vault-auth-secret-id-command <json>
+      Set vault.auth.secret-id.command as a JSON array (env:
+      SEEK_VAULT_AUTH_SECRET_ID_COMMAND)
+  --vault-auth-secret-id-timeout <duration>
+      Set vault.auth.secret-id.timeout (env: SEEK_VAULT_AUTH_SECRET_ID_TIMEOUT)
+  --server-token-stdin
+      Read server.token from standard input for this run
+  --providers-parallel-api-key-stdin
+      Read providers.parallel.api-key from standard input for this run
+  --providers-exa-api-key-stdin
+      Read providers.exa.api-key from standard input for this run
+  --providers-brave-search-api-key-stdin
+      Read providers.brave-search.api-key from standard input for this run
+  --providers-brave-answers-api-key-stdin
+      Read providers.brave-answers.api-key from standard input for this run
+  --providers-perplexity-api-key-stdin
+      Read providers.perplexity.api-key from standard input for this run
+  --providers-google-api-key-stdin
+      Read providers.google.api-key from standard input for this run
+  --providers-firecrawl-api-key-stdin
+      Read providers.firecrawl.api-key from standard input for this run
 ```

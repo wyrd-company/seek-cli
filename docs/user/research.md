@@ -10,7 +10,7 @@ and Perplexity hold research as resumable jobs. You need the provider's key
 (see [Set up provider keys](config.md)) or a seek server.
 
 To practice these steps without a key, start the practice server and set
-`SEEK_SERVER_URL` and `SEEK_SERVER_TOKEN` as
+`SEEK_SERVER_URL` and `SEEK_SERVER_TOKEN_VALUE` as
 [Run your first search](first-search.md) shows, and use `parallel`. The
 outputs below are the practice server's.
 

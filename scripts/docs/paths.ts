@@ -11,8 +11,10 @@ export const CAPTURES_DIR = "docs/captures";
 /** The definitions published as copies under docs/user/reference/, each linked from the page generated from it. */
 export const DEFINITIONS = {
   httpApi: "http-api.openapi.yml",
-  configurationFile: "configuration.file.schema.json",
-  configurationEnvironment: "configuration.environment.schema.json",
+  configurationClient: "configuration.client.schema.json",
+  configurationServer: "configuration.server.schema.json",
+  configurationSecrets: "configuration.secrets.schema.json",
+  configurationShow: "configuration.show.schema.json",
   researchJobEnvelope: "research-job-envelope.schema.json",
 } as const;
 

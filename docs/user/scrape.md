@@ -16,9 +16,9 @@ made-up text.
 
 | You want | Command | Key |
 | --- | --- | --- |
-| The text of one or more pages, in bulk | `seek scrape exa` | `EXA_API_KEY` |
-| Excerpts focused on an objective, with publish dates, from one or more pages | `seek scrape parallel` | `PARALLEL_API_KEY` |
-| One page as Markdown, HTML, links, a summary, a screenshot or extracted JSON | `seek scrape firecrawl` | `FIRECRAWL_API_KEY` |
+| The text of one or more pages, in bulk | `seek scrape exa` | `providers.exa.api-key` |
+| Excerpts focused on an objective, with publish dates, from one or more pages | `seek scrape parallel` | `providers.parallel.api-key` |
+| One page as Markdown, HTML, links, a summary, a screenshot or extracted JSON | `seek scrape firecrawl` | `providers.firecrawl.api-key` |
 
 ## 2. Extract the pages
 

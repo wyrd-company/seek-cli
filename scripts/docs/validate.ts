@@ -17,8 +17,9 @@ export type ExampleCheck =
 
 /** Every published example and the definition it must validate against, or the test that runs it. */
 export const EXAMPLES: Record<string, ExampleCheck> = {
-  "examples/config.json": { kind: "schema", definition: DEFINITIONS.configurationFile },
-  "examples/client-config.json": { kind: "schema", definition: DEFINITIONS.configurationFile },
+  "examples/client.yml": { kind: "schema", definition: DEFINITIONS.configurationClient },
+  "examples/client-with-server.yml": { kind: "schema", definition: DEFINITIONS.configurationClient },
+  "examples/server.yml": { kind: "schema", definition: DEFINITIONS.configurationServer },
   "examples/research-job-submitted.json": { kind: "schema", definition: DEFINITIONS.researchJobEnvelope },
   "examples/research-job-result.json": { kind: "schema", definition: DEFINITIONS.researchJobEnvelope },
   "examples/health.response.json": { kind: "openapi", method: "get", path: "/healthz", status: "200" },
@@ -35,8 +36,8 @@ function isUri(value: string): boolean {
 export function createAjv(): Ajv2020 {
   const ajv = new Ajv2020({ strict: true, allErrors: true });
   ajv.addFormat("uri", isUri);
-  // OpenAPI's own schema keywords.
-  ajv.addVocabulary(["example", "xml", "externalDocs", "discriminator"]);
+  // OpenAPI's own schema keywords, and the configuration schemas' alias annotations.
+  ajv.addVocabulary(["example", "xml", "externalDocs", "discriminator", "x-env-aliases", "x-flag-aliases"]);
   return ajv;
 }
 
@@ -97,13 +98,27 @@ export interface Validators {
   openapi: Schema;
 }
 
+/** The JSON Schema definitions: the shared configuration shapes first, which the others refer to. */
+export const JSON_SCHEMAS = [
+  DEFINITIONS.configurationSecrets,
+  DEFINITIONS.configurationClient,
+  DEFINITIONS.configurationServer,
+  DEFINITIONS.configurationShow,
+  DEFINITIONS.researchJobEnvelope,
+] as const;
+
 /** Compiles every JSON Schema definition; throws with the definition's name when one does not compile. */
 export function compileDefinitions(root = ROOT): Validators {
   const ajv = createAjv();
   const schemas = new Map<string, ValidateFunction>();
-  for (const name of [DEFINITIONS.configurationFile, DEFINITIONS.configurationEnvironment, DEFINITIONS.researchJobEnvelope]) {
+  try {
+    ajv.addSchema(readSpecificationJson(DEFINITIONS.configurationSecrets, root));
+  } catch (error) {
+    throw new Error(`${DEFINITIONS.configurationSecrets} does not compile: ${(error as Error).message}`);
+  }
+  for (const name of JSON_SCHEMAS) {
     try {
-      schemas.set(name, ajv.compile(readSpecificationJson(name, root)));
+      schemas.set(name, name === DEFINITIONS.configurationSecrets ? ajv.getSchema(name)! : ajv.compile(readSpecificationJson(name, root)));
     } catch (error) {
       throw new Error(`${name} does not compile: ${(error as Error).message}`);
     }

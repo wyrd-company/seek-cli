@@ -24,14 +24,14 @@ function requestBody(fetchMock: FetchMock): Record<string, unknown> {
 }
 
 beforeEach(() => {
-  process.env.BRAVE_SEARCH_API_KEY = "test-brave-search-key";
-  process.env.BRAVE_ANSWERS_API_KEY = "test-brave-answers-key";
+  process.env.SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VALUE = "test-brave-search-key";
+  process.env.SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VALUE = "test-brave-answers-key";
 });
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
-  delete process.env.BRAVE_SEARCH_API_KEY;
-  delete process.env.BRAVE_ANSWERS_API_KEY;
+  delete process.env.SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VALUE;
+  delete process.env.SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VALUE;
 });
 
 describe("braveSearch", () => {

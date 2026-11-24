@@ -21,7 +21,7 @@ description: >-
   Requests are checked in this order, and the first rule that applies answers:
   `/healthz` returns 200 for any method without a token; a path outside
   `/v1/proxy/` returns 404; a request without an accepted token returns 401,
-  unless the server runs with `--no-auth`; an unknown upstream returns 404; an
+  unless `server.require-token` is false; an unknown upstream returns 404; an
   upstream without a provider key returns 503; a provider that cannot be
   reached returns 502. Each of these errors is a JSON object with one `error`
   string. The URL parser resolves dot segments before this order is applied,

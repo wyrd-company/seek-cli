@@ -1,0 +1,1 @@
+{ "configuration": "client", "files": [], "warnings": [], "settings": [{ "path": "vault.auth.token.value", "value": "synthetic-vault-token", "layer": { "kind": "env", "name": "SEEK_VAULT_AUTH_TOKEN_VALUE" } }] }

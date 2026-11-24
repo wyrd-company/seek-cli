@@ -51,31 +51,31 @@ tags:
   - name: parallel
     description: >-
       Forwards to https://api.parallel.ai and adds the `x-api-key` header from
-      `PARALLEL_API_KEY`.
+      `providers.parallel.api-key`.
   - name: exa
     description: >-
       Forwards to https://api.exa.ai and adds the `x-api-key` header from
-      `EXA_API_KEY`.
+      `providers.exa.api-key`.
   - name: brave-search
     description: >-
       Forwards to https://api.search.brave.com/res/v1 and adds the
-      `X-Subscription-Token` header from `BRAVE_SEARCH_API_KEY`.
+      `X-Subscription-Token` header from `providers.brave-search.api-key`.
   - name: brave-answers
     description: >-
       Forwards to https://api.search.brave.com/res/v1 and adds the
-      `X-Subscription-Token` header from `BRAVE_ANSWERS_API_KEY`.
+      `X-Subscription-Token` header from `providers.brave-answers.api-key`.
   - name: perplexity
     description: >-
       Forwards to https://api.perplexity.ai and adds the `Authorization:
-      Bearer` header from `PERPLEXITY_API_KEY`.
+      Bearer` header from `providers.perplexity.api-key`.
   - name: google
     description: >-
       Forwards to https://generativelanguage.googleapis.com/v1beta and adds
-      the `x-goog-api-key` header from `GEMINI_API_KEY`.
+      the `x-goog-api-key` header from `providers.google.api-key`.
   - name: firecrawl
     description: >-
       Forwards to https://api.firecrawl.dev and adds the `Authorization:
-      Bearer` header from `FIRECRAWL_API_KEY`.
+      Bearer` header from `providers.firecrawl.api-key`.
 paths:
   /healthz:
     get:
@@ -375,8 +375,8 @@ components:
       description: >-
         A client token the server accepts, sent as `Authorization: Bearer
         <token>`. The scheme name is case-insensitive. The server accepts each
-        entry of its comma-separated `SEEK_SERVER_TOKEN`. A server started
-        with `--no-auth` accepts requests without a token.
+        entry of its comma-separated `server.tokens`. A server whose
+        `server.require-token` is false accepts requests without a token.
   parameters:
     ProviderJobId:
       name: jobId
@@ -454,7 +454,7 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
           example:
-            error: seek server has no API key configured for exa (EXA_API_KEY)
+            error: seek server has no API key configured for exa (providers.exa.api-key)
     ProviderResponse:
       description: >-
         The provider's response, passed through with its status and status

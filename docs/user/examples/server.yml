@@ -1,0 +1,26 @@
+# /etc/seek/server.yml: the client tokens and provider keys, read from one
+# OpenBao or Vault KV secret with AppRole.
+server:
+  host: 0.0.0.0
+  tokens:
+    vault:
+      path: seek
+      key: SEEK_SERVER_TOKENS
+providers:
+  exa:
+    api-key:
+      vault:
+        path: seek
+        key: EXA_API_KEY
+  parallel:
+    api-key:
+      vault:
+        path: seek
+        key: PARALLEL_API_KEY
+vault:
+  address: https://bao.internal.example
+  auth:
+    mode: approle
+    role-id: <role-id>
+    secret-id:
+      file: /run/secrets/seek-secret-id

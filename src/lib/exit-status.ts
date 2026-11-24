@@ -12,7 +12,8 @@ export const EXIT_STATUSES = [
     name: "failure",
     code: 1,
     meaning:
-      "The command failed: a parse error, an HTTP error, research that did not complete, " +
+      "The command failed: a parse error, a configuration error, a secret source that failed, " +
+      "an HTTP error, research that did not complete, " +
       "a result requested for an unfinished job, or another error, printed on stderr. " +
       "If a write to stdout fails because the reader closed the pipe, seek exits quietly.",
   },
@@ -20,8 +21,8 @@ export const EXIT_STATUSES = [
     name: "missingProviderKey",
     code: 2,
     meaning:
-      "A provider key is not set in direct mode. The message names the variable to set " +
-      "and suggests other providers in the same command group.",
+      "A provider key has no source in direct mode. The message names the setting and its " +
+      "environment variables, and suggests other providers in the same command group.",
   },
 ] as const;
 

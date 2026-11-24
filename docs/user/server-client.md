@@ -39,7 +39,7 @@ address and the client token from the same variables the seek CLI uses:
 
 ```sh
 export SEEK_SERVER_URL=http://127.0.0.1:8788
-export SEEK_SERVER_TOKEN=practice-token
+export SEEK_SERVER_TOKEN_VALUE=practice-token
 node server-client.mjs "how do honeybees make honey"
 ```
 
@@ -70,7 +70,7 @@ integration.
 Now we change the token and run the client again:
 
 ```sh
-export SEEK_SERVER_TOKEN=wrong-token
+export SEEK_SERVER_TOKEN_VALUE=wrong-token
 node server-client.mjs "how do honeybees make honey"
 ```
 
@@ -91,7 +91,7 @@ exits with status 1.
 Press Ctrl+C in the first terminal, and unset the variables in the second:
 
 ```sh
-unset SEEK_SERVER_URL SEEK_SERVER_TOKEN
+unset SEEK_SERVER_URL SEEK_SERVER_TOKEN_VALUE
 ```
 
 ## What we did
@@ -99,7 +99,7 @@ unset SEEK_SERVER_URL SEEK_SERVER_TOKEN
 We called a seek server's health check and its Exa proxy route from code, read
 the provider's response through it, and saw how the server rejects a token it
 does not accept. The same client works against a real server: set
-`SEEK_SERVER_URL` to the server and `SEEK_SERVER_TOKEN` to a token it
+`SEEK_SERVER_URL` to the server and `SEEK_SERVER_TOKEN_VALUE` to a token it
 accepts, and the results come from Exa.
 
 Next:

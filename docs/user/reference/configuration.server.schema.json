@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "configuration.server.schema.json",
+  "title": "seek server configuration",
+  "description": "The server configuration, read by `seek serve`: `/etc/seek/server.yml`. `--config <path>` or `SEEK_CONFIG` names another file in its place. Each field also has an environment variable and a flag, derived from its path as the configuration specification describes.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "server": {
+      "description": "Where the server listens and how it authenticates clients.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "host": {
+          "description": "Interface the server binds. The server image sets `SEEK_SERVER_HOST=0.0.0.0`.",
+          "type": "string",
+          "minLength": 1,
+          "default": "127.0.0.1",
+          "x-flag-aliases": ["--host"]
+        },
+        "port": {
+          "description": "Port the server listens on.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535,
+          "default": 8787,
+          "x-flag-aliases": ["--port"]
+        },
+        "require-token": {
+          "description": "Whether a request must carry one of `server.tokens`. Set it to false only on a trusted network; the server then logs a warning at startup.",
+          "type": "boolean",
+          "default": true,
+          "x-flag-aliases": ["--no-auth"]
+        },
+        "tokens": {
+          "description": "The client tokens the server accepts, as one comma-separated value, so that a new token can be added before the old one is removed. Required while `server.require-token` is true.",
+          "$ref": "configuration.secrets.schema.json#/$defs/secret"
+        },
+        "secret-refresh-seconds": {
+          "description": "How long the server uses each secret it resolved before it resolves it again. A later resolution that fails keeps the value already held. Zero resolves on every use.",
+          "type": "number",
+          "minimum": 0,
+          "default": 300
+        }
+      }
+    },
+    "providers": {
+      "$ref": "configuration.secrets.schema.json#/$defs/providers"
+    },
+    "vault": {
+      "$ref": "configuration.secrets.schema.json#/$defs/vault"
+    }
+  },
+  "examples": [
+    {
+      "server": {
+        "host": "0.0.0.0",
+        "tokens": {
+          "file": "/run/secrets/seek-client-tokens"
+        }
+      },
+      "providers": {
+        "exa": {
+          "api-key": {
+            "vault": {
+              "path": "seek",
+              "key": "EXA_API_KEY"
+            }
+          }
+        },
+        "parallel": {
+          "api-key": {
+            "vault": {
+              "path": "seek",
+              "key": "PARALLEL_API_KEY"
+            }
+          }
+        }
+      },
+      "vault": {
+        "address": "https://bao.internal.example",
+        "auth": {
+          "mode": "approle",
+          "role-id": "<role-id>",
+          "secret-id": {
+            "file": "/run/secrets/seek-secret-id"
+          }
+        }
+      }
+    }
+  ]
+}

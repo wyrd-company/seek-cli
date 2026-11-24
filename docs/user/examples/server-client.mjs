@@ -2,16 +2,16 @@
 // A client for a seek server: it checks the server's health, then runs one
 // Exa search through the server's proxy and prints the results.
 //
-//   SEEK_SERVER_URL=http://127.0.0.1:8788 SEEK_SERVER_TOKEN=practice-token \
+//   SEEK_SERVER_URL=http://127.0.0.1:8788 SEEK_SERVER_TOKEN_VALUE=practice-token \
 //     node server-client.mjs "how do honeybees make honey"
 //
 // Needs Node.js 18 or later, or Bun. It sends Exa's own request body and
 // reads Exa's own response: the server only adds the provider key.
 
 const base = (process.env.SEEK_SERVER_URL ?? "").trim().replace(/\/+$/, "");
-const token = (process.env.SEEK_SERVER_TOKEN ?? "").trim();
+const token = (process.env.SEEK_SERVER_TOKEN_VALUE ?? "").trim();
 if (!base || !token) {
-  process.stderr.write("Set SEEK_SERVER_URL and SEEK_SERVER_TOKEN.\n");
+  process.stderr.write("Set SEEK_SERVER_URL and SEEK_SERVER_TOKEN_VALUE.\n");
   process.exit(1);
 }
 const query = process.argv.slice(2).join(" ") || "how do honeybees make honey";

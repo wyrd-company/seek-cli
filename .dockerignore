@@ -5,6 +5,7 @@ dist
 .devcontainer
 .test-artifacts
 docs
+!docs/specifications
 tests
 .env
 .env.*

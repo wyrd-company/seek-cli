@@ -45,8 +45,9 @@ fields are the same for every provider; see
 ## Keys stay with the caller or with a server
 
 Each provider needs its own API key. In direct mode, the CLI reads the key
-from its environment or its configuration file and calls the provider itself.
-In server mode, set by `SEEK_SERVER_URL`, the CLI sends every call to a seek
+from the source its configuration names, such as a file or a credential
+helper, and calls the provider itself. In server mode, set by `server.url`,
+the CLI sends every call to a seek
 server with a client token, and only the server holds provider keys. Commands
 and their output are the same in both modes, so a machine can move from one
 to the other without changing what it runs.

@@ -63,7 +63,7 @@ describe("live provider smoke tests", () => {
     });
   }
 
-  liveTest("Parallel search returns results", "PARALLEL_API_KEY", async () => {
+  liveTest("Parallel search returns results", "SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE", async () => {
     const request = {
       query: "example domain",
       options: { maxResults: 1, maxCharsPerResult: 300 },
@@ -82,7 +82,7 @@ describe("live provider smoke tests", () => {
     expect(data.results[0]?.url).toMatch(/^https?:\/\//);
   });
 
-  liveTest("Parallel extract returns a result", "PARALLEL_API_KEY", async () => {
+  liveTest("Parallel extract returns a result", "SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE", async () => {
     const request = {
       urls: ["https://example.com"],
       options: { maxCharsPerResult: 500, maxCharsTotal: 1000 },
@@ -100,7 +100,7 @@ describe("live provider smoke tests", () => {
     expect(data.results.length + data.errors.length).toBeGreaterThan(0);
   });
 
-  liveTest("Exa search returns results", "EXA_API_KEY", async () => {
+  liveTest("Exa search returns results", "SEEK_PROVIDERS_EXA_API_KEY_VALUE", async () => {
     const request = { query: "example domain", options: { numResults: 1 } };
     const data = await recordLiveArtifact(
       {
@@ -116,7 +116,7 @@ describe("live provider smoke tests", () => {
     expect(data.results[0]?.url).toMatch(/^https?:\/\//);
   });
 
-  liveTest("Exa contents extracts example.com", "EXA_API_KEY", async () => {
+  liveTest("Exa contents extracts example.com", "SEEK_PROVIDERS_EXA_API_KEY_VALUE", async () => {
     const request = {
       urls: ["https://example.com"],
       options: { maxCharacters: 1000 },
@@ -135,7 +135,7 @@ describe("live provider smoke tests", () => {
     expect(data.results[0]?.url).toMatch(/^https?:\/\//);
   });
 
-  liveTest("Brave search returns results", "BRAVE_SEARCH_API_KEY", async () => {
+  liveTest("Brave search returns results", "SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VALUE", async () => {
     const request = { query: "example domain", options: { count: 1 } };
     const data = await recordLiveArtifact(
       {
@@ -151,7 +151,7 @@ describe("live provider smoke tests", () => {
     expect(data.web?.results[0]?.url).toMatch(/^https?:\/\//);
   });
 
-  liveTest("Brave answers returns grounded text", "BRAVE_ANSWERS_API_KEY", async () => {
+  liveTest("Brave answers returns grounded text", "SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VALUE", async () => {
     const request = {
       query: "What is example.com? Answer in one sentence.",
       options: {
@@ -172,7 +172,7 @@ describe("live provider smoke tests", () => {
     expect(extractBraveAnswerText(data)).not.toContain("<usage>");
   });
 
-  liveTest("Perplexity search returns an answer", "PERPLEXITY_API_KEY", async () => {
+  liveTest("Perplexity search returns an answer", "SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE", async () => {
     const request = {
       query: "What is example.com? Answer in one sentence.",
       options: { maxTokens: 80 },
@@ -190,7 +190,7 @@ describe("live provider smoke tests", () => {
     expect(data.choices[0]?.message.content.length ?? 0).toBeGreaterThan(0);
   });
 
-  liveTest("Firecrawl scrape returns markdown", "FIRECRAWL_API_KEY", async () => {
+  liveTest("Firecrawl scrape returns markdown", "SEEK_PROVIDERS_FIRECRAWL_API_KEY_VALUE", async () => {
     const request = {
       url: "https://example.com",
       options: { formats: ["markdown"], maxAge: 60 * 60 * 1000 } satisfies FirecrawlScrapeOptions,
@@ -211,7 +211,7 @@ describe("live provider smoke tests", () => {
 
   longLiveTest(
     "Parallel resumable research lifecycle returns a report",
-    "PARALLEL_API_KEY",
+    "SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE",
     async () => {
       const request = {
         input: "Compare air-drying and pressing leaves in two short sentences.",
@@ -272,7 +272,7 @@ describe("live provider smoke tests", () => {
     },
   );
 
-  longLiveTest("Google Deep Research completes a short report", "GEMINI_API_KEY", async () => {
+  longLiveTest("Google Deep Research completes a short report", "SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE", async () => {
     const request = {
       query: "In two short sentences, explain what example.com is. Keep the report brief.",
       options: { pollIntervalMs: 15_000, timeoutMs: 12 * 60_000 },
@@ -292,7 +292,7 @@ describe("live provider smoke tests", () => {
       if (err instanceof HttpError && err.status === 403) {
         throw new Error(
           "Google Deep Research live test reached the Gemini Interactions endpoint, " +
-            "but this GEMINI_API_KEY is not permitted to use v1beta/interactions. " +
+            "but this SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE is not permitted to use v1beta/interactions. " +
             "Enable Gemini Deep Research / Interactions API access for this key, " +
             "or unset RUN_LONG_LIVE_TESTS to skip long research smoke tests.",
         );
@@ -306,7 +306,7 @@ describe("live provider smoke tests", () => {
 
   liveTest(
     "Google Deep Research accepts an input-incorporated instruction",
-    "GEMINI_API_KEY",
+    "SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE",
     async () => {
       const request = {
         query: "Briefly compare two common methods for storing postage stamps.",
@@ -330,7 +330,7 @@ describe("live provider smoke tests", () => {
     },
   );
 
-  longLiveTest("Perplexity Deep Research completes a short report", "PERPLEXITY_API_KEY", async () => {
+  longLiveTest("Perplexity Deep Research completes a short report", "SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE", async () => {
     const request = {
       query: "In two short sentences, explain what example.com is. Keep the report brief.",
       options: {

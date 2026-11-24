@@ -1,6 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import { createProgram } from "../src/program.ts";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { loadConfiguration } from "../src/lib/config.ts";
 import { braveAnswers, braveSearch } from "../src/providers/brave.ts";
 import { exaContents, exaSearch } from "../src/providers/exa.ts";
 import { firecrawlScrape } from "../src/providers/firecrawl.ts";
@@ -18,7 +20,7 @@ import {
 } from "../src/providers/perplexity.ts";
 import { inspectResearchJob, retrieveResearchJob } from "../src/lib/research-jobs.ts";
 import { UPSTREAMS, type UpstreamId, type UpstreamSpec } from "../src/lib/upstreams.ts";
-import { SecretResolver } from "../src/server/secrets.ts";
+import { staticSecrets } from "./support.ts";
 import {
   FORWARDED_RESPONSE_HEADERS,
   STRIPPED_REQUEST_HEADERS,
@@ -123,11 +125,11 @@ function upstreams(baseUrl: (spec: UpstreamSpec) => string): Record<UpstreamId, 
   ) as Record<UpstreamId, UpstreamSpec>;
 }
 
-const allKeys = Object.fromEntries(Object.values(UPSTREAMS).map((spec) => [spec.envVar, "synthetic-key"]));
+const allKeys = Object.fromEntries(Object.values(UPSTREAMS).map((spec) => [spec.id, "synthetic-key"])) as Record<UpstreamId, string>;
 const seekServer = startServer({
   hostname: "127.0.0.1",
   port: 0,
-  secrets: new SecretResolver(null, { ...allKeys, SEEK_SERVER_TOKEN: "synthetic-token" }, () => ({})),
+  secrets: staticSecrets("synthetic-token", allKeys),
   upstreams: upstreams((spec) => `http://127.0.0.1:${fakeProviders.port}/${spec.id}`),
   log: (line) => {
     const [method = "", target = ""] = line.split(" ");
@@ -138,15 +140,14 @@ const base = `http://127.0.0.1:${seekServer.port}`;
 
 const savedEnv = { ...process.env };
 beforeAll(() => {
-  delete process.env.SEEK_VAULT_PATH;
   process.env.SEEK_SERVER_URL = base;
-  process.env.SEEK_SERVER_TOKEN = "synthetic-token";
+  process.env.SEEK_SERVER_TOKEN_VALUE = "synthetic-token";
 });
 afterEach(() => {
   calls = [];
 });
 afterAll(() => {
-  for (const name of ["SEEK_SERVER_URL", "SEEK_SERVER_TOKEN", "SEEK_VAULT_PATH"]) {
+  for (const name of ["SEEK_SERVER_URL", "SEEK_SERVER_TOKEN_VALUE"]) {
     if (savedEnv[name] === undefined) delete process.env[name];
     else process.env[name] = savedEnv[name];
   }
@@ -222,7 +223,7 @@ describe("http-api.openapi.yml", () => {
       const tag = openapi.tags.find((t) => t.name === spec.id);
       expect(tag).toBeDefined();
       expect(tag!.description).toContain(spec.baseUrl);
-      expect(tag!.description).toContain(spec.envVar);
+      expect(tag!.description).toContain(spec.setting);
       for (const header of Object.keys(spec.authHeaders("x"))) {
         expect(tag!.description).toContain(`\`${header}`);
       }
@@ -253,18 +254,11 @@ describe("http-api.openapi.yml", () => {
   });
 
   test("names the address seek serve binds by default", () => {
-    const saved = { host: process.env.SEEK_SERVER_HOST, port: process.env.SEEK_SERVER_PORT };
-    delete process.env.SEEK_SERVER_HOST;
-    delete process.env.SEEK_SERVER_PORT;
-    try {
-      const serve = createProgram().commands.find((c) => c.name() === "serve")!;
-      const host = serve.options.find((o) => o.long === "--host")!.defaultValue;
-      const port = serve.options.find((o) => o.long === "--port")!.defaultValue;
-      expect(openapi.servers[0]!.url).toBe(`http://${host}:${port}`);
-    } finally {
-      if (saved.host !== undefined) process.env.SEEK_SERVER_HOST = saved.host;
-      if (saved.port !== undefined) process.env.SEEK_SERVER_PORT = saved.port;
-    }
+    const server = loadConfiguration({ kind: "server", env: {}, systemDir: mkdtempSync(join(tmpdir(), "seek-http-api-")) });
+    const host = server.plain.get("server.host")!;
+    const port = server.plain.get("server.port")!;
+    expect([host.origin, port.origin]).toEqual([{ kind: "default" }, { kind: "default" }]);
+    expect(openapi.servers[0]!.url).toBe(`http://${host.value}:${port.value}`);
   });
 });
 
@@ -300,14 +294,14 @@ describe("seek server conforms to http-api.openapi.yml", () => {
     const noKeys = startServer({
       hostname: "127.0.0.1",
       port: 0,
-      secrets: new SecretResolver(null, { SEEK_SERVER_TOKEN: "synthetic-token" }, () => ({})),
+      secrets: staticSecrets("synthetic-token"),
       upstreams: unreachable,
       log: () => {},
     });
     const withKeys = startServer({
       hostname: "127.0.0.1",
       port: 0,
-      secrets: new SecretResolver(null, { ...allKeys, SEEK_SERVER_TOKEN: "synthetic-token" }, () => ({})),
+      secrets: staticSecrets("synthetic-token", allKeys),
       upstreams: unreachable,
       log: () => {},
     });

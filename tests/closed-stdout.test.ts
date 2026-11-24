@@ -34,7 +34,7 @@ test("the compiled CLI exits quietly when a reader closes stdout early", () => {
     },
   );
 
-  expect(result.stdout.toString()).toBe(`config: ${directory}/seek/config.json\n`);
+  expect(result.stdout.toString()).toBe("seek client configuration\n");
   expect(result.exitCode).toBe(EXIT.failure);
   expect(result.stderr.toString()).toBe("");
 });

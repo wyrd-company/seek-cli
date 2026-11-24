@@ -83,10 +83,8 @@ describe("EXIT_STATUSES", () => {
         cmd: [process.execPath, "run", "src/index.ts", ...args],
         cwd: process.cwd(),
         env: {
-          ...process.env,
-          XDG_CONFIG_HOME: mkdtempSync(join(tmpdir(), "seek-exit-test-")),
-          SEEK_SERVER_URL: "",
-          PARALLEL_API_KEY: "",
+          PATH: process.env.PATH ?? "/usr/bin:/bin",
+          HOME: mkdtempSync(join(tmpdir(), "seek-exit-test-")),
         },
         stdout: "pipe",
         stderr: "pipe",

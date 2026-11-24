@@ -1,0 +1,499 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "configuration.show.schema.json",
+  "title": "seek config show --json",
+  "description": "What `seek config show --json` prints: the effective client or server configuration, one entry per setting, with the layer that supplied it. Secrets appear as their configured source, never as their value. It is the supported interface for scripts that read seek's configuration.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["configuration", "files", "settings", "warnings"],
+  "properties": {
+    "configuration": {
+      "description": "Which configuration was inspected.",
+      "enum": ["client", "server"]
+    },
+    "files": {
+      "description": "Absolute paths of the configuration files that were loaded, from lowest to highest precedence.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "settings": {
+      "description": "Every setting the configuration's schema defines, in schema order. A secret is one entry at the path of its source mapping, the top-level Vault login is one entry at `vault.auth`, and every other setting is one entry at its own path.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/setting"
+      }
+    },
+    "warnings": {
+      "description": "Warnings that loading wrote to stderr, such as a deprecated key and the key that replaces it.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "setting": {
+      "description": "One setting. Its representation depends on its path: a secret has a `source`, the top-level Vault login has an `auth`, and any other setting has a `value`. No entry carries both a `value` and a `source`.",
+      "type": "object",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/secret-setting"
+        },
+        {
+          "$ref": "#/$defs/auth-setting"
+        },
+        {
+          "$ref": "#/$defs/plain-setting"
+        }
+      ]
+    },
+    "layer": {
+      "description": "Where the effective value came from.",
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": {
+              "enum": ["default", "unset"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "file"],
+          "properties": {
+            "kind": {
+              "const": "file"
+            },
+            "file": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "name"],
+          "properties": {
+            "kind": {
+              "enum": ["env", "flag"]
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "source": {
+      "description": "A secret's effective source mapping, with every Vault field filled from the top-level defaults, as seek would use it. A literal value is `<redacted>`, and a helper shows only its program and argument count.",
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value"],
+          "properties": {
+            "value": {
+              "const": "<redacted>"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["file"],
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["command", "timeout"],
+          "properties": {
+            "command": {
+              "description": "The helper's program, its first element, and how many arguments follow it. The arguments are not shown.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["program", "arguments"],
+              "properties": {
+                "program": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "arguments": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "timeout": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["vault"],
+          "properties": {
+            "vault": {
+              "$ref": "#/$defs/vault"
+            }
+          }
+        }
+      ]
+    },
+    "vault": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["address", "mount", "kv-version", "path", "key", "trust"],
+      "properties": {
+        "address": {
+          "type": "string",
+          "pattern": "^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "mount": {
+          "type": "string"
+        },
+        "kv-version": {
+          "enum": [1, 2]
+        },
+        "path": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "ca-cert": {
+          "type": "string"
+        },
+        "proxy": {
+          "type": "string",
+          "pattern": "^https?://[^/@?#]+/?$"
+        },
+        "auth": {
+          "$ref": "#/$defs/auth"
+        },
+        "trust": {
+          "description": "The certificate inputs this source's connection trusts, fixed when the configuration loaded: `ca-cert`, or each default input that was read.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["input", "certificates"],
+            "properties": {
+              "input": {
+                "enum": ["ca-cert", "bundled", "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "built-in file", "SSL_CERT_DIR", "built-in directory", "system"]
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "certificates": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "local-source": {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value"],
+          "properties": {
+            "value": {
+              "const": "<redacted>"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["file"],
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["command", "timeout"],
+          "properties": {
+            "command": {
+              "description": "The helper's program, its first element, and how many arguments follow it. The arguments are not shown.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["program", "arguments"],
+              "properties": {
+                "program": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "arguments": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "timeout": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "secret-setting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "layer"],
+      "properties": {
+        "path": {
+          "description": "A provider key, the client's `server.token` or the server's `server.tokens`.",
+          "type": "string",
+          "pattern": "^(providers\\.[a-z0-9-]+\\.api-key|server\\.tokens?)$"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "layer": {
+          "$ref": "#/$defs/layer"
+        }
+      }
+    },
+    "auth-setting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "layer"],
+      "properties": {
+        "path": {
+          "const": "vault.auth"
+        },
+        "auth": {
+          "$ref": "#/$defs/auth"
+        },
+        "layer": {
+          "$ref": "#/$defs/layer"
+        }
+      }
+    },
+    "plain-setting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "layer"],
+      "properties": {
+        "path": {
+          "description": "Any setting that is not a secret and not part of `vault.auth`.",
+          "type": "string",
+          "pattern": "^[a-z0-9-]+(\\.[a-z0-9-]+)*$",
+          "not": {
+            "type": "string",
+            "pattern": "^(providers\\.[a-z0-9-]+\\.api-key|server\\.tokens?|vault\\.auth)(\\.|$)"
+          }
+        },
+        "value": {
+          "description": "The effective value. Absent when the setting is unset. A URL prints with any user name, password, query or fragment replaced by `<redacted>`.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "layer": {
+          "$ref": "#/$defs/layer"
+        }
+      },
+      "if": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^(server\\.url|vault\\.address|vault\\.proxy)$"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": ["path", "value"]
+      },
+      "then": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "pattern": "^(|[a-z][a-z0-9+.-]*://(<redacted>@)?[^/@?#]*(/[^?#]*)?(\\?<redacted>)?(#<redacted>)?)$"
+          }
+        }
+      }
+    },
+    "auth": {
+      "description": "The `auth` mapping this source uses after binding, and the layer that declared it. Absent when no `auth` mapping is bound to this server, which validation reports. A token or secret ID shows its source with any literal as `<redacted>`; a role ID is always `<redacted>`.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "declared-in"],
+      "properties": {
+        "mode": {
+          "enum": ["token", "approle", "none"]
+        },
+        "mount": {
+          "type": "string"
+        },
+        "role-id": {
+          "const": "<redacted>"
+        },
+        "token": {
+          "$ref": "#/$defs/local-source"
+        },
+        "secret-id": {
+          "$ref": "#/$defs/local-source"
+        },
+        "declared-in": {
+          "$ref": "#/$defs/layer"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "configuration": "client",
+      "files": ["/home/user/.config/seek/client.yml"],
+      "settings": [
+        {
+          "path": "server.url",
+          "value": "https://seek.internal.example",
+          "layer": {
+            "kind": "file",
+            "file": "/home/user/.config/seek/client.yml"
+          }
+        },
+        {
+          "path": "server.token",
+          "source": {
+            "vault": {
+              "address": "https://bao.internal.example",
+              "mount": "secret",
+              "kv-version": 2,
+              "path": "clients/my-seek-cli",
+              "key": "SEEK_SERVER_TOKEN",
+              "auth": {
+                "mode": "token",
+                "token": {
+                  "value": "<redacted>"
+                },
+                "declared-in": {
+                  "kind": "env",
+                  "name": "BAO_TOKEN"
+                }
+              },
+              "trust": [
+                {
+                  "input": "bundled",
+                  "certificates": 118
+                },
+                {
+                  "input": "NODE_EXTRA_CA_CERTS",
+                  "path": "/etc/seek/private-ca.pem",
+                  "certificates": 1
+                },
+                {
+                  "input": "built-in directory",
+                  "path": "/etc/ssl/certs",
+                  "certificates": 146
+                }
+              ]
+            }
+          },
+          "layer": {
+            "kind": "file",
+            "file": "/home/user/.config/seek/client.yml"
+          }
+        },
+        {
+          "path": "vault.address",
+          "value": "https://bao.internal.example",
+          "layer": {
+            "kind": "env",
+            "name": "BAO_ADDR"
+          }
+        },
+        {
+          "path": "vault.auth",
+          "auth": {
+            "mode": "token",
+            "token": {
+              "value": "<redacted>"
+            },
+            "declared-in": {
+              "kind": "env",
+              "name": "BAO_TOKEN"
+            }
+          },
+          "layer": {
+            "kind": "env",
+            "name": "BAO_TOKEN"
+          }
+        },
+        {
+          "path": "providers.exa.api-key",
+          "source": {
+            "command": {
+              "program": "op",
+              "arguments": 2
+            },
+            "timeout": "10s"
+          },
+          "layer": {
+            "kind": "env",
+            "name": "SEEK_PROVIDERS_EXA_API_KEY_COMMAND"
+          }
+        },
+        {
+          "path": "providers.parallel.api-key",
+          "source": {
+            "value": "<redacted>"
+          },
+          "layer": {
+            "kind": "env",
+            "name": "SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE"
+          }
+        },
+        {
+          "path": "providers.firecrawl.api-key",
+          "layer": {
+            "kind": "unset"
+          }
+        }
+      ],
+      "warnings": []
+    }
+  ]
+}

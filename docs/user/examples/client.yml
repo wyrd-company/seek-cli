@@ -1,0 +1,8 @@
+# ~/.config/seek/client.yml: two provider keys, each read from its own source.
+providers:
+  exa:
+    api-key:
+      file: ~/.config/seek/secrets/exa
+  parallel:
+    api-key:
+      command: ["op", "read", "op://Private/Parallel/credential"]

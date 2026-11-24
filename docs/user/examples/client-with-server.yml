@@ -1,0 +1,14 @@
+# ~/.config/seek/client.yml: call providers through a seek server, with the
+# client token read from an OpenBao or Vault KV secret.
+server:
+  url: https://seek.internal.example
+  token:
+    vault:
+      path: clients/my-seek-cli
+      key: SEEK_SERVER_TOKEN
+vault:
+  address: https://bao.internal.example
+  auth:
+    mode: token
+    token:
+      file: ~/.vault-token

@@ -20,21 +20,35 @@ afterAll(() => {
 });
 
 test("the compiled CLI exits quietly when a reader closes stdout early", () => {
+  const readerClosed = join(directory, "reader-closed");
   const result = Bun.spawnSync(
     [
-      "bash", "-c", '"$1" config show | head -n 1; exit "${PIPESTATUS[0]}"',
-      "seek-closed-stdout", binary,
+      "bash",
+      "-c",
+      `
+        mkfifo "$2" || exit
+        trap 'rm -f "$2"' EXIT
+        {
+          printf 'ready\\n'
+          # Wait until the reader has closed its pipe before Seek writes.
+          IFS= read -r _ < "$2" || exit
+          exec "$1" config show
+        } | {
+          IFS= read -r line || exit
+          exec 0<&-
+          printf '%s\\n' "$line"
+          printf 'closed\\n' > "$2"
+        }
+        exit "\${PIPESTATUS[0]}"
+      `,
+      "seek-closed-stdout",
+      binary,
+      readerClosed,
     ],
-    {
-      env: {
-        XDG_CONFIG_HOME: directory,
-        // Force the server line beyond the pipe buffer so head closes before seek finishes writing.
-        SEEK_SERVER_URL: `https://example.invalid/${"x".repeat(96 * 1024)}`,
-      },
-    },
+    { env: { XDG_CONFIG_HOME: directory }, timeout: 5_000 },
   );
 
-  expect(result.stdout.toString()).toBe("seek client configuration\n");
+  expect(result.stdout.toString()).toBe("ready\n");
   expect(result.exitCode).toBe(EXIT.failure);
   expect(result.stderr.toString()).toBe("");
 });

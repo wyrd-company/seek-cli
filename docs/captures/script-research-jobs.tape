@@ -4,7 +4,7 @@ Output docs/user/assets/script-research-jobs.gif
 Source docs/captures/_settings.tape
 Set TypingSpeed 12ms
 Hide
-Type "export SEEK_SERVER_URL=http://127.0.0.1:8788 SEEK_SERVER_TOKEN=practice-token && sleep() { command sleep 1; } && clear"
+Type "export SEEK_SERVER_URL=http://127.0.0.1:8788 SEEK_SERVER_TOKEN_VALUE=practice-token && sleep() { command sleep 1; } && clear"
 Enter
 Show
 Type `job=$(seek research parallel "how do honeybees make honey" --async --json) || exit 1`

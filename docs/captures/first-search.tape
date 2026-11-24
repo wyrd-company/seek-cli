@@ -3,7 +3,7 @@ Output docs/user/assets/first-search.gif
 Source docs/captures/_settings.tape
 Type "export SEEK_SERVER_URL=http://127.0.0.1:8788"
 Enter
-Type "export SEEK_SERVER_TOKEN=practice-token"
+Type "export SEEK_SERVER_TOKEN_VALUE=practice-token"
 Enter
 Sleep 500ms
 Type 'seek web parallel "how do honeybees make honey"'

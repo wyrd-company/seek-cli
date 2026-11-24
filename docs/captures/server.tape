@@ -3,9 +3,9 @@
 # request reaches a provider.
 Output docs/user/assets/server.gif
 Source docs/captures/_settings.tape
-Type "export SEEK_SERVER_TOKEN=synthetic-client-token"
+Type "export SEEK_SERVER_TOKENS_VALUE=synthetic-client-token"
 Enter
-Type "export EXA_API_KEY=exa-synthetic-key-1234"
+Type "export SEEK_PROVIDERS_EXA_API_KEY_VALUE=exa-synthetic-key-1234"
 Enter
 Type "seek serve --host 0.0.0.0 --port 8787 &"
 Enter

@@ -658,6 +658,15 @@ describe("inspection never reads a secret", () => {
     expect(seekStub.authorizations).toEqual(["Bearer synthetic-helper-token"]);
   });
 
+  test("a helper that ignores SIGTERM is stopped at its timeout", async () => {
+    const started = Date.now();
+    const result = await seek(["web", "exa", "query", "--providers-exa-api-key-command", '["sh","-c","trap \\"\\" TERM; sleep 3"]', "--providers-exa-api-key-timeout", "10ms"]);
+    const elapsed = Date.now() - started;
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toBe("error: providers.exa.api-key: helper sh (2 arguments) timed out after 10ms\n");
+    expect(elapsed).toBeLessThan(2000);
+  });
+
   test("a failing helper's arguments never appear in its error", async () => {
     const seekStub = seekServer();
     const file = write(join(tempDir(), "client.yml"), `server:\n  url: ${seekStub.url}\n  token: { command: ["false", synthetic-sensitive-argument] }\n`);

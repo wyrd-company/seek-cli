@@ -43,14 +43,16 @@ async function runHelper(source: Extract<LocalSource, { kind: "command" }>, labe
   } catch {
     throw new SecretSourceError(`${label}: ${helper} could not be started`);
   }
-  let timedOut = false;
-  const timer = setTimeout(() => {
-    timedOut = true;
-    child.kill();
-  }, source.timeoutMs);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  // The timeout stops the helper and fails at once, without waiting for it or its output to end.
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      reject(new SecretSourceError(`${label}: ${helper} timed out after ${source.timeout}`));
+    }, source.timeoutMs);
+  });
   try {
-    const [output, status] = await Promise.all([new Response(child.stdout).text(), child.exited]);
-    if (timedOut) throw new SecretSourceError(`${label}: ${helper} timed out after ${source.timeout}`);
+    const [output, status] = await Promise.race([Promise.all([new Response(child.stdout).text(), child.exited]), deadline]);
     if (status !== 0) throw new SecretSourceError(`${label}: ${helper} exited with status ${status}`);
     const secret = output.trim();
     if (!secret) throw new SecretSourceError(`${label}: ${helper} printed nothing`);

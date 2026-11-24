@@ -9,8 +9,8 @@ relationships:
 description: >-
   The settings seek reads and where it reads them from. seek has two
   configurations. The client configuration is read by the `web`, `research`
-  and `scrape` commands, and the server configuration by `seek serve`;
-  `seek config` inspects either. `seek skill`, `--help` and `--version` read
+  and `scrape` commands, and the server configuration by `seek serve`; `seek
+  config` inspects either. `seek skill`, `--help` and `--version` read
   neither. JSON Schema 2020-12 definitions beside this document define them:
   `configuration.client.schema.json` and `configuration.server.schema.json`
   each define one configuration file, `configuration.secrets.schema.json`
@@ -25,13 +25,15 @@ description: >-
   `~/.config/seek/client.yml` when `XDG_CONFIG_HOME` is unset, empty or
   relative; the user file overrides the system file. The server reads
   `/etc/seek/server.yml`. `--config <path>` on any command, or `SEEK_CONFIG`,
-  names one file that replaces these files; seek fails when that file is
-  missing or unreadable. Under default discovery a missing file contributes
-  nothing. In a file, a path value that starts with `~/` starts in the home
-  directory, and any other relative path is relative to the directory of the
-  file that sets it. A relative path from an environment variable or a flag is
-  relative to the working directory. A command name without a slash is found
-  on `PATH`. seek reads no project-local file and no admin policy file.
+  names one file that replaces these files. A command that loads a
+  configuration fails when that file is missing or unreadable; `seek config
+  path` and `seek config init` take it as their target, which need not exist.
+  Under default discovery a missing file contributes nothing. In a file, a
+  path value that starts with `~/` starts in the home directory, and any other
+  relative path is relative to the directory of the file that sets it. A
+  relative path from an environment variable or a flag is relative to the
+  working directory. A command name without a slash is found on `PATH`. seek
+  reads no project-local file and no admin policy file.
 
 
   Settings come from these layers, from lowest to highest precedence: built-in
@@ -70,9 +72,13 @@ description: >-
   first alias listed wins over the next. The aliases are the cross-tool Vault
   and OpenBao variables: `BAO_ADDR` and `VAULT_ADDR` for `vault.address`;
   `BAO_NAMESPACE` and `VAULT_NAMESPACE` for `vault.namespace`; and `BAO_TOKEN`
-  and `VAULT_TOKEN` for `vault.auth` as
-  `{ mode: token, token: { value: <token> } }`, which applies only when no
-  derived `SEEK_VAULT_AUTH_*` variable is set. Every other setting, each
+  and `VAULT_TOKEN` for `vault.auth` as `{ mode: token, token: { value:
+  <token> } }`, which applies only when no derived `SEEK_VAULT_AUTH_*`
+  variable is set. An alias token keeps the address of its own family: a
+  mapping from `BAO_TOKEN` is bound to `BAO_ADDR`, and one from `VAULT_TOKEN`
+  to `VAULT_ADDR`, when that variable is set, whichever address the layer
+  selects; a token whose family address is not set is bound like any other
+  mapping declared in the environment layer. Every other setting, each
   provider key and client token included, is read from the environment only
   under its derived name, such as `SEEK_PROVIDERS_EXA_API_KEY_VALUE` or
   `SEEK_SERVER_TOKEN_FILE`. The flag aliases are `--host` for `--server-host`,
@@ -117,24 +123,34 @@ description: >-
   top-level or a secret's own, is bound to the server in effect in the layer
   that declared it: the `address` of its own block, else the top-level
   `address` merged up to and including that layer. With no server in effect it
-  is unbound. A `vault` block uses its own `auth` mapping when it declares
-  one, and the merged top-level mapping otherwise, and only when that mapping
-  is bound to the block's effective server. A block whose mapping is unbound,
-  or bound to a different server, fails validation, which names both servers,
-  before any credential is resolved. Servers match when their URLs have the
-  same scheme, lowercase host, port (explicit or the scheme's default) and
-  path without a trailing slash, or the same canonical socket path.
+  is unbound. An alias token is the exception described above: it is bound to
+  its own family's address when that is set. A `vault` block uses its own
+  `auth` mapping when it declares one, and the merged top-level mapping
+  otherwise, and only when that mapping is bound to the block's effective
+  server. A block whose mapping is unbound, or bound to a different server,
+  fails validation, which names both servers, before any credential is
+  resolved. Servers match when their URLs have the same scheme, lowercase
+  host, port (explicit or the scheme's default) and path without a trailing
+  slash, or the same canonical socket path.
 
 
   seek builds each Vault connection from the effective configuration alone:
   its address, its namespace header, its token, the `ca-cert` it trusts in
   place of the system's certificate authorities, and the `proxy` it sends
-  through, if one is set. It reads no `BAO_*` or `VAULT_*` variable other than
-  the aliases above, uses no proxy that `HTTP_PROXY`, `HTTPS_PROXY`,
-  `ALL_PROXY` or `NO_PROXY` would select, and follows no redirect: a 3xx
-  response to a KV read or an AppRole login is an error. Secrets share one KV
-  read only when their effective server, namespace, mount, KV version, path,
-  `ca-cert`, `proxy` and `auth` mapping are all the same.
+  through, if one is set. It always verifies the server's certificate,
+  whatever `NODE_TLS_REJECT_UNAUTHORIZED` says. It reads no `BAO_*` or
+  `VAULT_*` variable other than the aliases above, uses no proxy that
+  `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` or `NO_PROXY` would select, and
+  follows no redirect: a 3xx response to a KV read or an AppRole login is an
+  error. A request's URL is the address, with its base path kept, followed by
+  `/v1/` and the route, whose mount, path and AppRole mount are split into
+  segments, each percent-encoded; an empty, `.` or `..` segment is a
+  validation error, and seek checks that the final URL keeps the address's
+  origin and base path before it attaches a token. An `address` or `proxy`
+  that carries a user name, password, query or fragment fails validation.
+  Secrets share one KV read only when their effective server, namespace,
+  mount, KV version, path, `ca-cert`, `proxy` and `auth` mapping are all the
+  same.
 
 
   Validation runs on each layer before the merge and on the merged result.
@@ -147,8 +163,10 @@ description: >-
   `vault` block that is used having an address and a bound `auth` mapping, as
   above. An error names the setting's path, the layer that supplied it (the
   file path, the environment variable or the flag) and what was expected, and
-  every error is reported at once. A configuration error stops the command
-  with exit status 1 before it resolves a secret or sends a request.
+  every error is reported at once. An error never repeats a secret, and prints
+  a URL with any user name, password, query or fragment replaced by
+  `<redacted>`. A configuration error stops the command with exit status 1
+  before it resolves a secret or sends a request.
 
 
   The client resolves a secret when a command needs it: in direct mode the key
@@ -174,52 +192,85 @@ description: >-
   effective source, with every Vault field filled in and the `auth` mapping
   the block would use, with the layer that declared it. A `value`, an AppRole
   `role-id` and any credential `value` inside `vault.auth` print as
-  `<redacted>`, and a helper as its program and number of arguments. `--json`
-  prints the same information as the object `configuration.show.schema.json`
-  defines, the supported interface for scripts that read seek's configuration.
-  `seek config validate` runs the validation above and exits 0 when it passes
-  and 1 otherwise. `seek config path` prints the file that `seek config init`
-  writes: the `--config` or `SEEK_CONFIG` path, else the user file for the
-  client, else `/etc/seek/server.yml`. `seek config init` writes a commented
-  template of that configuration and refuses to replace a file without
-  `--force`. It writes privately and atomically: it creates a new file with
-  mode 0600 in the target's directory, which it creates with mode 0700 when it
-  is missing, and renames it over the target, so a failure leaves any existing
-  file unchanged and removes the new one. `--force` replaces an existing file
-  the same way. The server image reads `/etc/seek/server.yml` and sets
-  `SEEK_SERVER_HOST=0.0.0.0`.
+  `<redacted>`, a helper as its program and number of arguments, and a URL
+  with any user name, password, query or fragment replaced by `<redacted>`.
+  The top-level Vault login prints as one entry, `vault.auth`, with its mode
+  and the layer that declared it. `--json` prints the same information as the
+  object `configuration.show.schema.json` defines, the supported interface for
+  scripts that read seek's configuration. `seek config validate` runs the
+  validation above and exits 0 when it passes and 1 otherwise. `seek config
+  path` prints the file that `seek config init` writes: the `--config` or
+  `SEEK_CONFIG` path, else the user file for the client, else
+  `/etc/seek/server.yml`. `seek config init` writes a commented template of
+  that configuration to the same target. It writes the template to a new file,
+  created exclusively with mode 0600 in the target's directory, which it
+  creates with mode 0700 when it is missing. Without `--force` it publishes
+  that file with a hard link to the target, which fails when the target
+  exists, including one that appeared after the command started, and the
+  existing file is left untouched with exit status 1. With `--force` it
+  renames the new file over the target. Either way a failure removes the new
+  file and leaves any existing target unchanged. The server image reads
+  `/etc/seek/server.yml` and sets `SEEK_SERVER_HOST=0.0.0.0`.
 format: json-schema
 validation-criteria: >-
   The four schemas compile under Ajv 8.20.0 in strict mode with the 2020-12
   dialect, ajv-formats 3.0.1 and the `x-env-aliases` and `x-flag-aliases`
-  keywords registered as annotations. The examples in the
-  schemas and in `docs/user/` validate, and the invalid fixtures under
-  `tests/fixtures/invalid/` fail with the error each test names.
-  `tests/configuration.test.ts` derives every environment variable and flag
-  from the schemas, including each field of a secret's own `vault` and `auth`
-  blocks, and requires each name to be unique within its configuration,
-  distinct from the reserved names, and equal to the options the program
-  declares, so `--help` and the generated reference list the same flags.
-  Loader tests run the CLI and `seek serve` through their entry points with
-  fixture files, environment variables and flags, and cover default and
-  explicit discovery, each precedence step, whole replacement of secret
-  sources and `auth` mappings, explicit empty values, per-layer and merged
-  validation errors with their paths and layers, aliases, and that a released
-  0.3.2 JSON file and the 0.3 variables, `EXA_API_KEY`, `SEEK_SERVER_TOKEN`
-  and `SEEK_VAULT_PATH` among them, change nothing and write nothing to
-  stderr. Binding tests cover a secret's own `auth` declared in a file without
-  an address while the environment changes the top-level address, an unbound
-  `auth`, and a top-level `auth` bound to another server, and require each to
-  fail before any credential is resolved. Transport tests set every `BAO_*`
-  and `VAULT_*` variable a Vault client reads, and `HTTP_PROXY`, `HTTPS_PROXY`
-  and `ALL_PROXY`, to sentinels, and require that no sentinel reaches a
-  request or a connection, that an untrusted certificate is rejected, and that
-  a 3xx answer to a KV read or an AppRole login is an error. A read-sharing
-  test puts two secrets at the same KV location with different `auth` mappings
-  or `ca-cert` and requires two reads. Redaction tests give a helper a
-  synthetic sensitive argument and require it absent from errors and from both
-  `config show` formats. Inspection tests require `config show` and
-  `config validate` to redact as described while a command source would write
-  a marker file, a secret file is unreadable and a Vault stub counts zero
-  requests. Write tests require `config init` to create its file with mode
-  0600, and a failed write to leave an existing file unchanged.
+  keywords registered as annotations. The examples in the schemas and in
+  `docs/user/` validate, and the invalid fixtures under
+  `tests/fixtures/invalid/` fail with the error each test names, including an
+  `address` or `proxy` carrying a user name and password, an `address` with a
+  query, a `config show` entry with a plain `value` at a secret or
+  `vault.auth` path, an entry with both `value` and `source`, and an
+  unredacted credential in a URL value. `tests/configuration.test.ts` derives
+  every environment variable and flag from the schemas, including each field
+  of a secret's own `vault` and `auth` blocks, and requires each name to be
+  unique within its configuration, distinct from the reserved names, and equal
+  to the options the program declares, so `--help` and the generated reference
+  list the same flags. Loader tests run the CLI and `seek serve` through their
+  entry points with fixture files, environment variables and flags, and cover
+  default and explicit discovery, each precedence step, whole replacement of
+  secret sources and `auth` mappings, explicit empty values, per-layer and
+  merged validation errors with their paths and layers, and a validation error
+  for a URL with synthetic credentials that does not repeat them. They require
+  that these 0.3.2 inputs change nothing and write nothing to stderr: the JSON
+  file at `$XDG_CONFIG_HOME/seek/config.json` and
+  `~/.config/seek/config.json`, `PARALLEL_API_KEY`, `EXA_API_KEY`,
+  `BRAVE_SEARCH_API_KEY`, `BRAVE_ANSWERS_API_KEY`, `PERPLEXITY_API_KEY`,
+  `GEMINI_API_KEY`, `FIRECRAWL_API_KEY`, `SEEK_SERVER_TOKEN`,
+  `SEEK_VAULT_PATH`, `SEEK_VAULT_ADDR`, `SEEK_VAULT_ROLE_ID`,
+  `SEEK_VAULT_SECRET_ID`, `SEEK_VAULT_SECRET_ID_FILE`,
+  `SEEK_VAULT_APPROLE_MOUNT`, `SEEK_VAULT_TOKEN_FILE` and
+  `SEEK_VAULT_REFRESH_SECONDS`. They also require that the names 0.3.2 shares
+  with this contract still take effect: `SEEK_SERVER_URL`, `SEEK_SERVER_HOST`,
+  `SEEK_SERVER_PORT`, `SEEK_VAULT_MOUNT`, `SEEK_VAULT_KV_VERSION`,
+  `XDG_CONFIG_HOME`, and the `BAO_*` and `VAULT_*` aliases. Binding tests
+  cover a secret's own `auth` declared in a file without an address while the
+  environment changes the top-level address; an unbound `auth`; a top-level
+  `auth` bound to another server; `BAO_ADDR` and `VAULT_ADDR` on different
+  servers with only `VAULT_TOKEN` set; and `SEEK_VAULT_ADDRESS` set beside
+  `BAO_ADDR` and `BAO_TOKEN` on another server. Each must fail before any
+  credential is resolved, while matching alias pairs, and a single address
+  with either family's token, still work. Transport tests give the aliases
+  valid synthetic values and set every unsupported variable a Vault client or
+  Bun reads to a sentinel: `VAULT_SKIP_VERIFY`, `VAULT_CACERT`,
+  `VAULT_CAPATH`, `VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY`,
+  `VAULT_TLS_SERVER_NAME`, `VAULT_HEADERS`, `VAULT_PROXY_ADDR`,
+  `VAULT_HTTP_PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and
+  `NODE_TLS_REJECT_UNAUTHORIZED=0`. They require that no sentinel reaches a
+  request or a connection, that an untrusted certificate is rejected while a
+  configured `ca-cert` is accepted with verification on, that a 3xx answer to
+  a KV read or an AppRole login is an error, and that both operations against
+  an address with a base path such as `/team-a` reach routes under that path.
+  A dot segment in a mount or path fails validation. A read-sharing test puts
+  two secrets at the same KV location with different `auth` mappings or
+  `ca-cert` and requires two reads. Redaction tests give a helper a synthetic
+  sensitive argument and require it absent from errors and from both `config
+  show` formats. Inspection tests require `config show` and `config validate`
+  to redact as described while a command source would write a marker file, a
+  secret file is unreadable and a Vault stub counts zero requests. Write tests
+  run `config init` and `config path` with a new explicit `--config` path on a
+  fresh installation, and require the file to be created with mode 0600.
+  Without `--force`, a target that exists, or that appears after the command
+  starts, must be left unchanged with exit status 1. With `--force`, the
+  target must be replaced, and a failed write must leave the existing file
+  unchanged.

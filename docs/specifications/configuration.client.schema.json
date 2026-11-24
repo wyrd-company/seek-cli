@@ -12,7 +12,7 @@
       "additionalProperties": false,
       "properties": {
         "url": {
-          "description": "Base URL of a seek server. When it is set, the CLI sends every provider call to `<url>/v1/proxy/<upstream>` with the client token and does not use `providers`. Trailing slashes are removed. An empty value turns server mode off.",
+          "description": "Base URL of a seek server. When it is set, the CLI sends every provider call to `<url>/v1/proxy/<upstream>` with the client token and does not use `providers`. Trailing slashes are removed. An empty value turns server mode off. Inspection and errors print it with any user name, password, query or fragment replaced by `<redacted>`.",
           "type": "string",
           "anyOf": [
             {

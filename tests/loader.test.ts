@@ -173,6 +173,24 @@ describe("precedence", () => {
     expect(setting(alias.json, "server.require-token").layer).toEqual({ kind: "flag", name: "--no-auth" });
   });
 
+  test("a derived flag wins over its alias, in either order", async () => {
+    const server = write(join(tempDir(), "server.yml"), "server:\n  tokens: { file: /run/tokens }\n");
+    for (const args of [["--no-auth", "--server-require-token"], ["--server-require-token", "--no-auth"]]) {
+      const result = await show(["--server", "--config", server, ...args]);
+      expect(result.run.exitCode).toBe(0);
+      expect(setting(result.json, "server.require-token")).toEqual({ path: "server.require-token", value: true, layer: { kind: "flag", name: "--server-require-token" } });
+    }
+    for (const args of [["--port", "8000", "--server-port", "8001"], ["--server-port", "8001", "--port", "8000"]]) {
+      const result = await show(["--server", "--config", server, ...args]);
+      expect(setting(result.json, "server.port")).toEqual({ path: "server.port", value: 8001, layer: { kind: "flag", name: "--server-port" } });
+    }
+    // Without tokens, the explicit --server-require-token must stop the server, whatever --no-auth says.
+    const tokenless = write(join(tempDir(), "server.yml"), "{}\n");
+    const served = await seek(["serve", "--config", tokenless, "--no-auth", "--server-require-token", "--port", "0"]);
+    expect(served.exitCode).toBe(1);
+    expect(served.stderr).toContain("error: server.tokens has no source.");
+  });
+
   test("relative paths start from the declaring file's directory, or the working directory", async () => {
     const { home: dir, config } = home();
     write(join(config, "client.yml"), "providers:\n  exa:\n    api-key: { file: secrets/exa }\n  parallel:\n    api-key: { file: ~/keys/parallel }\n  firecrawl:\n    api-key: { command: [./bin/helper, get] }\n  google:\n    api-key: { command: [op, read] }\n");

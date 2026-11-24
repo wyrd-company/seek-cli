@@ -321,8 +321,10 @@ function flagLayer(options: LoadOptions, cwd: string, errors: string[]): Layer {
   const layer: Layer = { kind: "flag", dir: cwd, data: {}, names: new Map() };
   const definitions = new Map(flagDefinitions(options.kind).map((d) => [d.flag, d]));
   const given = options.flags ?? [];
-  // A derived flag wins over an alias of the same setting, as a derived variable does.
-  const ordered = [...given].sort((a, b) => Number(Boolean(definitions.get(b.name)?.alias)) - Number(Boolean(definitions.get(a.name)?.alias)));
+  // A derived flag wins over an alias of the same setting, as a derived variable does: derived flags
+  // come first, and the first flag to set a setting keeps it.
+  const isAlias = (flag: FlagValue) => Number(Boolean(definitions.get(flag.name)?.alias));
+  const ordered = [...given].sort((a, b) => isAlias(a) - isAlias(b));
   const stdin = given.filter((f) => definitions.get(f.name)?.stdin);
   if (stdin.length > 1) {
     errors.push(`${stdin.map((f) => f.name).join(", ")}: a run reads at most one secret from standard input`);

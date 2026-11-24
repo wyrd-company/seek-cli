@@ -7,6 +7,11 @@ import { MissingEnvError } from "./lib/env.ts";
 import { KNOWN_KEYS, loadConfig } from "./lib/config.ts";
 import { remoteServerUrl } from "./lib/upstreams.ts";
 
+process.stdout.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code !== "EPIPE") process.stderr.write(`error: ${err.message}\n`);
+  process.exit(EXIT.failure);
+});
+
 const program = createProgram();
 
 let activeCommand: Command | null = null;

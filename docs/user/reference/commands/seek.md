@@ -39,7 +39,7 @@ Every command exits with one of these statuses.
 | Code | Name | Meaning |
 | --- | --- | --- |
 | `0` | `success` | The command completed. |
-| `1` | `failure` | The command failed: a parse error, an HTTP error, research that did not complete, a result requested for an unfinished job, or another error, printed on stderr. |
+| `1` | `failure` | The command failed: a parse error, an HTTP error, research that did not complete, a result requested for an unfinished job, or another error, printed on stderr. If a write to stdout fails because the reader closed the pipe, seek exits quietly. |
 | `2` | `missingProviderKey` | A provider key is not set in direct mode. The message names the variable to set and lists the other commands of the same group. |
 
 ## Help

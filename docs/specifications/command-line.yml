@@ -66,7 +66,8 @@ description: >-
   response with `success: false` in rendered mode; `config init` when the file
   exists and `--force` is absent; and `research brave --citations`, which seek
   rejects before any request because Brave research does not take citations.
-  Other errors print as `error: <message>`.
+  If a write to stdout fails because the reader closed the pipe, seek exits
+  quietly with status 1. Other errors print as `error: <message>`.
 
 
   `seek skill` prints the bundled skill, `skills/seek/SKILL.md` as it was when

@@ -13,7 +13,8 @@ export const EXIT_STATUSES = [
     code: 1,
     meaning:
       "The command failed: a parse error, an HTTP error, research that did not complete, " +
-      "a result requested for an unfinished job, or another error, printed on stderr.",
+      "a result requested for an unfinished job, or another error, printed on stderr. " +
+      "If a write to stdout fails because the reader closed the pipe, seek exits quietly.",
   },
   {
     name: "missingProviderKey",

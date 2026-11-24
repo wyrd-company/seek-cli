@@ -8,73 +8,126 @@ description: >-
   seek 0.3 reads a flat JSON file, `$XDG_CONFIG_HOME/seek/config.json` or
   `~/.config/seek/config.json`, whose keys are environment variable names,
   and reads its Vault and OpenBao settings only from eight `SEEK_VAULT_*`
-  environment variables, such as `SEEK_VAULT_PATH`. The server image reads
-  that file at `/config/seek/config.json`. At run time it picks each secret
-  from the first place that holds a value that is not blank: for the server,
-  the environment, then Vault, then the JSON file; for the CLI's provider
-  keys, the environment, then the JSON file. The `configuration`
-  specification replaces both with one YAML file per configuration and one
-  source per secret, ranked by layer. This record decides what a release
-  that implements the specification does with a setup that still uses the
-  JSON file or the eight variables. Whether the provider key variables and
-  `SEEK_SERVER_TOKEN` keep working is `familiar-environment-names`, and each
-  option below states its outcome under either answer to it. Under every
-  option, three changes reach scripts: `seek config path` prints the YAML
-  file's path, `seek config init` writes YAML, and `seek config show` prints
-  a new format with `<redacted>` in place of a key's first and last four
-  characters. A script that edits the JSON file, or parses `config show`,
-  moves to `seek config show --json`, whose shape
-  `configuration.show.schema.json` defines, or to environment variables and
-  flags. A file seek can no longer parse, or that holds an unknown key,
-  stops a command with exit status 1 where seek 0.3 ignored it.
+  environment variables: `SEEK_VAULT_PATH`, `SEEK_VAULT_ADDR`,
+  `SEEK_VAULT_ROLE_ID`, `SEEK_VAULT_SECRET_ID`, `SEEK_VAULT_SECRET_ID_FILE`,
+  `SEEK_VAULT_APPROLE_MOUNT`, `SEEK_VAULT_TOKEN_FILE` and
+  `SEEK_VAULT_REFRESH_SECONDS`. The server image reads that file at
+  `/config/seek/config.json`. At run time seek 0.3 picks each secret from the
+  first place that holds a value that is not blank: for the server, the
+  environment, then Vault, then the JSON file; for the CLI's provider keys,
+  the environment, then the JSON file. The `configuration` specification
+  replaces both with one YAML file per configuration and one source per
+  secret, ranked by layer. This record decides what a release that
+  implements the specification does with a setup that still uses the JSON
+  file or the eight variables. Whether the provider key variables and
+  `SEEK_SERVER_TOKEN` stay is `familiar-environment-names`. Under every
+  option, `seek config path` prints the YAML file's path, `seek config init`
+  writes YAML, `seek config show` prints a new format with `<redacted>` in
+  place of a key's first and last four characters, and a file with an
+  unknown key stops a command with exit status 1.
 considered-options:
   replace-and-migrate:
     description: >-
       The release reads only the specified files and names. A seek 0.3 file
-      or one of the eight variables writes one warning that names it and its
-      replacement, and is otherwise ignored. `seek config migrate` writes the
-      new file with the source seek 0.3 used for each secret, checks that the
-      result selects the same sources, server and credentials with the
-      current environment, and installs it only then.
+      or one of the eight variables writes one warning that names its
+      replacement, and `seek config migrate` writes the new file with the
+      source seek 0.3 used for each secret, installing it only when the
+      result selects the same sources, server and credentials in the current
+      environment.
     positive:
-      - seek has one configuration loader, one precedence rule and one set of
-        documents, and the break happens once.
-      - The KV secrets in Vault or OpenBao keep their fields, and the converted
-        file is checked against the environment it will run in.
+      - One configuration loader and one precedence rule, with a guided,
+        checked conversion.
     negative:
-      - A setup that keeps secrets in the JSON file or reads them through
-        `SEEK_VAULT_PATH`, in a shell, a service or a container, gets none of
-        those secrets until it is migrated, whichever names
-        `familiar-environment-names` keeps. A server restarted on the image's
-        `latest` tag in that state refuses to start without a client token,
-        or answers 503 for each provider whose key it lacks, with the warning
-        in its log.
-      - A converted setup keeps one source per secret. seek 0.3 fell back to
-        the JSON value when a Vault field was absent or blank, and switched
-        to Vault when the field appeared; after migration, a field that
-        disappears or becomes blank fails that secret, and a field added
-        later is not read.
-      - With `derived-names-only`, environment-only setups also stop finding
-        their keys and token on upgrade, until their owners rename each
-        variable wherever it is set; migrate moves no secret out of the
-        environment.
+      - The warnings and the converter, which reproduces seek 0.3's selection
+        rules, are built, tested and documented for a one-time move.
   read-0-3-for-one-release:
     description: >-
       The release also reads the JSON file and the eight variables, applying
-      seek 0.3's own rules below the new files, with a warning on each run.
-      A later release removes them.
+      seek 0.3's own rules below the new files, with a warning on each run,
+      and a later release removes them.
     positive:
-      - With `keep-as-aliases`, every seek 0.3 setup keeps working for that
-        release, including the run-time fallback between Vault and the JSON
-        file.
+      - No setup that uses the JSON file or the eight variables stops working
+        on upgrade.
     negative:
-      - The 0.3 rules, a chain of sources for each secret, coexist with one
-        source per secret. Both loaders, the order between them and their
-        documentation are built and tested, then removed in a second breaking
-        release, when every outcome of `replace-and-migrate` applies.
-      - With `derived-names-only`, environment-only setups break on upgrade
-        all the same, because the legacy reading covers the JSON file and the
-        eight variables, not the provider key variables or
-        `SEEK_SERVER_TOKEN`. Covering them for the release means keeping the
-        aliases until the removal.
-      - Every run of an unmigrated setup writes the warnings.
+      - Two loaders with different rules are built and tested, then removed
+        in a second breaking release.
+  replace-without-migration:
+    description: >-
+      The release reads only the specified files and names. The JSON file and
+      the eight variables have no effect and produce no message, and each
+      setup that used them is reconfigured by hand.
+    positive:
+      - One configuration loader, one precedence rule and no code or
+        documents whose only purpose is the move from 0.3.
+    negative:
+      - A setup that used the JSON file or the eight variables gets none of
+        those settings after the upgrade, and nothing says why until a
+        command or the server reports the setting it lacks.
+decision-outcome:
+  chosen-option: replace-without-migration
+  justification: >-
+    The operator, Bob, ruled: "No - No, make this a breaking change. No
+    migration, no warning." His reason: "We are still alpha 0x major, and I
+    don't think anyone uses this except me." seek is at 0.3, before 1.0, and
+    by the operator's assessment he is its only user, so a one-time manual
+    change costs less than a converter, warnings or a second loader. The
+    ruling is recorded on the epic's task 1 in workspace commits 39fd0d8 and
+    c186e3b.
+expected-outcomes:
+  positive:
+    - >-
+      The configuration loader, the CLI and their documents describe one
+      contract, with no 0.3 compatibility code to build, test or remove.
+    - >-
+      The application configuration standard's rule to warn on deprecated
+      keys does not apply, because the 0.3 names are removed, not deprecated.
+  negative:
+    - >-
+      A CLI that kept settings in the JSON file finds none after the upgrade.
+      Its owner writes `~/.config/seek/client.yml`, or exports the derived
+      variables, mapping each JSON key to its setting. `SEEK_SERVER_URL`
+      becomes `server.url`, `SEEK_SERVER_TOKEN` becomes `server.token`, and
+      each provider key becomes `providers.<upstream>.api-key`, where
+      `GEMINI_API_KEY` maps to `providers.google` and the Brave keys to
+      `providers.brave-search` and `providers.brave-answers`. Empty template
+      entries are left out. The JSON file can then be deleted.
+    - >-
+      A server that kept settings in the JSON file, including the image with
+      `/config/seek/config.json` mounted, starts without them. With no token
+      it refuses to start; with a token it answers 503 for each provider whose
+      key it lacks. Its owner writes `/etc/seek/server.yml` with the same
+      mapping, except that `SEEK_SERVER_TOKEN` becomes `server.tokens`, and
+      mounts it at that path in the image.
+    - >-
+      A setup that read secrets through `SEEK_VAULT_PATH` gets none of them.
+      Its owner gives each secret a `vault` source with the old path as
+      `path` and the old variable name as `key`, so the KV secret in Vault or
+      OpenBao keeps its fields. `SEEK_VAULT_ADDR` becomes `vault.address`;
+      `SEEK_VAULT_ROLE_ID`, `SEEK_VAULT_SECRET_ID_FILE` and
+      `SEEK_VAULT_APPROLE_MOUNT` become `vault.auth` with `mode: approle`,
+      `role-id`, `secret-id: { file: ... }` and `mount`; a secret ID set in
+      `SEEK_VAULT_SECRET_ID` moves into a file, or into
+      `SEEK_VAULT_AUTH_SECRET_ID_VALUE` with `SEEK_VAULT_AUTH_MODE=approle`
+      and `SEEK_VAULT_AUTH_ROLE_ID` set beside it; `SEEK_VAULT_TOKEN_FILE`
+      becomes `vault.auth` with `mode: token` and `token: { file: ... }`;
+      and `SEEK_VAULT_REFRESH_SECONDS` becomes the server's
+      `server.secret-refresh-seconds`. `SEEK_VAULT_MOUNT`,
+      `SEEK_VAULT_KV_VERSION`, `BAO_ADDR`, `VAULT_ADDR`, `BAO_TOKEN`,
+      `VAULT_TOKEN`, `BAO_NAMESPACE` and `VAULT_NAMESPACE` keep working, with
+      `BAO_*` now ranked above `VAULT_*` and every environment variable above
+      the file. A relative token or secret ID path written into a file is
+      relative to that file's directory.
+    - >-
+      seek 0.3 reached Vault through any proxy that `HTTP_PROXY`,
+      `HTTPS_PROXY` or `ALL_PROXY` selected. A setup that needs one sets
+      `vault.proxy`.
+    - >-
+      Each secret has one source. A setup that relied on seek 0.3 falling
+      back to the JSON value when a Vault field was absent or blank keeps
+      the field set, or chooses the source it wants.
+    - >-
+      Scripts change. `seek config path` names the YAML file, `seek config
+      init` writes YAML, and a script that writes JSON there gets exit status
+      1, naming the unknown key. A script that parses `seek config show`
+      moves to `seek config show --json`, whose shape
+      `configuration.show.schema.json` defines.

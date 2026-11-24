@@ -9,53 +9,79 @@ description: >-
   variable from its YAML path, so the Exa key's direct value is
   `SEEK_PROVIDERS_EXA_API_KEY_VALUE` and a client token's is
   `SEEK_SERVER_TOKEN_VALUE`. seek 0.3 users set `EXA_API_KEY` and the six
-  other provider key variables, and `SEEK_SERVER_TOKEN`, in shells, CI jobs
-  and `docker run -e`, as the published guides show. The application
+  other provider key variables, `PARALLEL_API_KEY`, `BRAVE_SEARCH_API_KEY`,
+  `BRAVE_ANSWERS_API_KEY`, `PERPLEXITY_API_KEY`, `GEMINI_API_KEY` and
+  `FIRECRAWL_API_KEY`, and `SEEK_SERVER_TOKEN`, in shells, CI jobs and
+  `docker run -e`, as the published guides show. The application
   configuration standard keeps well-known cross-tool variables, such as
   `BAO_ADDR` and `VAULT_TOKEN`, as documented aliases in the environment
-  layer, below the derived name. This record decides whether those eight
-  seek 0.3 variables are aliases too. Five of the provider variables are read
-  by the provider's own SDK: `PARALLEL_API_KEY`, `EXA_API_KEY` and
+  layer; those are outside this record. This record decides whether the
+  eight seek 0.3 variables are aliases too. Five of the provider variables
+  are read by the provider's own SDK: `PARALLEL_API_KEY`, `EXA_API_KEY` and
   `PERPLEXITY_API_KEY` by their Python SDKs, `GEMINI_API_KEY` by
   `google-genai` after `GOOGLE_API_KEY`, and `FIRECRAWL_API_KEY` by the
-  Firecrawl Python SDK. Brave's agent skills use `BRAVE_SEARCH_API_KEY`, and
-  Brave's MCP server uses `BRAVE_API_KEY`. `BRAVE_ANSWERS_API_KEY` and
-  `SEEK_SERVER_TOKEN` are seek's own names. The eight `SEEK_VAULT_*`
-  variables are outside this record; `configuration-upgrade-from-0-3`
-  decides them, and each option below states its outcome under either
-  answer to it.
+  Firecrawl Python SDK. `BRAVE_ANSWERS_API_KEY` and `SEEK_SERVER_TOKEN` are
+  seek's own names.
 considered-options:
   keep-as-aliases:
     description: >-
       Each provider key variable is an alias of that provider's `api-key` as
       a `value`, and `SEEK_SERVER_TOKEN` is an alias of the client's
-      `server.token` and the server's `server.tokens`. A derived variable for
-      the same secret wins over the alias, and an empty alias counts as unset.
+      `server.token` and the server's `server.tokens`, below the derived
+      names.
     positive:
-      - A setup whose keys and token are only in these eight variables, in a
-        shell, a CI job or a container such as the documented `docker run`
-        of the server image on its `latest` tag, keeps working unchanged under
-        either answer to `configuration-upgrade-from-0-3`.
+      - A setup whose keys and token are only in these eight variables keeps
+        working unchanged.
       - A key exported once serves seek and the provider's own SDK.
     negative:
-      - The aliases do not cover a setup that reads secrets through
-        `SEEK_VAULT_PATH` or the JSON file. With `replace-and-migrate` it
-        needs `seek config migrate`; with `read-0-3-for-one-release` it works
-        until the removal.
       - Eight names do not follow the derivation rule, and two of them are
         not cross-tool names, which reads the standard's alias rule broadly.
   derived-names-only:
     description: >-
-      seek reads only the derived names, the `BAO_*` and `VAULT_*` aliases,
-      and the warnings `configuration-upgrade-from-0-3` describes.
+      seek reads each provider key and client token from the environment
+      only under its derived names, and keeps the standard's `BAO_*` and
+      `VAULT_*` aliases.
     positive:
       - One naming rule, with the standard's Vault aliases as its only
         exception.
     negative:
       - Every seek 0.3 setup that keeps its keys or token in these variables
-        stops finding them on upgrade, under either answer to
-        `configuration-upgrade-from-0-3`, including the documented server
-        image example on `latest`. Its owner renames each variable, such as
-        `EXA_API_KEY` to `SEEK_PROVIDERS_EXA_API_KEY_VALUE`, wherever it is
-        set; seek can name each variable in a warning but cannot change the
-        environment it is started with.
+        stops finding them on upgrade until each variable is renamed.
+decision-outcome:
+  chosen-option: derived-names-only
+  justification: >-
+    The operator, Bob, ruled: "No - make this a breaking change." His reason:
+    "We are still alpha 0x major, and I don't think anyone uses this except
+    me." seek is at 0.3, before 1.0, and by the operator's assessment he is
+    its only user, so one naming rule is worth a one-time rename. The ruling
+    is recorded on the epic's task 1 in workspace commits 39fd0d8 and
+    c186e3b.
+expected-outcomes:
+  positive:
+    - >-
+      Every seek setting has exactly the environment variable its YAML path
+      derives, apart from the standard's Vault and OpenBao aliases.
+  negative:
+    - >-
+      A setup that exports these names, in a shell profile, a CI job, a
+      systemd unit or `docker run -e`, renames each one wherever it is set.
+      The provider keys become `SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE`,
+      `SEEK_PROVIDERS_EXA_API_KEY_VALUE`,
+      `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VALUE`,
+      `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VALUE`,
+      `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE`,
+      `SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE` (from `GEMINI_API_KEY`) and
+      `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VALUE`, or the matching `_FILE` or
+      `_COMMAND` variable. A client's `SEEK_SERVER_TOKEN` becomes
+      `SEEK_SERVER_TOKEN_VALUE` and a server's becomes
+      `SEEK_SERVER_TOKENS_VALUE`. `SEEK_SERVER_URL`, `SEEK_SERVER_HOST` and
+      `SEEK_SERVER_PORT` keep their names, because their paths derive them.
+    - >-
+      Until it is renamed, a key is reported as missing with exit status 2,
+      and a server without its token refuses to start. The server image run
+      with `-e SEEK_SERVER_TOKEN` and `-e EXA_API_KEY`, as the 0.3 guide
+      shows, refuses to start once it pulls a release with this contract,
+      including through its `latest` tag.
+    - >-
+      A key exported once for seek and for the provider's own SDK is now
+      exported under both names.

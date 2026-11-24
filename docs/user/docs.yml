@@ -88,6 +88,7 @@ products:
           - group: How-to guides
             pages:
               - install
+              - upgrade-from-0-3
               - config
               - web
               - research
@@ -99,7 +100,7 @@ products:
       - section: Administration
         groups:
           - group: How-to guides
-            pages: [server, upgrade-from-0-3]
+            pages: [server]
       - section: Developers
         groups:
           - group: Tutorials

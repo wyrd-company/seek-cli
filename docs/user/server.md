@@ -9,7 +9,7 @@ provider keys, so that CLIs elsewhere call providers through it with a client
 token. [How the seek server proxies provider calls](server-proxy.md) explains
 what the server does with each request.
 If you already run seek 0.3, see
-[how to update the server's configuration](upgrade-from-0-3.md#3-move-a-servers-settings-to-etcseekserveryml).
+[Upgrade from seek 0.3](upgrade-from-0-3.md).
 
 ![Terminal recording: seek serve starts with a synthetic client token, prints its address and the providers it has keys for, and curl reads its health check.](assets/server.gif)
 

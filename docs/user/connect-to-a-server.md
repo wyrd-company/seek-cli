@@ -9,7 +9,7 @@ and this machine holds only the server's address and a client token. You need
 the server's URL and a client token from whoever runs it (see
 [Run a seek server](server.md)).
 If your client uses the seek 0.3 configuration, see
-[Upgrade from seek 0.3](upgrade-from-0-3.md#2-move-a-clients-json-file-to-yaml).
+[Upgrade from seek 0.3](upgrade-from-0-3.md).
 
 ![Terminal recording: after exporting SEEK_SERVER_URL and SEEK_SERVER_TOKEN_VALUE, seek config show names the server and the token's source, and a search returns results through it.](assets/connect.gif)
 

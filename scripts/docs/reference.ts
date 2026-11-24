@@ -190,7 +190,12 @@ function typeOf(schema: Schema): string {
   return "any";
 }
 
+/** The accepted values of a schema, for a table cell: a pipe inside a pattern is escaped so it does not end the cell. */
 function accepted(schema: Schema): string {
+  return acceptedValues(schema).replaceAll("|", "\\|");
+}
+
+function acceptedValues(schema: Schema): string {
   if (schema.enum) return schema.enum.map((v: unknown) => code(String(v))).join(", ");
   if (schema.oneOf && schema.oneOf.every((s: Schema) => s.const !== undefined)) {
     return schema.oneOf.map((s: Schema) => code(String(s.const))).join(", ");
@@ -199,18 +204,6 @@ function accepted(schema: Schema): string {
   if (schema.format === "uri") return "A URI";
   if (schema.const !== undefined) return code(JSON.stringify(schema.const));
   return "";
-}
-
-function settingsTable(schema: Schema): string {
-  const rows = Object.entries(schema.properties as Record<string, Schema>).map(([name, property]) => [
-    code(name),
-    typeOf(property),
-    accepted(property),
-    property.default === undefined ? "" : code(String(property.default)),
-    (property.examples ?? []).map((e: unknown) => code(String(e))).join(", "),
-    cell(property.description ?? ""),
-  ]);
-  return table(["Key", "Type", "Accepted values", "Default", "Example", "Description"], rows);
 }
 
 function leafAccepted(leaf: Leaf): string {

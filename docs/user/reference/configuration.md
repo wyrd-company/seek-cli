@@ -35,9 +35,9 @@ Definition: [configuration.client.schema.json](configuration.client.schema.json)
 | Setting | Type | Accepted values | Default | Environment | Flag | Description |
 | --- | --- | --- | --- | --- | --- | --- |
 | `server.url` | string | A URI, or empty |  | `SEEK_SERVER_URL` | `--server-url` | Base URL of a seek server. When it is set, the CLI sends every provider call to `<url>/v1/proxy/<upstream>` with the client token and does not use `providers`. Trailing slashes are removed. An empty value turns server mode off. Inspection and errors print it with any user name, password, query or fragment replaced by `<redacted>`. |
-| `vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_VAULT_ADDRESS`, `BAO_ADDR`, `VAULT_ADDR` | `--vault-address` | Address of the Vault or OpenBao server: an `https://` or `http://` URL, which may end in a base path such as `/team-a`, or `unix://` followed by the absolute path of a socket. It carries no user name, password, query or fragment. Trailing slashes are removed, and request routes are appended under the base path. |
+| `vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_VAULT_ADDRESS`, `BAO_ADDR`, `VAULT_ADDR` | `--vault-address` | Address of the Vault or OpenBao server: an `https://` or `http://` URL, which may end in a base path such as `/team-a`, or `unix://` followed by the absolute path of a socket. It carries no user name, password, query or fragment. Trailing slashes are removed, and request routes are appended under the base path. |
 | `vault.namespace` | string |  |  | `SEEK_VAULT_NAMESPACE`, `BAO_NAMESPACE`, `VAULT_NAMESPACE` | `--vault-namespace` | Vault or OpenBao namespace, sent as the `X-Vault-Namespace` header. An empty string selects the root namespace: no header is sent, and no top-level or exported namespace is filled in. |
-| `vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `secret` | `SEEK_VAULT_MOUNT` | `--vault-mount` | Mount of the KV secrets engine. Leading and trailing slashes are removed; an empty, `.` or `..` segment is invalid. |
+| `vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `secret` | `SEEK_VAULT_MOUNT` | `--vault-mount` | Mount of the KV secrets engine. Leading and trailing slashes are removed; an empty, `.` or `..` segment is invalid. |
 | `vault.kv-version` | integer | `1`, `2` | `2` | `SEEK_VAULT_KV_VERSION` | `--vault-kv-version` | Version of the KV secrets engine. |
 | `vault.ca-cert` | string |  |  | `SEEK_VAULT_CA_CERT` | `--vault-ca-cert` | Path of a PEM bundle of the certificate authorities seek trusts for this server. It replaces Bun's whole default store: its bundled roots, `SSL_CERT_FILE`, `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS` and, with `NODE_USE_SYSTEM_CA=1`, the system store. A leading `~/` is the home directory; another relative path in a configuration file is relative to that file's directory. |
 | `vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_VAULT_PROXY` | `--vault-proxy` | HTTP proxy for this server's requests, as an `http://` or `https://` URL with a host and optional port only; it carries no user name, password, path, query or fragment, and seek sends no proxy credentials, as the operator decided in `authenticated-vault-proxy`. Without it seek connects directly and ignores `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY`. |
@@ -65,12 +65,12 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `server.token.value` | string |  |  | `SEEK_SERVER_TOKEN_VALUE` | none |
 | `server.token.file` | string |  |  | `SEEK_SERVER_TOKEN_FILE` | `--server-token-file` |
 | `server.token.command` | array of string |  |  | `SEEK_SERVER_TOKEN_COMMAND` | `--server-token-command` |
-| `server.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_SERVER_TOKEN_TIMEOUT` | `--server-token-timeout` |
-| `server.token.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_SERVER_TOKEN_VAULT_PATH` | `--server-token-vault-path` |
+| `server.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_SERVER_TOKEN_TIMEOUT` | `--server-token-timeout` |
+| `server.token.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_SERVER_TOKEN_VAULT_PATH` | `--server-token-vault-path` |
 | `server.token.vault.key` | string |  |  | `SEEK_SERVER_TOKEN_VAULT_KEY` | `--server-token-vault-key` |
-| `server.token.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_SERVER_TOKEN_VAULT_ADDRESS` | `--server-token-vault-address` |
+| `server.token.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_SERVER_TOKEN_VAULT_ADDRESS` | `--server-token-vault-address` |
 | `server.token.vault.namespace` | string |  |  | `SEEK_SERVER_TOKEN_VAULT_NAMESPACE` | `--server-token-vault-namespace` |
-| `server.token.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_SERVER_TOKEN_VAULT_MOUNT` | `--server-token-vault-mount` |
+| `server.token.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_SERVER_TOKEN_VAULT_MOUNT` | `--server-token-vault-mount` |
 | `server.token.vault.kv-version` | integer | `1`, `2` |  | `SEEK_SERVER_TOKEN_VAULT_KV_VERSION` | `--server-token-vault-kv-version` |
 | `server.token.vault.ca-cert` | string |  |  | `SEEK_SERVER_TOKEN_VAULT_CA_CERT` | `--server-token-vault-ca-cert` |
 | `server.token.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_SERVER_TOKEN_VAULT_PROXY` | `--server-token-vault-proxy` |
@@ -78,22 +78,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `server.token.vault.auth.token.value` | string |  |  | `SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_VALUE` | none |
 | `server.token.vault.auth.token.file` | string |  |  | `SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_FILE` | `--server-token-vault-auth-token-file` |
 | `server.token.vault.auth.token.command` | array of string |  |  | `SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_COMMAND` | `--server-token-vault-auth-token-command` |
-| `server.token.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_TIMEOUT` | `--server-token-vault-auth-token-timeout` |
-| `server.token.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_SERVER_TOKEN_VAULT_AUTH_MOUNT` | `--server-token-vault-auth-mount` |
+| `server.token.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_SERVER_TOKEN_VAULT_AUTH_TOKEN_TIMEOUT` | `--server-token-vault-auth-token-timeout` |
+| `server.token.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_SERVER_TOKEN_VAULT_AUTH_MOUNT` | `--server-token-vault-auth-mount` |
 | `server.token.vault.auth.role-id` | string |  |  | `SEEK_SERVER_TOKEN_VAULT_AUTH_ROLE_ID` | `--server-token-vault-auth-role-id` |
 | `server.token.vault.auth.secret-id.value` | string |  |  | `SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `server.token.vault.auth.secret-id.file` | string |  |  | `SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_FILE` | `--server-token-vault-auth-secret-id-file` |
 | `server.token.vault.auth.secret-id.command` | array of string |  |  | `SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_COMMAND` | `--server-token-vault-auth-secret-id-command` |
-| `server.token.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--server-token-vault-auth-secret-id-timeout` |
+| `server.token.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_SERVER_TOKEN_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--server-token-vault-auth-secret-id-timeout` |
 | `providers.parallel.api-key.value` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE` | none |
 | `providers.parallel.api-key.file` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_FILE` | `--providers-parallel-api-key-file` |
 | `providers.parallel.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_COMMAND` | `--providers-parallel-api-key-command` |
-| `providers.parallel.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_TIMEOUT` | `--providers-parallel-api-key-timeout` |
-| `providers.parallel.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PATH` | `--providers-parallel-api-key-vault-path` |
+| `providers.parallel.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_TIMEOUT` | `--providers-parallel-api-key-timeout` |
+| `providers.parallel.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PATH` | `--providers-parallel-api-key-vault-path` |
 | `providers.parallel.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_KEY` | `--providers-parallel-api-key-vault-key` |
-| `providers.parallel.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_ADDRESS` | `--providers-parallel-api-key-vault-address` |
+| `providers.parallel.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_ADDRESS` | `--providers-parallel-api-key-vault-address` |
 | `providers.parallel.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_NAMESPACE` | `--providers-parallel-api-key-vault-namespace` |
-| `providers.parallel.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_MOUNT` | `--providers-parallel-api-key-vault-mount` |
+| `providers.parallel.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_MOUNT` | `--providers-parallel-api-key-vault-mount` |
 | `providers.parallel.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_KV_VERSION` | `--providers-parallel-api-key-vault-kv-version` |
 | `providers.parallel.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_CA_CERT` | `--providers-parallel-api-key-vault-ca-cert` |
 | `providers.parallel.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PROXY` | `--providers-parallel-api-key-vault-proxy` |
@@ -101,22 +101,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.parallel.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.parallel.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-parallel-api-key-vault-auth-token-file` |
 | `providers.parallel.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-parallel-api-key-vault-auth-token-command` |
-| `providers.parallel.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-parallel-api-key-vault-auth-token-timeout` |
-| `providers.parallel.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_MOUNT` | `--providers-parallel-api-key-vault-auth-mount` |
+| `providers.parallel.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-parallel-api-key-vault-auth-token-timeout` |
+| `providers.parallel.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_MOUNT` | `--providers-parallel-api-key-vault-auth-mount` |
 | `providers.parallel.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-parallel-api-key-vault-auth-role-id` |
 | `providers.parallel.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.parallel.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-parallel-api-key-vault-auth-secret-id-file` |
 | `providers.parallel.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-parallel-api-key-vault-auth-secret-id-command` |
-| `providers.parallel.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-parallel-api-key-vault-auth-secret-id-timeout` |
+| `providers.parallel.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-parallel-api-key-vault-auth-secret-id-timeout` |
 | `providers.exa.api-key.value` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VALUE` | none |
 | `providers.exa.api-key.file` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_FILE` | `--providers-exa-api-key-file` |
 | `providers.exa.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_COMMAND` | `--providers-exa-api-key-command` |
-| `providers.exa.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_TIMEOUT` | `--providers-exa-api-key-timeout` |
-| `providers.exa.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_PATH` | `--providers-exa-api-key-vault-path` |
+| `providers.exa.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_TIMEOUT` | `--providers-exa-api-key-timeout` |
+| `providers.exa.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_PATH` | `--providers-exa-api-key-vault-path` |
 | `providers.exa.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_KEY` | `--providers-exa-api-key-vault-key` |
-| `providers.exa.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_ADDRESS` | `--providers-exa-api-key-vault-address` |
+| `providers.exa.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_ADDRESS` | `--providers-exa-api-key-vault-address` |
 | `providers.exa.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_NAMESPACE` | `--providers-exa-api-key-vault-namespace` |
-| `providers.exa.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_MOUNT` | `--providers-exa-api-key-vault-mount` |
+| `providers.exa.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_MOUNT` | `--providers-exa-api-key-vault-mount` |
 | `providers.exa.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_KV_VERSION` | `--providers-exa-api-key-vault-kv-version` |
 | `providers.exa.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_CA_CERT` | `--providers-exa-api-key-vault-ca-cert` |
 | `providers.exa.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_PROXY` | `--providers-exa-api-key-vault-proxy` |
@@ -124,22 +124,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.exa.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.exa.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-exa-api-key-vault-auth-token-file` |
 | `providers.exa.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-exa-api-key-vault-auth-token-command` |
-| `providers.exa.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-exa-api-key-vault-auth-token-timeout` |
-| `providers.exa.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_MOUNT` | `--providers-exa-api-key-vault-auth-mount` |
+| `providers.exa.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-exa-api-key-vault-auth-token-timeout` |
+| `providers.exa.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_MOUNT` | `--providers-exa-api-key-vault-auth-mount` |
 | `providers.exa.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-exa-api-key-vault-auth-role-id` |
 | `providers.exa.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.exa.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-exa-api-key-vault-auth-secret-id-file` |
 | `providers.exa.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-exa-api-key-vault-auth-secret-id-command` |
-| `providers.exa.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-exa-api-key-vault-auth-secret-id-timeout` |
+| `providers.exa.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-exa-api-key-vault-auth-secret-id-timeout` |
 | `providers.brave-search.api-key.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VALUE` | none |
 | `providers.brave-search.api-key.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_FILE` | `--providers-brave-search-api-key-file` |
 | `providers.brave-search.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_COMMAND` | `--providers-brave-search-api-key-command` |
-| `providers.brave-search.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_TIMEOUT` | `--providers-brave-search-api-key-timeout` |
-| `providers.brave-search.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PATH` | `--providers-brave-search-api-key-vault-path` |
+| `providers.brave-search.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_TIMEOUT` | `--providers-brave-search-api-key-timeout` |
+| `providers.brave-search.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PATH` | `--providers-brave-search-api-key-vault-path` |
 | `providers.brave-search.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_KEY` | `--providers-brave-search-api-key-vault-key` |
-| `providers.brave-search.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_ADDRESS` | `--providers-brave-search-api-key-vault-address` |
+| `providers.brave-search.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_ADDRESS` | `--providers-brave-search-api-key-vault-address` |
 | `providers.brave-search.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_NAMESPACE` | `--providers-brave-search-api-key-vault-namespace` |
-| `providers.brave-search.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_MOUNT` | `--providers-brave-search-api-key-vault-mount` |
+| `providers.brave-search.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_MOUNT` | `--providers-brave-search-api-key-vault-mount` |
 | `providers.brave-search.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_KV_VERSION` | `--providers-brave-search-api-key-vault-kv-version` |
 | `providers.brave-search.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_CA_CERT` | `--providers-brave-search-api-key-vault-ca-cert` |
 | `providers.brave-search.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PROXY` | `--providers-brave-search-api-key-vault-proxy` |
@@ -147,22 +147,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.brave-search.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.brave-search.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-brave-search-api-key-vault-auth-token-file` |
 | `providers.brave-search.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-brave-search-api-key-vault-auth-token-command` |
-| `providers.brave-search.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-brave-search-api-key-vault-auth-token-timeout` |
-| `providers.brave-search.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_MOUNT` | `--providers-brave-search-api-key-vault-auth-mount` |
+| `providers.brave-search.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-brave-search-api-key-vault-auth-token-timeout` |
+| `providers.brave-search.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_MOUNT` | `--providers-brave-search-api-key-vault-auth-mount` |
 | `providers.brave-search.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-brave-search-api-key-vault-auth-role-id` |
 | `providers.brave-search.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.brave-search.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-brave-search-api-key-vault-auth-secret-id-file` |
 | `providers.brave-search.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-brave-search-api-key-vault-auth-secret-id-command` |
-| `providers.brave-search.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-brave-search-api-key-vault-auth-secret-id-timeout` |
+| `providers.brave-search.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-brave-search-api-key-vault-auth-secret-id-timeout` |
 | `providers.brave-answers.api-key.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VALUE` | none |
 | `providers.brave-answers.api-key.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_FILE` | `--providers-brave-answers-api-key-file` |
 | `providers.brave-answers.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_COMMAND` | `--providers-brave-answers-api-key-command` |
-| `providers.brave-answers.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_TIMEOUT` | `--providers-brave-answers-api-key-timeout` |
-| `providers.brave-answers.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PATH` | `--providers-brave-answers-api-key-vault-path` |
+| `providers.brave-answers.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_TIMEOUT` | `--providers-brave-answers-api-key-timeout` |
+| `providers.brave-answers.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PATH` | `--providers-brave-answers-api-key-vault-path` |
 | `providers.brave-answers.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_KEY` | `--providers-brave-answers-api-key-vault-key` |
-| `providers.brave-answers.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_ADDRESS` | `--providers-brave-answers-api-key-vault-address` |
+| `providers.brave-answers.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_ADDRESS` | `--providers-brave-answers-api-key-vault-address` |
 | `providers.brave-answers.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_NAMESPACE` | `--providers-brave-answers-api-key-vault-namespace` |
-| `providers.brave-answers.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_MOUNT` | `--providers-brave-answers-api-key-vault-mount` |
+| `providers.brave-answers.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_MOUNT` | `--providers-brave-answers-api-key-vault-mount` |
 | `providers.brave-answers.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_KV_VERSION` | `--providers-brave-answers-api-key-vault-kv-version` |
 | `providers.brave-answers.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_CA_CERT` | `--providers-brave-answers-api-key-vault-ca-cert` |
 | `providers.brave-answers.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PROXY` | `--providers-brave-answers-api-key-vault-proxy` |
@@ -170,22 +170,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.brave-answers.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.brave-answers.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-brave-answers-api-key-vault-auth-token-file` |
 | `providers.brave-answers.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-brave-answers-api-key-vault-auth-token-command` |
-| `providers.brave-answers.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-brave-answers-api-key-vault-auth-token-timeout` |
-| `providers.brave-answers.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_MOUNT` | `--providers-brave-answers-api-key-vault-auth-mount` |
+| `providers.brave-answers.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-brave-answers-api-key-vault-auth-token-timeout` |
+| `providers.brave-answers.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_MOUNT` | `--providers-brave-answers-api-key-vault-auth-mount` |
 | `providers.brave-answers.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-brave-answers-api-key-vault-auth-role-id` |
 | `providers.brave-answers.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.brave-answers.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-brave-answers-api-key-vault-auth-secret-id-file` |
 | `providers.brave-answers.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-brave-answers-api-key-vault-auth-secret-id-command` |
-| `providers.brave-answers.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-brave-answers-api-key-vault-auth-secret-id-timeout` |
+| `providers.brave-answers.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-brave-answers-api-key-vault-auth-secret-id-timeout` |
 | `providers.perplexity.api-key.value` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE` | none |
 | `providers.perplexity.api-key.file` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_FILE` | `--providers-perplexity-api-key-file` |
 | `providers.perplexity.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_COMMAND` | `--providers-perplexity-api-key-command` |
-| `providers.perplexity.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_TIMEOUT` | `--providers-perplexity-api-key-timeout` |
-| `providers.perplexity.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PATH` | `--providers-perplexity-api-key-vault-path` |
+| `providers.perplexity.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_TIMEOUT` | `--providers-perplexity-api-key-timeout` |
+| `providers.perplexity.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PATH` | `--providers-perplexity-api-key-vault-path` |
 | `providers.perplexity.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_KEY` | `--providers-perplexity-api-key-vault-key` |
-| `providers.perplexity.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_ADDRESS` | `--providers-perplexity-api-key-vault-address` |
+| `providers.perplexity.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_ADDRESS` | `--providers-perplexity-api-key-vault-address` |
 | `providers.perplexity.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_NAMESPACE` | `--providers-perplexity-api-key-vault-namespace` |
-| `providers.perplexity.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_MOUNT` | `--providers-perplexity-api-key-vault-mount` |
+| `providers.perplexity.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_MOUNT` | `--providers-perplexity-api-key-vault-mount` |
 | `providers.perplexity.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_KV_VERSION` | `--providers-perplexity-api-key-vault-kv-version` |
 | `providers.perplexity.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_CA_CERT` | `--providers-perplexity-api-key-vault-ca-cert` |
 | `providers.perplexity.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PROXY` | `--providers-perplexity-api-key-vault-proxy` |
@@ -193,22 +193,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.perplexity.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.perplexity.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-perplexity-api-key-vault-auth-token-file` |
 | `providers.perplexity.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-perplexity-api-key-vault-auth-token-command` |
-| `providers.perplexity.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-perplexity-api-key-vault-auth-token-timeout` |
-| `providers.perplexity.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_MOUNT` | `--providers-perplexity-api-key-vault-auth-mount` |
+| `providers.perplexity.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-perplexity-api-key-vault-auth-token-timeout` |
+| `providers.perplexity.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_MOUNT` | `--providers-perplexity-api-key-vault-auth-mount` |
 | `providers.perplexity.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-perplexity-api-key-vault-auth-role-id` |
 | `providers.perplexity.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.perplexity.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-perplexity-api-key-vault-auth-secret-id-file` |
 | `providers.perplexity.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-perplexity-api-key-vault-auth-secret-id-command` |
-| `providers.perplexity.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-perplexity-api-key-vault-auth-secret-id-timeout` |
+| `providers.perplexity.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-perplexity-api-key-vault-auth-secret-id-timeout` |
 | `providers.google.api-key.value` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE` | none |
 | `providers.google.api-key.file` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_FILE` | `--providers-google-api-key-file` |
 | `providers.google.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_COMMAND` | `--providers-google-api-key-command` |
-| `providers.google.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_TIMEOUT` | `--providers-google-api-key-timeout` |
-| `providers.google.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PATH` | `--providers-google-api-key-vault-path` |
+| `providers.google.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_TIMEOUT` | `--providers-google-api-key-timeout` |
+| `providers.google.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PATH` | `--providers-google-api-key-vault-path` |
 | `providers.google.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_KEY` | `--providers-google-api-key-vault-key` |
-| `providers.google.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_ADDRESS` | `--providers-google-api-key-vault-address` |
+| `providers.google.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_ADDRESS` | `--providers-google-api-key-vault-address` |
 | `providers.google.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_NAMESPACE` | `--providers-google-api-key-vault-namespace` |
-| `providers.google.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_MOUNT` | `--providers-google-api-key-vault-mount` |
+| `providers.google.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_MOUNT` | `--providers-google-api-key-vault-mount` |
 | `providers.google.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_KV_VERSION` | `--providers-google-api-key-vault-kv-version` |
 | `providers.google.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_CA_CERT` | `--providers-google-api-key-vault-ca-cert` |
 | `providers.google.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PROXY` | `--providers-google-api-key-vault-proxy` |
@@ -216,22 +216,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.google.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.google.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-google-api-key-vault-auth-token-file` |
 | `providers.google.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-google-api-key-vault-auth-token-command` |
-| `providers.google.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-google-api-key-vault-auth-token-timeout` |
-| `providers.google.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_MOUNT` | `--providers-google-api-key-vault-auth-mount` |
+| `providers.google.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-google-api-key-vault-auth-token-timeout` |
+| `providers.google.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_MOUNT` | `--providers-google-api-key-vault-auth-mount` |
 | `providers.google.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-google-api-key-vault-auth-role-id` |
 | `providers.google.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.google.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-google-api-key-vault-auth-secret-id-file` |
 | `providers.google.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-google-api-key-vault-auth-secret-id-command` |
-| `providers.google.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-google-api-key-vault-auth-secret-id-timeout` |
+| `providers.google.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-google-api-key-vault-auth-secret-id-timeout` |
 | `providers.firecrawl.api-key.value` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VALUE` | none |
 | `providers.firecrawl.api-key.file` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_FILE` | `--providers-firecrawl-api-key-file` |
 | `providers.firecrawl.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_COMMAND` | `--providers-firecrawl-api-key-command` |
-| `providers.firecrawl.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_TIMEOUT` | `--providers-firecrawl-api-key-timeout` |
-| `providers.firecrawl.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PATH` | `--providers-firecrawl-api-key-vault-path` |
+| `providers.firecrawl.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_TIMEOUT` | `--providers-firecrawl-api-key-timeout` |
+| `providers.firecrawl.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PATH` | `--providers-firecrawl-api-key-vault-path` |
 | `providers.firecrawl.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_KEY` | `--providers-firecrawl-api-key-vault-key` |
-| `providers.firecrawl.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_ADDRESS` | `--providers-firecrawl-api-key-vault-address` |
+| `providers.firecrawl.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_ADDRESS` | `--providers-firecrawl-api-key-vault-address` |
 | `providers.firecrawl.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_NAMESPACE` | `--providers-firecrawl-api-key-vault-namespace` |
-| `providers.firecrawl.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_MOUNT` | `--providers-firecrawl-api-key-vault-mount` |
+| `providers.firecrawl.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_MOUNT` | `--providers-firecrawl-api-key-vault-mount` |
 | `providers.firecrawl.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_KV_VERSION` | `--providers-firecrawl-api-key-vault-kv-version` |
 | `providers.firecrawl.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_CA_CERT` | `--providers-firecrawl-api-key-vault-ca-cert` |
 | `providers.firecrawl.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PROXY` | `--providers-firecrawl-api-key-vault-proxy` |
@@ -239,24 +239,24 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.firecrawl.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.firecrawl.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-firecrawl-api-key-vault-auth-token-file` |
 | `providers.firecrawl.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-firecrawl-api-key-vault-auth-token-command` |
-| `providers.firecrawl.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-firecrawl-api-key-vault-auth-token-timeout` |
-| `providers.firecrawl.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_MOUNT` | `--providers-firecrawl-api-key-vault-auth-mount` |
+| `providers.firecrawl.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-firecrawl-api-key-vault-auth-token-timeout` |
+| `providers.firecrawl.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_MOUNT` | `--providers-firecrawl-api-key-vault-auth-mount` |
 | `providers.firecrawl.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-firecrawl-api-key-vault-auth-role-id` |
 | `providers.firecrawl.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.firecrawl.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-firecrawl-api-key-vault-auth-secret-id-file` |
 | `providers.firecrawl.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-firecrawl-api-key-vault-auth-secret-id-command` |
-| `providers.firecrawl.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-firecrawl-api-key-vault-auth-secret-id-timeout` |
+| `providers.firecrawl.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-firecrawl-api-key-vault-auth-secret-id-timeout` |
 | `vault.auth.mode` | string | `token`, `approle`, `none` |  | `SEEK_VAULT_AUTH_MODE` | `--vault-auth-mode` |
 | `vault.auth.token.value` | string |  |  | `SEEK_VAULT_AUTH_TOKEN_VALUE` | none |
 | `vault.auth.token.file` | string |  |  | `SEEK_VAULT_AUTH_TOKEN_FILE` | `--vault-auth-token-file` |
 | `vault.auth.token.command` | array of string |  |  | `SEEK_VAULT_AUTH_TOKEN_COMMAND` | `--vault-auth-token-command` |
-| `vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_VAULT_AUTH_TOKEN_TIMEOUT` | `--vault-auth-token-timeout` |
-| `vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_VAULT_AUTH_MOUNT` | `--vault-auth-mount` |
+| `vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_VAULT_AUTH_TOKEN_TIMEOUT` | `--vault-auth-token-timeout` |
+| `vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_VAULT_AUTH_MOUNT` | `--vault-auth-mount` |
 | `vault.auth.role-id` | string |  |  | `SEEK_VAULT_AUTH_ROLE_ID` | `--vault-auth-role-id` |
 | `vault.auth.secret-id.value` | string |  |  | `SEEK_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `vault.auth.secret-id.file` | string |  |  | `SEEK_VAULT_AUTH_SECRET_ID_FILE` | `--vault-auth-secret-id-file` |
 | `vault.auth.secret-id.command` | array of string |  |  | `SEEK_VAULT_AUTH_SECRET_ID_COMMAND` | `--vault-auth-secret-id-command` |
-| `vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--vault-auth-secret-id-timeout` |
+| `vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--vault-auth-secret-id-timeout` |
 
 ## seek server configuration
 
@@ -272,9 +272,9 @@ Definition: [configuration.server.schema.json](configuration.server.schema.json)
 | `server.port` | integer |  | `8787` | `SEEK_SERVER_PORT` | `--server-port`, `--port` | Port the server listens on. |
 | `server.require-token` | boolean |  | `true` | `SEEK_SERVER_REQUIRE_TOKEN` | `--server-require-token`, `--no-server-require-token`, `--no-auth` | Whether a request must carry one of `server.tokens`. Set it to false only on a trusted network; the server then logs a warning at startup. |
 | `server.secret-refresh-seconds` | number |  | `300` | `SEEK_SERVER_SECRET_REFRESH_SECONDS` | `--server-secret-refresh-seconds` | How long the server uses each secret it resolved before it resolves it again. A later resolution that fails keeps the value already held. Zero resolves on every use. |
-| `vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_VAULT_ADDRESS`, `BAO_ADDR`, `VAULT_ADDR` | `--vault-address` | Address of the Vault or OpenBao server: an `https://` or `http://` URL, which may end in a base path such as `/team-a`, or `unix://` followed by the absolute path of a socket. It carries no user name, password, query or fragment. Trailing slashes are removed, and request routes are appended under the base path. |
+| `vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_VAULT_ADDRESS`, `BAO_ADDR`, `VAULT_ADDR` | `--vault-address` | Address of the Vault or OpenBao server: an `https://` or `http://` URL, which may end in a base path such as `/team-a`, or `unix://` followed by the absolute path of a socket. It carries no user name, password, query or fragment. Trailing slashes are removed, and request routes are appended under the base path. |
 | `vault.namespace` | string |  |  | `SEEK_VAULT_NAMESPACE`, `BAO_NAMESPACE`, `VAULT_NAMESPACE` | `--vault-namespace` | Vault or OpenBao namespace, sent as the `X-Vault-Namespace` header. An empty string selects the root namespace: no header is sent, and no top-level or exported namespace is filled in. |
-| `vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `secret` | `SEEK_VAULT_MOUNT` | `--vault-mount` | Mount of the KV secrets engine. Leading and trailing slashes are removed; an empty, `.` or `..` segment is invalid. |
+| `vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `secret` | `SEEK_VAULT_MOUNT` | `--vault-mount` | Mount of the KV secrets engine. Leading and trailing slashes are removed; an empty, `.` or `..` segment is invalid. |
 | `vault.kv-version` | integer | `1`, `2` | `2` | `SEEK_VAULT_KV_VERSION` | `--vault-kv-version` | Version of the KV secrets engine. |
 | `vault.ca-cert` | string |  |  | `SEEK_VAULT_CA_CERT` | `--vault-ca-cert` | Path of a PEM bundle of the certificate authorities seek trusts for this server. It replaces Bun's whole default store: its bundled roots, `SSL_CERT_FILE`, `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS` and, with `NODE_USE_SYSTEM_CA=1`, the system store. A leading `~/` is the home directory; another relative path in a configuration file is relative to that file's directory. |
 | `vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_VAULT_PROXY` | `--vault-proxy` | HTTP proxy for this server's requests, as an `http://` or `https://` URL with a host and optional port only; it carries no user name, password, path, query or fragment, and seek sends no proxy credentials, as the operator decided in `authenticated-vault-proxy`. Without it seek connects directly and ignores `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY`. |
@@ -302,12 +302,12 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `server.tokens.value` | string |  |  | `SEEK_SERVER_TOKENS_VALUE` | none |
 | `server.tokens.file` | string |  |  | `SEEK_SERVER_TOKENS_FILE` | `--server-tokens-file` |
 | `server.tokens.command` | array of string |  |  | `SEEK_SERVER_TOKENS_COMMAND` | `--server-tokens-command` |
-| `server.tokens.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_SERVER_TOKENS_TIMEOUT` | `--server-tokens-timeout` |
-| `server.tokens.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_SERVER_TOKENS_VAULT_PATH` | `--server-tokens-vault-path` |
+| `server.tokens.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_SERVER_TOKENS_TIMEOUT` | `--server-tokens-timeout` |
+| `server.tokens.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_SERVER_TOKENS_VAULT_PATH` | `--server-tokens-vault-path` |
 | `server.tokens.vault.key` | string |  |  | `SEEK_SERVER_TOKENS_VAULT_KEY` | `--server-tokens-vault-key` |
-| `server.tokens.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_SERVER_TOKENS_VAULT_ADDRESS` | `--server-tokens-vault-address` |
+| `server.tokens.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_SERVER_TOKENS_VAULT_ADDRESS` | `--server-tokens-vault-address` |
 | `server.tokens.vault.namespace` | string |  |  | `SEEK_SERVER_TOKENS_VAULT_NAMESPACE` | `--server-tokens-vault-namespace` |
-| `server.tokens.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_SERVER_TOKENS_VAULT_MOUNT` | `--server-tokens-vault-mount` |
+| `server.tokens.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_SERVER_TOKENS_VAULT_MOUNT` | `--server-tokens-vault-mount` |
 | `server.tokens.vault.kv-version` | integer | `1`, `2` |  | `SEEK_SERVER_TOKENS_VAULT_KV_VERSION` | `--server-tokens-vault-kv-version` |
 | `server.tokens.vault.ca-cert` | string |  |  | `SEEK_SERVER_TOKENS_VAULT_CA_CERT` | `--server-tokens-vault-ca-cert` |
 | `server.tokens.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_SERVER_TOKENS_VAULT_PROXY` | `--server-tokens-vault-proxy` |
@@ -315,22 +315,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `server.tokens.vault.auth.token.value` | string |  |  | `SEEK_SERVER_TOKENS_VAULT_AUTH_TOKEN_VALUE` | none |
 | `server.tokens.vault.auth.token.file` | string |  |  | `SEEK_SERVER_TOKENS_VAULT_AUTH_TOKEN_FILE` | `--server-tokens-vault-auth-token-file` |
 | `server.tokens.vault.auth.token.command` | array of string |  |  | `SEEK_SERVER_TOKENS_VAULT_AUTH_TOKEN_COMMAND` | `--server-tokens-vault-auth-token-command` |
-| `server.tokens.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_SERVER_TOKENS_VAULT_AUTH_TOKEN_TIMEOUT` | `--server-tokens-vault-auth-token-timeout` |
-| `server.tokens.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_SERVER_TOKENS_VAULT_AUTH_MOUNT` | `--server-tokens-vault-auth-mount` |
+| `server.tokens.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_SERVER_TOKENS_VAULT_AUTH_TOKEN_TIMEOUT` | `--server-tokens-vault-auth-token-timeout` |
+| `server.tokens.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_SERVER_TOKENS_VAULT_AUTH_MOUNT` | `--server-tokens-vault-auth-mount` |
 | `server.tokens.vault.auth.role-id` | string |  |  | `SEEK_SERVER_TOKENS_VAULT_AUTH_ROLE_ID` | `--server-tokens-vault-auth-role-id` |
 | `server.tokens.vault.auth.secret-id.value` | string |  |  | `SEEK_SERVER_TOKENS_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `server.tokens.vault.auth.secret-id.file` | string |  |  | `SEEK_SERVER_TOKENS_VAULT_AUTH_SECRET_ID_FILE` | `--server-tokens-vault-auth-secret-id-file` |
 | `server.tokens.vault.auth.secret-id.command` | array of string |  |  | `SEEK_SERVER_TOKENS_VAULT_AUTH_SECRET_ID_COMMAND` | `--server-tokens-vault-auth-secret-id-command` |
-| `server.tokens.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_SERVER_TOKENS_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--server-tokens-vault-auth-secret-id-timeout` |
+| `server.tokens.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_SERVER_TOKENS_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--server-tokens-vault-auth-secret-id-timeout` |
 | `providers.parallel.api-key.value` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE` | none |
 | `providers.parallel.api-key.file` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_FILE` | `--providers-parallel-api-key-file` |
 | `providers.parallel.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_COMMAND` | `--providers-parallel-api-key-command` |
-| `providers.parallel.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_TIMEOUT` | `--providers-parallel-api-key-timeout` |
-| `providers.parallel.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PATH` | `--providers-parallel-api-key-vault-path` |
+| `providers.parallel.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_TIMEOUT` | `--providers-parallel-api-key-timeout` |
+| `providers.parallel.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PATH` | `--providers-parallel-api-key-vault-path` |
 | `providers.parallel.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_KEY` | `--providers-parallel-api-key-vault-key` |
-| `providers.parallel.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_ADDRESS` | `--providers-parallel-api-key-vault-address` |
+| `providers.parallel.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_ADDRESS` | `--providers-parallel-api-key-vault-address` |
 | `providers.parallel.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_NAMESPACE` | `--providers-parallel-api-key-vault-namespace` |
-| `providers.parallel.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_MOUNT` | `--providers-parallel-api-key-vault-mount` |
+| `providers.parallel.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_MOUNT` | `--providers-parallel-api-key-vault-mount` |
 | `providers.parallel.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_KV_VERSION` | `--providers-parallel-api-key-vault-kv-version` |
 | `providers.parallel.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_CA_CERT` | `--providers-parallel-api-key-vault-ca-cert` |
 | `providers.parallel.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_PROXY` | `--providers-parallel-api-key-vault-proxy` |
@@ -338,22 +338,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.parallel.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.parallel.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-parallel-api-key-vault-auth-token-file` |
 | `providers.parallel.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-parallel-api-key-vault-auth-token-command` |
-| `providers.parallel.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-parallel-api-key-vault-auth-token-timeout` |
-| `providers.parallel.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_MOUNT` | `--providers-parallel-api-key-vault-auth-mount` |
+| `providers.parallel.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-parallel-api-key-vault-auth-token-timeout` |
+| `providers.parallel.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_MOUNT` | `--providers-parallel-api-key-vault-auth-mount` |
 | `providers.parallel.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-parallel-api-key-vault-auth-role-id` |
 | `providers.parallel.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.parallel.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-parallel-api-key-vault-auth-secret-id-file` |
 | `providers.parallel.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-parallel-api-key-vault-auth-secret-id-command` |
-| `providers.parallel.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-parallel-api-key-vault-auth-secret-id-timeout` |
+| `providers.parallel.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-parallel-api-key-vault-auth-secret-id-timeout` |
 | `providers.exa.api-key.value` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VALUE` | none |
 | `providers.exa.api-key.file` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_FILE` | `--providers-exa-api-key-file` |
 | `providers.exa.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_COMMAND` | `--providers-exa-api-key-command` |
-| `providers.exa.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_TIMEOUT` | `--providers-exa-api-key-timeout` |
-| `providers.exa.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_PATH` | `--providers-exa-api-key-vault-path` |
+| `providers.exa.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_TIMEOUT` | `--providers-exa-api-key-timeout` |
+| `providers.exa.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_PATH` | `--providers-exa-api-key-vault-path` |
 | `providers.exa.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_KEY` | `--providers-exa-api-key-vault-key` |
-| `providers.exa.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_ADDRESS` | `--providers-exa-api-key-vault-address` |
+| `providers.exa.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_ADDRESS` | `--providers-exa-api-key-vault-address` |
 | `providers.exa.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_NAMESPACE` | `--providers-exa-api-key-vault-namespace` |
-| `providers.exa.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_MOUNT` | `--providers-exa-api-key-vault-mount` |
+| `providers.exa.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_MOUNT` | `--providers-exa-api-key-vault-mount` |
 | `providers.exa.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_KV_VERSION` | `--providers-exa-api-key-vault-kv-version` |
 | `providers.exa.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_CA_CERT` | `--providers-exa-api-key-vault-ca-cert` |
 | `providers.exa.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_PROXY` | `--providers-exa-api-key-vault-proxy` |
@@ -361,22 +361,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.exa.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.exa.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-exa-api-key-vault-auth-token-file` |
 | `providers.exa.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-exa-api-key-vault-auth-token-command` |
-| `providers.exa.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-exa-api-key-vault-auth-token-timeout` |
-| `providers.exa.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_MOUNT` | `--providers-exa-api-key-vault-auth-mount` |
+| `providers.exa.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-exa-api-key-vault-auth-token-timeout` |
+| `providers.exa.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_MOUNT` | `--providers-exa-api-key-vault-auth-mount` |
 | `providers.exa.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-exa-api-key-vault-auth-role-id` |
 | `providers.exa.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.exa.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-exa-api-key-vault-auth-secret-id-file` |
 | `providers.exa.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-exa-api-key-vault-auth-secret-id-command` |
-| `providers.exa.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-exa-api-key-vault-auth-secret-id-timeout` |
+| `providers.exa.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_EXA_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-exa-api-key-vault-auth-secret-id-timeout` |
 | `providers.brave-search.api-key.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VALUE` | none |
 | `providers.brave-search.api-key.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_FILE` | `--providers-brave-search-api-key-file` |
 | `providers.brave-search.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_COMMAND` | `--providers-brave-search-api-key-command` |
-| `providers.brave-search.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_TIMEOUT` | `--providers-brave-search-api-key-timeout` |
-| `providers.brave-search.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PATH` | `--providers-brave-search-api-key-vault-path` |
+| `providers.brave-search.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_TIMEOUT` | `--providers-brave-search-api-key-timeout` |
+| `providers.brave-search.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PATH` | `--providers-brave-search-api-key-vault-path` |
 | `providers.brave-search.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_KEY` | `--providers-brave-search-api-key-vault-key` |
-| `providers.brave-search.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_ADDRESS` | `--providers-brave-search-api-key-vault-address` |
+| `providers.brave-search.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_ADDRESS` | `--providers-brave-search-api-key-vault-address` |
 | `providers.brave-search.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_NAMESPACE` | `--providers-brave-search-api-key-vault-namespace` |
-| `providers.brave-search.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_MOUNT` | `--providers-brave-search-api-key-vault-mount` |
+| `providers.brave-search.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_MOUNT` | `--providers-brave-search-api-key-vault-mount` |
 | `providers.brave-search.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_KV_VERSION` | `--providers-brave-search-api-key-vault-kv-version` |
 | `providers.brave-search.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_CA_CERT` | `--providers-brave-search-api-key-vault-ca-cert` |
 | `providers.brave-search.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_PROXY` | `--providers-brave-search-api-key-vault-proxy` |
@@ -384,22 +384,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.brave-search.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.brave-search.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-brave-search-api-key-vault-auth-token-file` |
 | `providers.brave-search.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-brave-search-api-key-vault-auth-token-command` |
-| `providers.brave-search.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-brave-search-api-key-vault-auth-token-timeout` |
-| `providers.brave-search.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_MOUNT` | `--providers-brave-search-api-key-vault-auth-mount` |
+| `providers.brave-search.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-brave-search-api-key-vault-auth-token-timeout` |
+| `providers.brave-search.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_MOUNT` | `--providers-brave-search-api-key-vault-auth-mount` |
 | `providers.brave-search.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-brave-search-api-key-vault-auth-role-id` |
 | `providers.brave-search.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.brave-search.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-brave-search-api-key-vault-auth-secret-id-file` |
 | `providers.brave-search.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-brave-search-api-key-vault-auth-secret-id-command` |
-| `providers.brave-search.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-brave-search-api-key-vault-auth-secret-id-timeout` |
+| `providers.brave-search.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-brave-search-api-key-vault-auth-secret-id-timeout` |
 | `providers.brave-answers.api-key.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VALUE` | none |
 | `providers.brave-answers.api-key.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_FILE` | `--providers-brave-answers-api-key-file` |
 | `providers.brave-answers.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_COMMAND` | `--providers-brave-answers-api-key-command` |
-| `providers.brave-answers.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_TIMEOUT` | `--providers-brave-answers-api-key-timeout` |
-| `providers.brave-answers.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PATH` | `--providers-brave-answers-api-key-vault-path` |
+| `providers.brave-answers.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_TIMEOUT` | `--providers-brave-answers-api-key-timeout` |
+| `providers.brave-answers.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PATH` | `--providers-brave-answers-api-key-vault-path` |
 | `providers.brave-answers.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_KEY` | `--providers-brave-answers-api-key-vault-key` |
-| `providers.brave-answers.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_ADDRESS` | `--providers-brave-answers-api-key-vault-address` |
+| `providers.brave-answers.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_ADDRESS` | `--providers-brave-answers-api-key-vault-address` |
 | `providers.brave-answers.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_NAMESPACE` | `--providers-brave-answers-api-key-vault-namespace` |
-| `providers.brave-answers.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_MOUNT` | `--providers-brave-answers-api-key-vault-mount` |
+| `providers.brave-answers.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_MOUNT` | `--providers-brave-answers-api-key-vault-mount` |
 | `providers.brave-answers.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_KV_VERSION` | `--providers-brave-answers-api-key-vault-kv-version` |
 | `providers.brave-answers.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_CA_CERT` | `--providers-brave-answers-api-key-vault-ca-cert` |
 | `providers.brave-answers.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_PROXY` | `--providers-brave-answers-api-key-vault-proxy` |
@@ -407,22 +407,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.brave-answers.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.brave-answers.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-brave-answers-api-key-vault-auth-token-file` |
 | `providers.brave-answers.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-brave-answers-api-key-vault-auth-token-command` |
-| `providers.brave-answers.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-brave-answers-api-key-vault-auth-token-timeout` |
-| `providers.brave-answers.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_MOUNT` | `--providers-brave-answers-api-key-vault-auth-mount` |
+| `providers.brave-answers.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-brave-answers-api-key-vault-auth-token-timeout` |
+| `providers.brave-answers.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_MOUNT` | `--providers-brave-answers-api-key-vault-auth-mount` |
 | `providers.brave-answers.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-brave-answers-api-key-vault-auth-role-id` |
 | `providers.brave-answers.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.brave-answers.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-brave-answers-api-key-vault-auth-secret-id-file` |
 | `providers.brave-answers.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-brave-answers-api-key-vault-auth-secret-id-command` |
-| `providers.brave-answers.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-brave-answers-api-key-vault-auth-secret-id-timeout` |
+| `providers.brave-answers.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-brave-answers-api-key-vault-auth-secret-id-timeout` |
 | `providers.perplexity.api-key.value` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE` | none |
 | `providers.perplexity.api-key.file` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_FILE` | `--providers-perplexity-api-key-file` |
 | `providers.perplexity.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_COMMAND` | `--providers-perplexity-api-key-command` |
-| `providers.perplexity.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_TIMEOUT` | `--providers-perplexity-api-key-timeout` |
-| `providers.perplexity.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PATH` | `--providers-perplexity-api-key-vault-path` |
+| `providers.perplexity.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_TIMEOUT` | `--providers-perplexity-api-key-timeout` |
+| `providers.perplexity.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PATH` | `--providers-perplexity-api-key-vault-path` |
 | `providers.perplexity.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_KEY` | `--providers-perplexity-api-key-vault-key` |
-| `providers.perplexity.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_ADDRESS` | `--providers-perplexity-api-key-vault-address` |
+| `providers.perplexity.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_ADDRESS` | `--providers-perplexity-api-key-vault-address` |
 | `providers.perplexity.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_NAMESPACE` | `--providers-perplexity-api-key-vault-namespace` |
-| `providers.perplexity.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_MOUNT` | `--providers-perplexity-api-key-vault-mount` |
+| `providers.perplexity.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_MOUNT` | `--providers-perplexity-api-key-vault-mount` |
 | `providers.perplexity.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_KV_VERSION` | `--providers-perplexity-api-key-vault-kv-version` |
 | `providers.perplexity.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_CA_CERT` | `--providers-perplexity-api-key-vault-ca-cert` |
 | `providers.perplexity.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_PROXY` | `--providers-perplexity-api-key-vault-proxy` |
@@ -430,22 +430,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.perplexity.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.perplexity.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-perplexity-api-key-vault-auth-token-file` |
 | `providers.perplexity.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-perplexity-api-key-vault-auth-token-command` |
-| `providers.perplexity.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-perplexity-api-key-vault-auth-token-timeout` |
-| `providers.perplexity.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_MOUNT` | `--providers-perplexity-api-key-vault-auth-mount` |
+| `providers.perplexity.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-perplexity-api-key-vault-auth-token-timeout` |
+| `providers.perplexity.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_MOUNT` | `--providers-perplexity-api-key-vault-auth-mount` |
 | `providers.perplexity.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-perplexity-api-key-vault-auth-role-id` |
 | `providers.perplexity.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.perplexity.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-perplexity-api-key-vault-auth-secret-id-file` |
 | `providers.perplexity.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-perplexity-api-key-vault-auth-secret-id-command` |
-| `providers.perplexity.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-perplexity-api-key-vault-auth-secret-id-timeout` |
+| `providers.perplexity.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-perplexity-api-key-vault-auth-secret-id-timeout` |
 | `providers.google.api-key.value` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE` | none |
 | `providers.google.api-key.file` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_FILE` | `--providers-google-api-key-file` |
 | `providers.google.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_COMMAND` | `--providers-google-api-key-command` |
-| `providers.google.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_TIMEOUT` | `--providers-google-api-key-timeout` |
-| `providers.google.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PATH` | `--providers-google-api-key-vault-path` |
+| `providers.google.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_TIMEOUT` | `--providers-google-api-key-timeout` |
+| `providers.google.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PATH` | `--providers-google-api-key-vault-path` |
 | `providers.google.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_KEY` | `--providers-google-api-key-vault-key` |
-| `providers.google.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_ADDRESS` | `--providers-google-api-key-vault-address` |
+| `providers.google.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_ADDRESS` | `--providers-google-api-key-vault-address` |
 | `providers.google.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_NAMESPACE` | `--providers-google-api-key-vault-namespace` |
-| `providers.google.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_MOUNT` | `--providers-google-api-key-vault-mount` |
+| `providers.google.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_MOUNT` | `--providers-google-api-key-vault-mount` |
 | `providers.google.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_KV_VERSION` | `--providers-google-api-key-vault-kv-version` |
 | `providers.google.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_CA_CERT` | `--providers-google-api-key-vault-ca-cert` |
 | `providers.google.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_PROXY` | `--providers-google-api-key-vault-proxy` |
@@ -453,22 +453,22 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.google.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.google.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-google-api-key-vault-auth-token-file` |
 | `providers.google.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-google-api-key-vault-auth-token-command` |
-| `providers.google.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-google-api-key-vault-auth-token-timeout` |
-| `providers.google.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_MOUNT` | `--providers-google-api-key-vault-auth-mount` |
+| `providers.google.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-google-api-key-vault-auth-token-timeout` |
+| `providers.google.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_MOUNT` | `--providers-google-api-key-vault-auth-mount` |
 | `providers.google.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-google-api-key-vault-auth-role-id` |
 | `providers.google.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.google.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-google-api-key-vault-auth-secret-id-file` |
 | `providers.google.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-google-api-key-vault-auth-secret-id-command` |
-| `providers.google.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-google-api-key-vault-auth-secret-id-timeout` |
+| `providers.google.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-google-api-key-vault-auth-secret-id-timeout` |
 | `providers.firecrawl.api-key.value` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VALUE` | none |
 | `providers.firecrawl.api-key.file` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_FILE` | `--providers-firecrawl-api-key-file` |
 | `providers.firecrawl.api-key.command` | array of string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_COMMAND` | `--providers-firecrawl-api-key-command` |
-| `providers.firecrawl.api-key.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_TIMEOUT` | `--providers-firecrawl-api-key-timeout` |
-| `providers.firecrawl.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PATH` | `--providers-firecrawl-api-key-vault-path` |
+| `providers.firecrawl.api-key.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_TIMEOUT` | `--providers-firecrawl-api-key-timeout` |
+| `providers.firecrawl.api-key.vault.path` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PATH` | `--providers-firecrawl-api-key-vault-path` |
 | `providers.firecrawl.api-key.vault.key` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_KEY` | `--providers-firecrawl-api-key-vault-key` |
-| `providers.firecrawl.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_ADDRESS` | `--providers-firecrawl-api-key-vault-address` |
+| `providers.firecrawl.api-key.vault.address` | string (uri) | Matches `^(https?://[^/@?#]+(/[^?#]*)?\|unix:///[^?#]+)$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_ADDRESS` | `--providers-firecrawl-api-key-vault-address` |
 | `providers.firecrawl.api-key.vault.namespace` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_NAMESPACE` | `--providers-firecrawl-api-key-vault-namespace` |
-| `providers.firecrawl.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_MOUNT` | `--providers-firecrawl-api-key-vault-mount` |
+| `providers.firecrawl.api-key.vault.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_MOUNT` | `--providers-firecrawl-api-key-vault-mount` |
 | `providers.firecrawl.api-key.vault.kv-version` | integer | `1`, `2` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_KV_VERSION` | `--providers-firecrawl-api-key-vault-kv-version` |
 | `providers.firecrawl.api-key.vault.ca-cert` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_CA_CERT` | `--providers-firecrawl-api-key-vault-ca-cert` |
 | `providers.firecrawl.api-key.vault.proxy` | string (uri) | Matches `^https?://[^/@?#]+/?$` |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_PROXY` | `--providers-firecrawl-api-key-vault-proxy` |
@@ -476,24 +476,24 @@ Each secret is one source mapping, and `vault.auth` is one `auth` mapping; a hig
 | `providers.firecrawl.api-key.vault.auth.token.value` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_VALUE` | none |
 | `providers.firecrawl.api-key.vault.auth.token.file` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_FILE` | `--providers-firecrawl-api-key-vault-auth-token-file` |
 | `providers.firecrawl.api-key.vault.auth.token.command` | array of string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_COMMAND` | `--providers-firecrawl-api-key-vault-auth-token-command` |
-| `providers.firecrawl.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-firecrawl-api-key-vault-auth-token-timeout` |
-| `providers.firecrawl.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_MOUNT` | `--providers-firecrawl-api-key-vault-auth-mount` |
+| `providers.firecrawl.api-key.vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_TOKEN_TIMEOUT` | `--providers-firecrawl-api-key-vault-auth-token-timeout` |
+| `providers.firecrawl.api-key.vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_MOUNT` | `--providers-firecrawl-api-key-vault-auth-mount` |
 | `providers.firecrawl.api-key.vault.auth.role-id` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_ROLE_ID` | `--providers-firecrawl-api-key-vault-auth-role-id` |
 | `providers.firecrawl.api-key.vault.auth.secret-id.value` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `providers.firecrawl.api-key.vault.auth.secret-id.file` | string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_FILE` | `--providers-firecrawl-api-key-vault-auth-secret-id-file` |
 | `providers.firecrawl.api-key.vault.auth.secret-id.command` | array of string |  |  | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_COMMAND` | `--providers-firecrawl-api-key-vault-auth-secret-id-command` |
-| `providers.firecrawl.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-firecrawl-api-key-vault-auth-secret-id-timeout` |
+| `providers.firecrawl.api-key.vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--providers-firecrawl-api-key-vault-auth-secret-id-timeout` |
 | `vault.auth.mode` | string | `token`, `approle`, `none` |  | `SEEK_VAULT_AUTH_MODE` | `--vault-auth-mode` |
 | `vault.auth.token.value` | string |  |  | `SEEK_VAULT_AUTH_TOKEN_VALUE` | none |
 | `vault.auth.token.file` | string |  |  | `SEEK_VAULT_AUTH_TOKEN_FILE` | `--vault-auth-token-file` |
 | `vault.auth.token.command` | array of string |  |  | `SEEK_VAULT_AUTH_TOKEN_COMMAND` | `--vault-auth-token-command` |
-| `vault.auth.token.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_VAULT_AUTH_TOKEN_TIMEOUT` | `--vault-auth-token-timeout` |
-| `vault.auth.mount` | string | Matches `^/*(?!\.\.?(/|$))[^/]+(/(?!\.\.?(/|$))[^/]+)*/*$` | `approle` | `SEEK_VAULT_AUTH_MOUNT` | `--vault-auth-mount` |
+| `vault.auth.token.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_VAULT_AUTH_TOKEN_TIMEOUT` | `--vault-auth-token-timeout` |
+| `vault.auth.mount` | string | Matches `^/*(?!\.\.?(/\|$))[^/]+(/(?!\.\.?(/\|$))[^/]+)*/*$` | `approle` | `SEEK_VAULT_AUTH_MOUNT` | `--vault-auth-mount` |
 | `vault.auth.role-id` | string |  |  | `SEEK_VAULT_AUTH_ROLE_ID` | `--vault-auth-role-id` |
 | `vault.auth.secret-id.value` | string |  |  | `SEEK_VAULT_AUTH_SECRET_ID_VALUE` | none |
 | `vault.auth.secret-id.file` | string |  |  | `SEEK_VAULT_AUTH_SECRET_ID_FILE` | `--vault-auth-secret-id-file` |
 | `vault.auth.secret-id.command` | array of string |  |  | `SEEK_VAULT_AUTH_SECRET_ID_COMMAND` | `--vault-auth-secret-id-command` |
-| `vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms|s|m|h)$` | `10s` | `SEEK_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--vault-auth-secret-id-timeout` |
+| `vault.auth.secret-id.timeout` | string | Matches `^[0-9]+(ms\|s\|m\|h)$` | `10s` | `SEEK_VAULT_AUTH_SECRET_ID_TIMEOUT` | `--vault-auth-secret-id-timeout` |
 
 ## seek config show --json
 

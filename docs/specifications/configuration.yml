@@ -174,12 +174,17 @@ description: >-
   config migrate` writes the client file, or with `--server` the server file,
   from that seek 0.3 setup: the JSON file, or the file `--from` names, and the
   removed variables in its environment. A provider key or `SEEK_SERVER_URL`
-  becomes its setting, and a `SEEK_SERVER_TOKEN` becomes `server.token` or
-  `server.tokens`, each with a `value` source. `SEEK_VAULT_PATH` becomes a
-  `vault` source on each secret, with that path and the secret's 0.3 variable
-  name as `key`; `SEEK_VAULT_ADDR` becomes `vault.address`; and the 0.3
-  AppRole and token-file variables become `vault.auth`. It writes no secret it
-  read from the environment: an AppRole secret ID set as
+  in the JSON file becomes its setting, and a `SEEK_SERVER_TOKEN` in it
+  becomes `server.token` or `server.tokens`, each with a `value` source. When
+  `SEEK_VAULT_PATH` is set, `seek config migrate` reads that KV secret with
+  the 0.3 Vault settings, as seek 0.3 did, and each secret whose 0.3 variable
+  name is a field of it gets a `vault` source with that path and that name as
+  `key`, in place of a file value, which seek 0.3 read after Vault. The
+  address seek 0.3 used, from `SEEK_VAULT_ADDR`, `VAULT_ADDR` or `BAO_ADDR`
+  in that order, becomes `vault.address`, and the 0.3 AppRole and token-file
+  variables become `vault.auth`. It writes no secret it read from the
+  environment: a provider key, `SEEK_SERVER_TOKEN`, `VAULT_TOKEN` or
+  `BAO_TOKEN` stays there, and an AppRole secret ID set as
   `SEEK_VAULT_SECRET_ID` stops it with a message to move the secret ID into a
   file and run it again. It prints each environment change that remains, and
   refuses to replace an existing file without `--force`.

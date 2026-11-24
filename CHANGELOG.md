@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.2
+
+### Features
+
+- Read the client token for a Seek server from Vault or OpenBao.
+- Print the bundled Seek agent skill with `seek skill`.
+
+### Fixes
+
+- Use Bun 1.4.4 or later for source installs and the refreshed dependency lockfile.
+
 ## 0.3.1
 
 ### Fixes

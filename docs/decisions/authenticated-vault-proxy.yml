@@ -1,0 +1,41 @@
+$schema: https://refinery.systems/ontology/decision-record
+title: A Vault proxy that needs a password
+relationships:
+  related-to:
+    - configuration
+    - configuration-upgrade-from-0-3
+description: >-
+  seek 0.3 sends its Vault requests through Bun's `fetch` without a `proxy`
+  option, so they go through whatever proxy `HTTP_PROXY`, `HTTPS_PROXY` or
+  `ALL_PROXY` names. Running the 0.3.2 Vault client on Bun 1.4.5 with a
+  synthetic loopback proxy, a user name and password in `HTTP_PROXY` reached
+  the proxy as `Proxy-Authorization` and the read succeeded; the same proxy
+  without them answered 407 and the read failed. The seek 0.3 guides do not
+  mention a proxy. The `configuration` specification takes the Vault proxy
+  from the `vault.proxy` setting only, and rejects a user name, password,
+  query or fragment in it so that no inspection output or error can print a
+  proxy password. This record decides whether a Vault reachable only through
+  a proxy that needs a password can be configured.
+considered-options:
+  no-authenticated-proxy:
+    description: >-
+      `vault.proxy` takes a host and port only, and seek sends no proxy
+      credentials.
+    positive:
+      - No proxy credential exists in seek's settings, output or code.
+    negative:
+      - A seek 0.3 setup whose Vault is reachable only through a proxy that
+        needs a password cannot be configured.
+  proxy-credentials-setting:
+    description: >-
+      Beside `vault.proxy`, a `vault.proxy-auth` setting holds a user name
+      and a password secret source, with the password's `value`, `file` or
+      `command` as for any other secret. seek sends them as a
+      `Proxy-Authorization` header, and inspection prints the password as
+      `<redacted>`.
+    positive:
+      - Every seek 0.3 Vault setup behind an authenticated proxy has a
+        supported equivalent.
+    negative:
+      - One more secret setting, with its environment variables, flags,
+        redaction and tests, for a setup no current user is known to have.

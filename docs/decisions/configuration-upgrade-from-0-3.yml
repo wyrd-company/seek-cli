@@ -4,6 +4,7 @@ relationships:
   related-to:
     - configuration
     - familiar-environment-names
+    - authenticated-vault-proxy
 description: >-
   seek 0.3 reads a flat JSON file, `$XDG_CONFIG_HOME/seek/config.json` or
   `~/.config/seek/config.json`, whose keys are environment variable names, and
@@ -106,12 +107,18 @@ expected-outcomes:
       it refuses to start; with a token it answers 503 for each provider whose
       key it lacks. Its owner writes `/etc/seek/server.yml` with the same
       mapping, except that `SEEK_SERVER_TOKEN` becomes `server.tokens`, and
-      mounts it at that path in the image.
+      mounts it at that path in the image. It then checks the server's file,
+      not the client's, with `seek config validate --server` and `seek config
+      show --server`.
     - >-
       A setup that read secrets through `SEEK_VAULT_PATH` gets none of them.
       Its owner gives each secret a `vault` source with the old path as `path`
       and the old variable name as `key`, so the KV secret in Vault or OpenBao
-      keeps its fields. `SEEK_VAULT_ADDR` becomes `vault.address`;
+      keeps its fields. seek still removes leading and trailing slashes from a
+      path or mount, as seek 0.3 did, so `SEEK_VAULT_PATH=/team/seek/` and
+      `SEEK_VAULT_MOUNT=/secret/` carry over as written or as `team/seek` and
+      `secret`; an empty segment inside one, such as `team//seek`, now fails
+      validation. `SEEK_VAULT_ADDR` becomes `vault.address`;
       `SEEK_VAULT_ROLE_ID`, `SEEK_VAULT_SECRET_ID_FILE` and
       `SEEK_VAULT_APPROLE_MOUNT` become `vault.auth` with `mode: approle`,
       `role-id`, `secret-id: { file: ... }` and `mount`; a secret ID set in
@@ -121,30 +128,37 @@ expected-outcomes:
       becomes `vault.auth` with `mode: token` and `token: { file: ... }`; and
       `SEEK_VAULT_REFRESH_SECONDS` becomes the server's
       `server.secret-refresh-seconds`. A relative token or secret ID path
-      written into a file is relative to that file's directory.
+      written into a file is relative to that file's directory. A private
+      certificate authority given in `NODE_EXTRA_CA_CERTS`, as the seek 0.3
+      server guide shows, keeps working; `vault.ca-cert` replaces it for its
+      server.
     - >-
       The retained Vault variables now rank differently. In seek 0.3 an
       explicit `SEEK_VAULT_ADDR`, AppRole or token file won over the `VAULT_*`
       and `BAO_*` address and token variables; now every environment variable,
       alias or derived, outranks the file, `BAO_*` outranks `VAULT_*`, and a
-      derived `SEEK_VAULT_AUTH_*` outranks the token aliases. Where `BAO_ADDR`
-      or `VAULT_ADDR` is exported for another server, the owner either unsets
-      it for seek or gives each secret its own `vault` block with both
-      `address` and `auth`, since a block's own address takes no top-level
-      login bound to a different server. Where `BAO_TOKEN` or `VAULT_TOKEN` is
-      exported for the same server that the file's AppRole or token-file login
-      uses, the token replaces that login; the owner unsets it for seek, sets
-      the login with the derived `SEEK_VAULT_AUTH_*` variables, or puts `auth`
-      on each secret's own `vault` block. A token alias is bound to its own
-      family's address when that is set, so `VAULT_TOKEN` exported beside a
-      different `BAO_ADDR` and `VAULT_ADDR` fails validation until the pair
-      matches. `seek config show` confirms the result: each Vault source shows
-      its address, its `auth` mode and the layer that declared it.
+      derived `SEEK_VAULT_AUTH_*` outranks the token aliases. Where a `BAO_*`
+      or `VAULT_*` set is exported for another server, the owner clears that
+      whole set from seek's environment: its address, token and namespace
+      together, because a token left without its address binds to the file's
+      server and replaces the file's login. Or the owner gives each secret its
+      own `vault` block with its `address`, its `auth`, and its `namespace`
+      when the exported set carries one, which no exported variable overrides.
+      Where `BAO_TOKEN` or `VAULT_TOKEN` is exported for the same server that
+      the file's AppRole or token-file login uses, the token replaces that
+      login; the owner unsets it for seek, sets the login with the derived
+      `SEEK_VAULT_AUTH_*` variables, or puts `auth` on each secret's own
+      `vault` block. A token alias is bound to its own family's address when
+      that is set, so `VAULT_TOKEN` exported beside a different `BAO_ADDR` and
+      `VAULT_ADDR` fails validation until the pair matches. `seek config
+      show`, with `--server` for a server, confirms the result: each Vault
+      source shows its address, its `auth` mode and the layer that declared
+      it.
     - >-
       seek 0.3 reached Vault through any proxy that `HTTP_PROXY`,
       `HTTPS_PROXY` or `ALL_PROXY` selected. A setup that needs one sets
-      `vault.proxy`, which takes a host and port only; a proxy that requires a
-      user name and password cannot be configured for Vault.
+      `vault.proxy`, a host and port. Whether a proxy that needs a password
+      can be configured is pending in `authenticated-vault-proxy`.
     - >-
       Each secret has one source. A setup that relied on seek 0.3 falling back
       to the JSON value when a Vault field was absent or blank keeps the field

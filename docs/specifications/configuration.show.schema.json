@@ -160,7 +160,7 @@
     "vault": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["address", "mount", "kv-version", "path", "key"],
+      "required": ["address", "mount", "kv-version", "path", "key", "trust"],
       "properties": {
         "address": {
           "type": "string",
@@ -190,6 +190,29 @@
         },
         "auth": {
           "$ref": "#/$defs/auth"
+        },
+        "trust": {
+          "description": "The certificate inputs this source's connection trusts, fixed when the configuration loaded: `ca-cert`, or each default input that was read.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["input", "certificates"],
+            "properties": {
+              "input": {
+                "enum": ["ca-cert", "bundled", "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "built-in file", "SSL_CERT_DIR", "built-in directory", "system"]
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "certificates": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
         }
       }
     },
@@ -390,7 +413,23 @@
                   "kind": "env",
                   "name": "BAO_TOKEN"
                 }
-              }
+              },
+              "trust": [
+                {
+                  "input": "bundled",
+                  "certificates": 118
+                },
+                {
+                  "input": "NODE_EXTRA_CA_CERTS",
+                  "path": "/etc/seek/private-ca.pem",
+                  "certificates": 1
+                },
+                {
+                  "input": "built-in directory",
+                  "path": "/etc/ssl/certs",
+                  "certificates": 146
+                }
+              ]
             }
           },
           "layer": {

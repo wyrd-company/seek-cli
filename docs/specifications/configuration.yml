@@ -7,6 +7,7 @@ relationships:
     - configuration-upgrade-from-0-3
     - familiar-environment-names
     - authenticated-vault-proxy
+    - vault-redirects
 description: >-
   The settings seek reads and where it reads them from. seek has two
   configurations. The client configuration is read by the `web`, `research`
@@ -143,30 +144,43 @@ description: >-
 
 
   seek builds each Vault connection from the effective configuration alone:
-  its address, its namespace header, its token, its certificate authorities
-  and the `proxy` it sends through, if one is set. When the effective `vault`
-  block sets `ca-cert`, the connection trusts exactly the certificate
-  authorities in that file. Otherwise it trusts Bun's default store, as seek
-  0.3 did: the root certificates bundled with Bun, the certificates in the
-  OpenSSL default file and directory (`SSL_CERT_FILE` and `SSL_CERT_DIR`, or
-  their built-in locations), the bundle `NODE_EXTRA_CA_CERTS` names, and the
-  operating system's store when `NODE_USE_SYSTEM_CA=1`; these are read when
-  seek starts. Either way seek verifies the certificate chain and that the
+  its address, its namespace header, which it sends only for a nonempty
+  namespace, its token, its certificate list and the `proxy` it sends through,
+  if one is set. It sends each request with Bun's `node:http` or `node:https`
+  client, which reads no proxy variable and follows no redirect, rather than
+  with `fetch`. With `proxy`, seek opens the `CONNECT` tunnel to the Vault
+  host itself and runs TLS through it, so `HTTP_PROXY`, `HTTPS_PROXY`,
+  `ALL_PROXY` and `NO_PROXY` never choose or skip the route. It reads no
+  `BAO_*` or `VAULT_*` variable other than the aliases above. The certificate
+  list is fixed when the configuration loads, for each command of the CLI and
+  at the start of `seek serve`. When the effective `vault` block sets
+  `ca-cert`, the list is exactly the certificates in that file. Otherwise it
+  is the set seek 0.3 trusted through Bun's default store, read from the same
+  inputs: Bun's bundled root certificates; the bundle `NODE_EXTRA_CA_CERTS`
+  names; the OpenSSL default file, `SSL_CERT_FILE` or else
+  `/etc/ssl/cert.pem`; the hashed certificates in the OpenSSL default
+  directory, `SSL_CERT_DIR` or else `/etc/ssl/certs`; and, when
+  `NODE_USE_SYSTEM_CA=1`, the operating system's store. A change to any of
+  them takes effect at the next load: the next command, or a restart of the
+  server. Either way seek verifies the certificate chain and that the
   certificate names the address's host, whatever
-  `NODE_TLS_REJECT_UNAUTHORIZED` says, and never replaces the host check. It
-  reads no `BAO_*` or `VAULT_*` variable other than the aliases above, uses no
-  proxy that `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` or `NO_PROXY` would
-  select, and follows no redirect: a 3xx response to a KV read or an AppRole
-  login is an error. A request's URL is the address, with its base path kept,
-  followed by `/v1/` and the route, whose mount, path and AppRole mount lose
-  their leading and trailing slashes, as in seek 0.3, and are then split into
-  segments, each percent-encoded; an empty, `.` or `..` segment is a
-  validation error, and seek checks that the final URL keeps the address's
-  origin and base path before it attaches a token. An `address` or `proxy`
-  that carries a user name, password, query or fragment fails validation.
-  Secrets share one KV read only when their effective server, namespace,
-  mount, KV version, path, `ca-cert`, `proxy` and `auth` mapping are all the
-  same.
+  `NODE_TLS_REJECT_UNAUTHORIZED` says, and never replaces the host check. A
+  request's URL is the address, with its base path kept, followed by `/v1/`
+  and the route, whose mount, path and AppRole mount lose their leading and
+  trailing slashes, as in seek 0.3, and are then split into segments, each
+  percent-encoded; an empty, `.` or `..` segment is a validation error. Before
+  each request, seek checks that the URL keeps the address's origin and base
+  path. A 301, 302, 303, 307 or 308 answer to a KV read, or a 307 or 308
+  answer to an AppRole login, is followed, up to 20 times and with the same
+  token or login body, only when its `Location` keeps that origin and base
+  path; any other 3xx answer, or one that leaves the origin or base path, is
+  an error and nothing is sent to its target. Whether that refusal stands for
+  redirects to another server or outside the base path, which seek 0.3
+  followed, is pending the operator's decision in `vault-redirects`. An
+  `address` or `proxy` that carries a user name, password, query or fragment
+  fails validation. Secrets share one KV read only when their effective
+  server, namespace, mount, KV version, path, certificate list, `proxy` and
+  `auth` mapping are all the same.
 
 
   Validation runs on each layer before the merge and on the merged result.
@@ -211,9 +225,11 @@ description: >-
   `<redacted>`, a helper as its program and number of arguments, and a URL
   with any user name, password, query or fragment replaced by `<redacted>`.
   The top-level Vault login prints as one entry, `vault.auth`, with its mode
-  and the layer that declared it. `--json` prints the same information as the
-  object `configuration.show.schema.json` defines, the supported interface for
-  scripts that read seek's configuration. `seek config validate` runs the
+  and the layer that declared it. Each Vault source also prints its
+  certificate inputs: `ca-cert`, or each default input with its path and the
+  number of certificates read from it. `--json` prints the same information as
+  the object `configuration.show.schema.json` defines, the supported interface
+  for scripts that read seek's configuration. `seek config validate` runs the
   validation above and exits 0 when it passes and 1 otherwise. `seek config
   path` prints the file that `seek config init` writes: the `--config` or
   `SEEK_CONFIG` path, else the user file for the client, else
@@ -278,17 +294,25 @@ validation-criteria: >-
   `VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY`, `VAULT_TLS_SERVER_NAME`,
   `VAULT_HEADERS`, `VAULT_PROXY_ADDR`, `VAULT_HTTP_PROXY`, `HTTP_PROXY`,
   `HTTPS_PROXY`, `ALL_PROXY` and `NODE_TLS_REJECT_UNAUTHORIZED=0`. They
-  require that no sentinel reaches a request or a connection, and, for both a
-  KV read and an AppRole login against a server whose certificate a private
-  authority signed for `localhost`, all while `NODE_TLS_REJECT_UNAUTHORIZED=0`
-  is set: that the server is rejected with no trust input; accepted with that
+  require that no sentinel reaches a request or a connection; that with
+  `vault.proxy` set and `NO_PROXY` matching the Vault host, both a KV read and
+  an AppRole login go through one `CONNECT` to the configured proxy, carrying
+  no `Proxy-Authorization`, while a different proxy named by `HTTP_PROXY`,
+  `HTTPS_PROXY` and `ALL_PROXY` sees no connection; and, for both a KV read
+  and an AppRole login against a server whose certificate a private authority
+  signed for `localhost`, all while `NODE_TLS_REJECT_UNAUTHORIZED=0` is set:
+  that the server is rejected with no trust input; accepted with that
   authority in `NODE_EXTRA_CA_CERTS`, in `SSL_CERT_FILE`, in a hashed
-  `SSL_CERT_DIR`, or as `ca-cert`; rejected when `ca-cert` names another
-  authority even though all three process inputs hold the right one; and
-  rejected when reached as `127.0.0.1`, whose name the certificate does not
-  carry. A public site is accepted with no input, through the bundled roots;
-  that a 3xx answer to a KV read or an AppRole login is an error, and that
-  both operations against an address with a base path such as `/team-a` reach
+  `SSL_CERT_DIR`, or as `ca-cert`; still rejected when the authority is added
+  to `SSL_CERT_DIR` after the configuration loaded, and accepted after the
+  next load; rejected when `ca-cert` names another authority even though all
+  three process inputs hold the right one; and rejected when reached as
+  `127.0.0.1`, whose name the certificate does not carry. A public site is
+  accepted with no input, through the bundled roots; that a 307 answer to a KV
+  read or an AppRole login within the address's origin and base path is
+  followed with the same token or body, while one to another origin or outside
+  the base path is an error and its target receives no request, and that both
+  operations against an address with a base path such as `/team-a` reach
   routes under that path. A mount, path or AppRole mount written with leading
   and trailing slashes, such as `/team/seek/`, reaches the same route as
   without them, and an empty or dot segment inside one fails validation. A
@@ -299,9 +323,11 @@ validation-criteria: >-
   secret in the request and the AppRole login body. A namespace test exports
   `BAO_NAMESPACE=tenant-a` and gives a secret `namespace: ""` for another
   server, and requires `config show` to report the root namespace and the
-  request to carry no namespace header. Redaction tests give a helper a
-  synthetic sensitive argument and require it absent from errors and from both
-  `config show` formats. Inspection tests require `config show` and `config
+  request to carry no `X-Vault-Namespace` header at all. Redaction tests give
+  a helper a synthetic sensitive argument and require it absent from errors
+  and from both `config show` formats. Inspection tests require `config show`
+  to list the certificate inputs in effect for each Vault source, with their
+  paths and certificate counts. They also require `config show` and `config
   validate` to redact as described while a command source would write a marker
   file, a secret file is unreadable and a Vault stub counts zero requests.
   Write tests run `config init` and `config path` with a new explicit

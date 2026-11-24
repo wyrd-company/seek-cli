@@ -42,3 +42,22 @@ considered-options:
       - A redirect can deliver the token or the AppRole secret ID to an origin
         the configuration never named, which the binding rules exist to
         prevent.
+decision-outcome:
+  chosen-option: bound-redirects-only
+  justification: >-
+    The operator, Bob, approved refusing Vault redirects outside the
+    configured server and base path: "Yes. Stop hardening. If this is what
+    you are considering you have gone too far." The answer is recorded on the
+    epic's task 1 in workspace commit 50f0950.
+expected-outcomes:
+  positive:
+    - >-
+      No Vault token or AppRole secret ID can reach an origin or path that was
+      not configured, and the same-origin redirects seek 0.3 followed keep
+      working.
+  negative:
+    - >-
+      A seek 0.3 setup that reached its secret only through a redirect to
+      another origin, or outside the base path, fails with an error naming the
+      refused target until `vault.address` names the final address, such as
+      the active node, a load balancer or a node with request forwarding.

@@ -193,4 +193,4 @@ expected-outcomes:
       relied on a redirect to another origin or outside the base path, such as
       a standby node redirecting to the active node, fails with an error
       naming the refused target until `vault.address` names the final address;
-      that refusal is pending the operator's decision in `vault-redirects`.
+      the operator decided that refusal in `vault-redirects`.

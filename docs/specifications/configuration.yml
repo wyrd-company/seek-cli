@@ -174,13 +174,12 @@ description: >-
   answer to an AppRole login, is followed, up to 20 times and with the same
   token or login body, only when its `Location` keeps that origin and base
   path; any other 3xx answer, or one that leaves the origin or base path, is
-  an error and nothing is sent to its target. Whether that refusal stands for
-  redirects to another server or outside the base path, which seek 0.3
-  followed, is pending the operator's decision in `vault-redirects`. An
-  `address` or `proxy` that carries a user name, password, query or fragment
-  fails validation. Secrets share one KV read only when their effective
-  server, namespace, mount, KV version, path, certificate list, `proxy` and
-  `auth` mapping are all the same.
+  an error and nothing is sent to its target. Redirects to another server or
+  outside the base path, which seek 0.3 followed, are refused as the operator
+  decided in `vault-redirects`. An `address` or `proxy` that carries a user
+  name, password, query or fragment fails validation. Secrets share one KV
+  read only when their effective server, namespace, mount, KV version, path,
+  certificate list, `proxy` and `auth` mapping are all the same.
 
 
   Validation runs on each layer before the merge and on the merged result.

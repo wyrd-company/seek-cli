@@ -42,9 +42,10 @@ Each higher layer overrides the settings it sets. A secret's source is
 replaced whole, so an environment variable that names a file for a key
 replaces a helper the file named, rather than mixing the two. Each
 environment variable is `SEEK_` and the setting's path, and each flag `--`
-and the path. The only other names seek reads are `BAO_ADDR`, `VAULT_ADDR`,
-`BAO_NAMESPACE`, `VAULT_NAMESPACE`, `BAO_TOKEN` and `VAULT_TOKEN`, shared
-with the Vault and OpenBao tools, `BAO_*` before `VAULT_*`.
+and the path. The only other variables that set a setting are `BAO_ADDR`,
+`VAULT_ADDR`, `BAO_NAMESPACE`, `VAULT_NAMESPACE`, `BAO_TOKEN` and
+`VAULT_TOKEN`, shared with the Vault and OpenBao tools, `BAO_*` before
+`VAULT_*`.
 
 ## Sources
 

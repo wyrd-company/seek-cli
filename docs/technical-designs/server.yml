@@ -65,7 +65,7 @@ proposed-design:
       `/healthz` returns `{"status":"ok"}` for any method. A path outside
       `/v1/proxy/` returns 404. Unless authentication is off, the handler
       reads the accepted tokens from the resolver on each request, splits
-      `SEEK_SERVER_TOKEN` on commas, and returns 401 with `WWW-Authenticate:
+      `server.tokens` on commas, and returns 401 with `WWW-Authenticate:
       Bearer` when the `Authorization: Bearer` value is missing or matches
       none of them. It then takes the upstream ID from the first path segment
       after `/v1/proxy/` and returns 404 for an ID outside `UPSTREAMS` and 503

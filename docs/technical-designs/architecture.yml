@@ -126,7 +126,7 @@ proposed-design:
       requests and pushes `ghcr.io/wyrd-company/seek-server` for linux/amd64
       and linux/arm64 on version tags: the binary, cross-compiled with Bun, on
       a distroless non-root base, running `seek serve` with
-      `SEEK_SERVER_HOST=0.0.0.0` and `XDG_CONFIG_HOME=/config`, and reading
+      `SEEK_SERVER_HOST=0.0.0.0`, and reading
       `/etc/seek/server.yml`.
   versions:
     >-

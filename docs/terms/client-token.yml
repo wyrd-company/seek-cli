@@ -3,4 +3,5 @@ title: Client token
 description: >-
   The bearer token a client presents to a seek server. A client holds one, in
   `server.token`; the server accepts each entry of its comma-separated
-  `server.tokens`. `SEEK_SERVER_TOKEN` sets either one in the environment.
+  `server.tokens`, set in the environment through their derived variables,
+  such as `SEEK_SERVER_TOKEN_FILE` and `SEEK_SERVER_TOKENS_FILE`.

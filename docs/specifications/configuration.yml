@@ -67,16 +67,17 @@ description: >-
   An alias is another environment variable for a setting, listed under
   `x-env-aliases` in the schema, and `x-flag-aliases` lists another flag.
   Within the environment layer a derived variable wins over an alias, and the
-  first alias listed wins over the next. The aliases are: each provider key's
-  variable, such as `EXA_API_KEY`, for that provider's `api-key` as a `value`;
-  `SEEK_SERVER_TOKEN` for the client's `server.token` and the server's
-  `server.tokens` as a `value`; `BAO_ADDR` and `VAULT_ADDR` for
-  `vault.address`; `BAO_NAMESPACE` and `VAULT_NAMESPACE` for
-  `vault.namespace`; and `BAO_TOKEN` and `VAULT_TOKEN` for `vault.auth` as
-  `{ mode: token, token: { value: <token> } }`. An alias of a secret applies
-  only when no derived variable of the same secret is set. The flag aliases
-  are `--host` for `--server-host`, `--port` for `--server-port`, and
-  `--no-auth` for `--no-server-require-token`.
+  first alias listed wins over the next. The aliases are the cross-tool Vault
+  and OpenBao variables: `BAO_ADDR` and `VAULT_ADDR` for `vault.address`;
+  `BAO_NAMESPACE` and `VAULT_NAMESPACE` for `vault.namespace`; and `BAO_TOKEN`
+  and `VAULT_TOKEN` for `vault.auth` as
+  `{ mode: token, token: { value: <token> } }`, which applies only when no
+  derived `SEEK_VAULT_AUTH_*` variable is set. Every other setting, each
+  provider key and client token included, is read from the environment only
+  under its derived name, such as `SEEK_PROVIDERS_EXA_API_KEY_VALUE` or
+  `SEEK_SERVER_TOKEN_FILE`. The flag aliases are `--host` for `--server-host`,
+  `--port` for `--server-port`, and `--no-auth` for
+  `--no-server-require-token`.
 
 
   The client configuration holds `server.url`, `server.token`, `providers` and
@@ -153,14 +154,17 @@ description: >-
   The client resolves a secret when a command needs it: in direct mode the key
   of the provider it calls, and in server mode `server.token`. A direct-mode
   command whose provider has no `api-key` source in any layer stops with exit
-  status 2 and a message that names the provider's variable, the setting's
-  path and the user file. A configured source that fails to resolve stops the
-  command with exit status 1 and a message that names the source and not the
-  secret. The server resolves every configured secret before it listens and
-  exits when one fails. It resolves each again once
-  `server.secret-refresh-seconds` has passed since the last resolution, and a
-  later resolution that fails writes one warning to stderr and keeps the value
-  it holds.
+  status 2 and a message that names the setting's path, its environment
+  variables, such as `SEEK_PROVIDERS_EXA_API_KEY_VALUE` and
+  `SEEK_PROVIDERS_EXA_API_KEY_FILE`, and the user file. A server that
+  `server.tokens` does not resolve for, while `server.require-token` is true,
+  refuses to start with a message that names `server.tokens` and its variables
+  in the same way. A configured source that fails to resolve stops the command
+  with exit status 1 and a message that names the source and not the secret.
+  The server resolves every configured secret before it listens and exits when
+  one fails. It resolves each again once `server.secret-refresh-seconds` has
+  passed since the last resolution, and a later resolution that fails writes
+  one warning to stderr and keeps the value it holds.
 
 
   `seek config` inspects the client configuration, or with `--server` the
@@ -178,73 +182,17 @@ description: >-
   writes: the `--config` or `SEEK_CONFIG` path, else the user file for the
   client, else `/etc/seek/server.yml`. `seek config init` writes a commented
   template of that configuration and refuses to replace a file without
-  `--force`. `seek config init` and `seek config migrate` write privately and
-  atomically: they create a new file with mode 0600 in the target's directory,
-  which they create with mode 0700 when it is missing, and rename it over the
-  target, so a failure leaves any existing file unchanged and removes the new
-  one. `--force` replaces an existing file the same way. The server image
-  reads `/etc/seek/server.yml` and sets `SEEK_SERVER_HOST=0.0.0.0` and
-  `XDG_CONFIG_HOME=/config`.
-
-
-  seek 0.3 read a JSON file at `$XDG_CONFIG_HOME/seek/config.json`, or
-  `~/.config/seek/config.json`, and the environment variables listed under
-  `x-removed-env` in each schema. When that file exists, or one of those
-  variables is set, a command that reads its configuration writes one warning
-  to stderr that names it and its replacement and reads it no further.
-
-
-  `seek config migrate` writes the client file, or with `--server` the server
-  file, from a seek 0.3 setup: the JSON file, or the file `--from` names, and
-  the 0.3 variables in its environment. For each secret of that configuration
-  it writes the source seek 0.3 used. A JSON value counts only when it is a
-  string that is not blank after trimming; a blank or non-string value, such
-  as each empty string the 0.3 `seek config init` wrote, counts as absent, as
-  it did in seek 0.3, and migrate lists each key it drops. For the client, a
-  provider key in the JSON file becomes that provider's `api-key` with the
-  `value` as entered, because the seek 0.3 CLI read provider keys from the
-  environment and the file only; `SEEK_SERVER_URL` becomes `server.url`,
-  trimmed and without trailing slashes; and the client token becomes a `vault`
-  source on the field `SEEK_SERVER_TOKEN` of the secret `SEEK_VAULT_PATH`
-  names when that field is not blank, else the JSON token as a `value`. For
-  the server, each provider key and `SEEK_SERVER_TOKEN` becomes a `vault`
-  source on its 0.3 name when that field of the `SEEK_VAULT_PATH` secret is
-  not blank, else its JSON value, trimmed, as a `value`. migrate reads that
-  secret with the 0.3 Vault settings to learn which fields are set, and prints
-  no value from it. A secret set in the environment stays there, under the
-  aliases above.
-
-
-  The 0.3 Vault connection becomes the top-level `vault` mapping: the address
-  seek 0.3 selected (`SEEK_VAULT_ADDR`, then `VAULT_ADDR`, then `BAO_ADDR`),
-  its namespace (`VAULT_NAMESPACE`, then `BAO_NAMESPACE`), `SEEK_VAULT_MOUNT`,
-  `SEEK_VAULT_KV_VERSION`, the proxy that `HTTPS_PROXY`, `HTTP_PROXY`,
-  `ALL_PROXY` and `NO_PROXY` selected for that address, and an AppRole or
-  token-file `auth` mapping from the 0.3 variables. A relative token-file or
-  secret-ID-file path resolves against migrate's working directory, as it did
-  against seek 0.3's, and must name an existing file there; migrate writes the
-  absolute path. `SEEK_VAULT_REFRESH_SECONDS` becomes
-  `server.secret-refresh-seconds`; the client has no equivalent. An AppRole
-  secret ID set as `SEEK_VAULT_SECRET_ID` stops migrate with a message to move
-  it into a file, because migrate writes no secret it read from the
-  environment.
-
-
-  Before it installs the file, migrate loads the new configuration with the
-  current environment and compares, for each secret, its source and, for a
-  Vault source, the address, namespace, mount, KV version, proxy, `auth` mode
-  and the variable or file that supplies the `auth` credential, with what seek
-  0.3 used. When any of them differs, as when an exported `BAO_ADDR`,
-  `BAO_NAMESPACE`, `BAO_TOKEN` or `VAULT_TOKEN` outranks the converted file,
-  it installs nothing and exits 1 with a message that names each variable to
-  change and the setting it affects, without any secret value. Otherwise it
-  installs the file, prints each 0.3 variable that remains to remove, and
-  exits 0.
+  `--force`. It writes privately and atomically: it creates a new file with
+  mode 0600 in the target's directory, which it creates with mode 0700 when it
+  is missing, and renames it over the target, so a failure leaves any existing
+  file unchanged and removes the new one. `--force` replaces an existing file
+  the same way. The server image reads `/etc/seek/server.yml` and sets
+  `SEEK_SERVER_HOST=0.0.0.0`.
 format: json-schema
 validation-criteria: >-
   The four schemas compile under Ajv 8.20.0 in strict mode with the 2020-12
-  dialect, ajv-formats 3.0.1 and the `x-env-aliases`, `x-flag-aliases` and
-  `x-removed-env` keywords registered as annotations. The examples in the
+  dialect, ajv-formats 3.0.1 and the `x-env-aliases` and `x-flag-aliases`
+  keywords registered as annotations. The examples in the
   schemas and in `docs/user/` validate, and the invalid fixtures under
   `tests/fixtures/invalid/` fail with the error each test names.
   `tests/configuration.test.ts` derives every environment variable and flag
@@ -256,26 +204,22 @@ validation-criteria: >-
   fixture files, environment variables and flags, and cover default and
   explicit discovery, each precedence step, whole replacement of secret
   sources and `auth` mappings, explicit empty values, per-layer and merged
-  validation errors with their paths and layers, aliases, and each removed 0.3
-  variable's warning. Binding tests cover a secret's own `auth` declared in a
-  file without an address while the environment changes the top-level address,
-  an unbound `auth`, and a top-level `auth` bound to another server, and
-  require each to fail before any credential is resolved. Transport tests set
-  every `BAO_*` and `VAULT_*` variable a Vault client reads, and `HTTP_PROXY`,
-  `HTTPS_PROXY` and `ALL_PROXY`, to sentinels, and require that no sentinel
-  reaches a request or a connection, that an untrusted certificate is
-  rejected, and that a 3xx answer to a KV read or an AppRole login is an
-  error. A read-sharing test puts two secrets at the same KV location with
-  different `auth` mappings or `ca-cert` and requires two reads. Redaction
-  tests give a helper a synthetic sensitive argument and require it absent
-  from errors and from both `config show` formats. Inspection tests require
-  `config show` and `config validate` to redact as described while a command
-  source would write a marker file, a secret file is unreadable and a Vault
-  stub counts zero requests. Migration tests start from the released 0.3.2
-  `config init` template, partially filled, and from setups that hold the same
-  synthetic key in the JSON file and in Vault, for the client and for the
-  server, and require the sources measured from seek 0.3.2 for each. They
-  cover a relative token-file path, `SEEK_VAULT_REFRESH_SECONDS`, conflicting
-  exported `BAO_*` and `VAULT_*` variables, which must install nothing and
-  exit 1, and the private, atomic write, including its mode and a failed write
-  that leaves the existing file unchanged.
+  validation errors with their paths and layers, aliases, and that a released
+  0.3.2 JSON file and the 0.3 variables, `EXA_API_KEY`, `SEEK_SERVER_TOKEN`
+  and `SEEK_VAULT_PATH` among them, change nothing and write nothing to
+  stderr. Binding tests cover a secret's own `auth` declared in a file without
+  an address while the environment changes the top-level address, an unbound
+  `auth`, and a top-level `auth` bound to another server, and require each to
+  fail before any credential is resolved. Transport tests set every `BAO_*`
+  and `VAULT_*` variable a Vault client reads, and `HTTP_PROXY`, `HTTPS_PROXY`
+  and `ALL_PROXY`, to sentinels, and require that no sentinel reaches a
+  request or a connection, that an untrusted certificate is rejected, and that
+  a 3xx answer to a KV read or an AppRole login is an error. A read-sharing
+  test puts two secrets at the same KV location with different `auth` mappings
+  or `ca-cert` and requires two reads. Redaction tests give a helper a
+  synthetic sensitive argument and require it absent from errors and from both
+  `config show` formats. Inspection tests require `config show` and
+  `config validate` to redact as described while a command source would write
+  a marker file, a secret file is unreadable and a Vault stub counts zero
+  requests. Write tests require `config init` to create its file with mode
+  0600, and a failed write to leave an existing file unchanged.

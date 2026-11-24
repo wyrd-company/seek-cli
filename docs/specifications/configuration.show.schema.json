@@ -27,7 +27,7 @@
       }
     },
     "warnings": {
-      "description": "The warnings loading wrote to stderr, such as a seek 0.3 file or variable that is no longer read.",
+      "description": "Warnings that loading wrote to stderr, such as a deprecated key and the key that replaces it.",
       "type": "array",
       "items": {
         "type": "string"
@@ -344,7 +344,7 @@
           },
           "layer": {
             "kind": "env",
-            "name": "PARALLEL_API_KEY"
+            "name": "SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE"
           }
         },
         {

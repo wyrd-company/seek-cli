@@ -25,7 +25,8 @@ properties:
   provider-keys:
     >-
       One API key per upstream, the setting `providers.<upstream>.api-key`,
-      also set by the provider's own variable, such as `EXA_API_KEY`.
+      set in a configuration file, by its derived environment variables such
+      as `SEEK_PROVIDERS_EXA_API_KEY_FILE`, or by flags.
   output-modes:
     >-
       Rendered text on stdout by default: numbered search results, answers and
@@ -102,9 +103,8 @@ features:
   manage-configuration:
     >-
       Prints the configuration file's path, writes a commented template,
-      validates the configuration, shows the effective settings with each
-      one's source and every secret redacted, and converts a seek 0.3
-      configuration.
+      validates the configuration, and shows the effective settings with
+      each one's source and every secret redacted.
   print-the-skill:
     >-
       Prints the bundled skill so that an agent harness can install it from

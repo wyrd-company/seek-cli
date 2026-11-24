@@ -34,8 +34,7 @@
         },
         "tokens": {
           "description": "The client tokens the server accepts, as one comma-separated value, so that a new token can be added before the old one is removed. Required while `server.require-token` is true.",
-          "$ref": "configuration.secrets.schema.json#/$defs/secret",
-          "x-env-aliases": ["SEEK_SERVER_TOKEN"]
+          "$ref": "configuration.secrets.schema.json#/$defs/secret"
         },
         "secret-refresh-seconds": {
           "description": "How long the server uses each secret it resolved before it resolves it again. A later resolution that fails keeps the value already held. Zero resolves on every use.",
@@ -51,16 +50,6 @@
     "vault": {
       "$ref": "configuration.secrets.schema.json#/$defs/vault"
     }
-  },
-  "x-removed-env": {
-    "SEEK_VAULT_PATH": "vault.path with vault.key on each secret, such as providers.exa.api-key.vault.path and providers.exa.api-key.vault.key (SEEK_PROVIDERS_EXA_API_KEY_VAULT_PATH and SEEK_PROVIDERS_EXA_API_KEY_VAULT_KEY)",
-    "SEEK_VAULT_ADDR": "vault.address (SEEK_VAULT_ADDRESS)",
-    "SEEK_VAULT_ROLE_ID": "vault.auth.role-id with vault.auth.mode approle (SEEK_VAULT_AUTH_ROLE_ID and SEEK_VAULT_AUTH_MODE)",
-    "SEEK_VAULT_SECRET_ID": "vault.auth.secret-id (SEEK_VAULT_AUTH_SECRET_ID_VALUE)",
-    "SEEK_VAULT_SECRET_ID_FILE": "vault.auth.secret-id.file (SEEK_VAULT_AUTH_SECRET_ID_FILE)",
-    "SEEK_VAULT_APPROLE_MOUNT": "vault.auth.mount (SEEK_VAULT_AUTH_MOUNT)",
-    "SEEK_VAULT_TOKEN_FILE": "vault.auth.token.file with vault.auth.mode token (SEEK_VAULT_AUTH_TOKEN_FILE and SEEK_VAULT_AUTH_MODE)",
-    "SEEK_VAULT_REFRESH_SECONDS": "server.secret-refresh-seconds (SEEK_SERVER_SECRET_REFRESH_SECONDS)"
   },
   "examples": [
     {

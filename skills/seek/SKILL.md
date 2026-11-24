@@ -89,31 +89,33 @@ accepted interaction locator after approval instead of polling.
 
 ## Authentication
 
-Each provider needs its own API key. `seek` resolves keys in this order:
+Each provider needs its own API key, the setting `providers.<provider>.api-key`.
+`seek` reads `~/.config/seek/client.yml` (or `$XDG_CONFIG_HOME/seek/client.yml`),
+then environment variables, then flags; a later layer wins.
 
-1. Process env var (wins — useful for CI/one-offs).
-2. `$XDG_CONFIG_HOME/seek/config.json` (falls back to `~/.config/seek/config.json`).
+| Provider | Setting | Variable for the key itself |
+|---|---|---|
+| Parallel | `providers.parallel.api-key` | `SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE` |
+| Exa | `providers.exa.api-key` | `SEEK_PROVIDERS_EXA_API_KEY_VALUE` |
+| Brave Search | `providers.brave-search.api-key` | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VALUE` |
+| Brave Answers | `providers.brave-answers.api-key` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VALUE` |
+| Perplexity | `providers.perplexity.api-key` | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE` |
+| Google (Gemini) | `providers.google.api-key` | `SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE` |
+| Firecrawl | `providers.firecrawl.api-key` | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VALUE` |
 
-| Provider | Env var / config key |
-|---|---|
-| Parallel | `PARALLEL_API_KEY` |
-| Exa | `EXA_API_KEY` |
-| Brave Search | `BRAVE_SEARCH_API_KEY` |
-| Brave Answers | `BRAVE_ANSWERS_API_KEY` |
-| Perplexity | `PERPLEXITY_API_KEY` |
-| Google (Gemini) | `GEMINI_API_KEY` |
-| Firecrawl | `FIRECRAWL_API_KEY` |
-
-Manage config with:
+A key can also come from a file (`..._FILE`), a credential helper
+(`..._COMMAND`) or Vault/OpenBao. Inspect the configuration with:
 
 ```sh
-seek config init   # writes a template at ~/.config/seek/config.json (mode 0600)
-seek config path   # print resolved path
-seek config show   # show which keys are set (values masked)
+seek config show       # each setting and its layer; secrets redacted
+seek config validate   # exit 0 when the configuration is valid
+seek config path       # the file seek config init writes
+seek config init       # write a commented template (mode 0600)
 ```
 
-If a command fails with a missing-key error, surface it to the user and point
-them at `seek config init`.
+These never read a secret. If a command fails with a missing-key error (exit
+status 2), surface it to the user: the message names the setting and its
+variables.
 
 ## Examples
 

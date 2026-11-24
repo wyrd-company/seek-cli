@@ -60,25 +60,32 @@ proposed-design:
       provider-specific parsing, and the submit, read and wait functions of
       long-running research. `src/lib/upstreams.ts`: the `UPSTREAMS` table and
       routing. `src/lib/http.ts`: `request()`, `poll()` and `HttpError`.
-      `src/lib/config.ts`: the configuration file's path, its cached contents
-      and `KNOWN_KEYS`, the provider key variables. `src/lib/env.ts`:
-      `requireEnv()` and `MissingEnvError`. `src/lib/exit-status.ts`:
+      `src/lib/settings.ts`: every setting of the client and server
+      configurations, with its environment variable, aliases and flags,
+      derived from the configuration schemas. `src/lib/config.ts`: the
+      loader, `loadConfiguration()`. `src/lib/options.ts`: the
+      configuration flags each command declares. `src/lib/secrets.ts`:
+      `SecretResolver`, which reads a secret from its source.
+      `src/lib/vault.ts`: the Vault and OpenBao client. `src/lib/trust.ts`:
+      the certificate list a Vault connection trusts. `src/lib/redact.ts`:
+      URL redaction. `src/lib/exit-status.ts`:
       `EXIT_STATUSES`, each exit code with its name and meaning, and `EXIT`,
       the codes by name. `src/lib/output.ts`: JSON output and the text
       renderers. `src/lib/research-jobs.ts`: the research job lifecycle.
       `src/server/server.ts`: the proxy handler. `src/server/secrets.ts`:
-      `SecretResolver`. `src/server/vault.ts`: the Vault and OpenBao client.
+      `SecretStore`, the server's resolved and refreshed secrets.
   upstream-routing:
     >-
       `UPSTREAMS` holds, for each of the seven upstream IDs, a label for
-      messages, the provider's base URL, the provider key's variable, and a
-      function that turns a key into the provider's auth headers.
-      `remoteServerUrl()` returns `SEEK_SERVER_URL` from the environment or
-      the configuration file, trimmed and without trailing slashes, or null.
-      `upstreamBaseUrl(id)` returns `<server>/v1/proxy/<id>` when a server is
-      set and the provider's base URL otherwise. `upstreamAuthHeaders(id)`
-      returns `Authorization: Bearer <client token>` when a server is set, and
-      the provider's own headers built from `requireEnv()` otherwise.
+      messages, the provider's base URL, the provider key's setting, and a
+      function that turns a key into the provider's auth headers. The client
+      configuration a command loaded gives `server.url`, without trailing
+      slashes, or none. `upstreamBaseUrl(id)` returns
+      `<server>/v1/proxy/<id>` when a server is set and the provider's base
+      URL otherwise. `upstreamAuthHeaders(id)` returns `Authorization: Bearer
+      <client token>` when a server is set, and the provider's own headers
+      built from its resolved key otherwise, or raises
+      `MissingProviderKeyError` when the key has no source.
   requests:
     >-
       `request()` sends a JSON body when it is given an object, aborts after a

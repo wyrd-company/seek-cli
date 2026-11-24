@@ -47,38 +47,45 @@ bun run build       # -> dist/seek
 
 ## Authentication
 
-Each provider reads its own API key. `seek` resolves them in this order:
+Each provider reads its own API key, the setting `providers.<provider>.api-key`.
+The CLI reads its client configuration from `/etc/seek/client.yml`, then
+`$XDG_CONFIG_HOME/seek/client.yml` (falling back to
+`~/.config/seek/client.yml`), then environment variables, then flags, each
+layer overriding the one before. Each setting's variable is `SEEK_` and its
+path, and its flag `--` and its path.
 
-1. Process environment variable (always wins — useful for CI and one-off overrides).
-2. Config file at `$XDG_CONFIG_HOME/seek/config.json`, falling back to `~/.config/seek/config.json`.
+| Provider      | Setting                          | Variable for the key itself                  |
+| ------------- | -------------------------------- | -------------------------------------------- |
+| Parallel      | `providers.parallel.api-key`      | `SEEK_PROVIDERS_PARALLEL_API_KEY_VALUE`      |
+| Exa           | `providers.exa.api-key`           | `SEEK_PROVIDERS_EXA_API_KEY_VALUE`           |
+| Brave Search  | `providers.brave-search.api-key`  | `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_VALUE`  |
+| Brave Answers | `providers.brave-answers.api-key` | `SEEK_PROVIDERS_BRAVE_ANSWERS_API_KEY_VALUE` |
+| Perplexity    | `providers.perplexity.api-key`    | `SEEK_PROVIDERS_PERPLEXITY_API_KEY_VALUE`    |
+| Google        | `providers.google.api-key`        | `SEEK_PROVIDERS_GOOGLE_API_KEY_VALUE`        |
+| Firecrawl     | `providers.firecrawl.api-key`     | `SEEK_PROVIDERS_FIRECRAWL_API_KEY_VALUE`     |
 
-| Provider      | Env var / config key    |
-| ------------- | ----------------------- |
-| Parallel      | `PARALLEL_API_KEY`      |
-| Exa           | `EXA_API_KEY`           |
-| Brave Search  | `BRAVE_SEARCH_API_KEY`  |
-| Brave Answers | `BRAVE_ANSWERS_API_KEY` |
-| Perplexity    | `PERPLEXITY_API_KEY`    |
-| Google        | `GEMINI_API_KEY`        |
-| Firecrawl     | `FIRECRAWL_API_KEY`     |
+Each key names one source: the key itself (`value`), a `file`, a credential
+helper (`command`) or a field of a Vault or OpenBao KV secret (`vault`):
 
-To set up the config file:
+```yaml
+providers:
+  exa:
+    api-key:
+      file: ~/.config/seek/secrets/exa
+  perplexity:
+    api-key:
+      command: ["op", "read", "op://Private/Perplexity/credential"]
+```
 
 ```sh
-seek config init        # writes a mode-0600 config template
-seek config path        # print the resolved path
-seek config show        # show which keys are configured (values masked)
+seek config init        # writes a commented, mode-0600 template
+seek config path        # print the file config init writes
+seek config validate    # check the configuration
+seek config show        # show each setting and its layer, secrets redacted
 ```
 
-The config file is a flat JSON object whose keys match the env var names, so
-you can mix and match without learning a second schema:
-
-```json
-{
-  "EXA_API_KEY": "sk-…",
-  "PERPLEXITY_API_KEY": "pplx-…"
-}
-```
+Upgrading from seek 0.3, which read `config.json` and variables such as
+`EXA_API_KEY`? See [docs/user/upgrade-from-0-3.md](docs/user/upgrade-from-0-3.md).
 
 ## Server mode
 
@@ -88,29 +95,31 @@ central and point the CLI at it:
 
 ```sh
 export SEEK_SERVER_URL=https://seek.internal
-export SEEK_SERVER_TOKEN=...
+export SEEK_SERVER_TOKEN_VALUE=...
 ```
 
-To read the client token from Vault or OpenBao, set `SEEK_VAULT_PATH` to a KV
-path containing a single client token under `SEEK_SERVER_TOKEN`. For example,
-a client using OpenBao token authentication can set:
+To read the client token from Vault or OpenBao, name its field in the client
+configuration:
 
-```sh
-export SEEK_SERVER_URL=https://seek.internal
-unset SEEK_SERVER_TOKEN
-export BAO_ADDR=https://bao.internal
-export SEEK_VAULT_PATH=clients/my-seek-cli
-# Supply BAO_TOKEN through your environment.
-seek web exa "papers on archival paper longevity"
+```yaml
+server:
+  url: https://seek.internal
+  token:
+    vault:
+      path: clients/my-seek-cli
+      key: SEEK_SERVER_TOKEN
+vault:
+  address: https://bao.internal
+  auth:
+    mode: token
+    token:
+      file: ~/.vault-token
 ```
 
-The client checks the environment token first, then the Vault field, then the
-token in the seek config file. A failed first Vault read stops the request.
-Token files, AppRole, namespaces, and KV v1/v2 use the same environment
-settings documented for the server.
-
-The server adds the real API keys, which it reads from its environment, its
-config file, or Vault/OpenBao. See [docs/user/server.md](docs/user/server.md).
+A Vault login is used only for the server it was declared beside, so a
+`BAO_TOKEN` exported for another server never reaches this one. The server
+reads its own configuration, `/etc/seek/server.yml`, with the client tokens it
+accepts as `server.tokens`. See [docs/user/server.md](docs/user/server.md).
 
 ## Command map
 

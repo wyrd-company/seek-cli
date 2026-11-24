@@ -22,7 +22,7 @@ A design document is an immediate `docs/<folder>/<slug>.yml` file whose name has
 |---|---|---|
 | Command line | `createProgram()` in `src/program.ts`, from the Commander declarations in `src/commands/`, and `EXIT_STATUSES` in `src/lib/exit-status.ts` | `tests/program.test.ts`, `tests/cli.test.ts` |
 | HTTP API | `specifications/http-api.openapi.yml` | `tests/http-api.test.ts` |
-| Configuration | `specifications/configuration.file.schema.json`, `specifications/configuration.environment.schema.json` | `tests/configuration.test.ts` |
+| Configuration | `specifications/configuration.client.schema.json`, `configuration.server.schema.json`, `configuration.secrets.schema.json`, `configuration.show.schema.json`; `src/lib/settings.ts` derives every setting, variable and flag from them | `tests/configuration.test.ts`, `tests/loader.test.ts`, `tests/vault.test.ts` |
 | Research job envelope | `specifications/research-job-envelope.schema.json` | `tests/research-job-envelope.test.ts` |
 
 Change a definition and the code together; the tests fail when they disagree. Published reference and public copies of the definitions are generated from these inputs, as `technical-designs/documentation.yml` describes; never edit a generated file by hand.
@@ -40,7 +40,7 @@ Validate the definitions with their own tools:
 ```sh
 npm exec --yes --package=@seriousme/openapi-schema-validator@2.12.0 -- validate-api docs/specifications/http-api.openapi.yml
 npm exec --yes --package=@redocly/cli@2.82.0 -- redocly lint --extends recommended docs/specifications/http-api.openapi.yml
-npm exec --yes --package=ajv-cli@5.0.0 --package=ajv-formats@3.0.1 -- ajv compile --spec=draft2020 --strict=true -c ajv-formats -s docs/specifications/configuration.file.schema.json -s docs/specifications/configuration.environment.schema.json -s docs/specifications/research-job-envelope.schema.json
+npm exec --yes --package=ajv-cli@5.0.0 --package=ajv-formats@3.0.1 -- ajv compile --spec=draft2020 --strict=true -c ajv-formats -c ./scripts/docs/ajv-annotations.cjs -r docs/specifications/configuration.secrets.schema.json -s docs/specifications/configuration.client.schema.json -s docs/specifications/configuration.server.schema.json -s docs/specifications/configuration.show.schema.json -s docs/specifications/research-job-envelope.schema.json
 ```
 
 Redocly reports two warnings, which are expected: the repository has no licence for `info.license` to name, and `/healthz` has no 4XX response because it always returns 200.

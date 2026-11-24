@@ -78,8 +78,10 @@ proposed-design:
       The command line: `createProgram()` in `src/program.ts`, with
       `EXIT_STATUSES` from `src/lib/exit-status.ts`. The HTTP API:
       `docs/specifications/http-api.openapi.yml`. Configuration:
-      `docs/specifications/configuration.file.schema.json` and
-      `docs/specifications/configuration.environment.schema.json`. The
+      `docs/specifications/configuration.client.schema.json`,
+      `configuration.server.schema.json`, `configuration.secrets.schema.json`
+      and `configuration.show.schema.json`, with the settings, variables and
+      flags `src/lib/settings.ts` derives from them. The
       research job envelope:
       `docs/specifications/research-job-envelope.schema.json`. The `.yml`
       specification beside each definition describes its contract; the
@@ -90,19 +92,22 @@ proposed-design:
       the command's path joined with hyphens: `seek.md`, `seek-web.md`,
       `seek-web-brave-search.md` and so on for all 25 commands. Each page has
       the usage line, the description, tables of arguments and options with
-      defaults, links to its subcommands' pages, and the rendered help;
+      defaults, a table of its configuration options, links to its
+      subcommands' pages, and the rendered help;
       `seek.md` also has the exit status table.
       `docs/user/reference/http-api.md`, with one section per OpenAPI tag,
       listing each operation's method, path, summary, description, parameters
       and responses, and the security scheme, then the components: each
       schema, and each shared response with its headers and examples.
-      `docs/user/reference/configuration.md`, with one table per configuration
-      schema giving each key's type, accepted values, default and description.
+      `docs/user/reference/configuration.md`, with the naming rule, the secret
+      sources, and for the client and the server configuration a table of
+      settings with their type, accepted values, default, environment
+      variables, flags and description, a table of secrets and a table of
+      every source field, then the fields of `seek config show --json`.
       `docs/user/reference/research-job-envelope.md`, with the envelope's
       fields and a table of normalized statuses from the schema's `oneOf`
       descriptions. Beside these pages, the copies `http-api.openapi.yml`,
-      `configuration.file.schema.json`,
-      `configuration.environment.schema.json` and
+      the four `configuration.*.schema.json` files and
       `research-job-envelope.schema.json`, each linked from its page by its
       relative file name. Every generated page starts with front matter giving
       `title`, `product: seek` and `order`, and generated output is
@@ -110,15 +115,15 @@ proposed-design:
   examples-and-fixtures:
     >-
       Valid examples that readers download live in `docs/user/examples/`:
-      `config.json` and `client-config.json` for the configuration file
-      schema; `research-job-submitted.json` and `research-job-result.json`
+      `client.yml`, `client-with-server.yml` and `server.yml` for the
+      configuration schemas; `research-job-submitted.json` and `research-job-result.json`
       for the envelope schema, which are seek's own output against the
       practice server; `health.response.json` and
       `unauthorized.response.json` for HTTP API responses; and the scripts
       `practice-server.mjs` and `server-client.mjs`. `EXAMPLES` in
       `scripts/docs/validate.ts` declares how each is proved: a JSON example
       names its definition, or an operation's response in the OpenAPI
-      document, and the check validates it; a script names the test that runs
+      document, and the check parses it as JSON or YAML and validates it; a script names the test that runs
       it, and the check parses it. An example without a declaration fails the
       check. Invalid fixtures live in `tests/fixtures/invalid/<definition>/`,
       and `tests/documentation.test.ts` asserts the validation error each one
@@ -127,7 +132,10 @@ proposed-design:
     >-
       The check uses the Ajv development dependency already in the lockfile,
       with the 2020-12 dialect and strict mode, and adds no validator package.
-      It compiles each JSON Schema definition, with the `uri` format checked
+      It compiles each JSON Schema definition, with the shared
+      `configuration.secrets.schema.json` added first so the others can refer
+      to it, the configuration schemas' `x-env-aliases` and `x-flag-aliases`
+      registered as annotations, the `uri` format checked
       by a scheme pattern and `URL.canParse`, validates examples against them
       and against OpenAPI schemas compiled with the document's components as
       `$defs`, and validates every inline example in the OpenAPI document

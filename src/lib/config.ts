@@ -335,13 +335,7 @@ function flagLayer(options: LoadOptions, cwd: string, errors: string[]): Layer {
       errors.push(`${flag.name}: is not a flag of the ${options.kind} configuration`);
       continue;
     }
-    if (definition.stdin) {
-      if (stdin.length > 1) continue;
-      const read = options.readStdin ?? (() => readFileSync(0, "utf8"));
-      setAt(layer.data, definition.stdin.split("."), { value: read().trim() });
-      layer.names.set(`${definition.stdin}.value`, flag.name);
-      continue;
-    }
+    if (definition.stdin) continue;
     const leaf = definition.leaf!;
     if (layer.names.has(leaf.dotted)) continue;
     let value: unknown;
@@ -357,6 +351,16 @@ function flagLayer(options: LoadOptions, cwd: string, errors: string[]): Layer {
     }
     setAt(layer.data, leaf.path, value);
     layer.names.set(leaf.dotted, flag.name);
+  }
+  // A stdin flag adds a `value` beside whatever other flags set for the same secret, so a second
+  // source fails validation as two sources in one layer. Standard input is read only for a lone source.
+  if (stdin.length === 1) {
+    const flag = stdin[0]!;
+    const secret = definitions.get(flag.name)!.stdin!;
+    const others = [...layer.names.keys()].some((leaf) => leaf.startsWith(`${secret}.`));
+    const read = options.readStdin ?? (() => readFileSync(0, "utf8"));
+    setAt(layer.data, [...secret.split("."), "value"], others ? "" : read().trim());
+    layer.names.set(`${secret}.value`, flag.name);
   }
   return layer;
 }

@@ -156,6 +156,23 @@ describe("precedence", () => {
     expect(result.stderr).toContain("error: vault.auth: sets no mode; expected mode token, approle or none (SEEK_VAULT_AUTH_ROLE_ID)\n");
   });
 
+  test("a stdin flag beside another source for the same secret is two sources in one layer", async () => {
+    const file = write(join(tempDir(), "exa"), "synthetic-file-key\n");
+    for (const other of [["--providers-exa-api-key-file", file], ["--providers-exa-api-key-command", '["printf","synthetic"]'], ["--providers-exa-api-key-vault-path", "seek"]]) {
+      for (const args of [[...other, "--providers-exa-api-key-stdin"], ["--providers-exa-api-key-stdin", ...other]]) {
+        const result = await seek(["config", "validate", ...args], { stdin: "synthetic-stdin-key\n" });
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toContain("error: providers.exa.api-key: sets 2 sources");
+        expect(result.stderr).toContain("--providers-exa-api-key-stdin");
+        expect(result.stderr).toContain(other[0]!);
+        expect(result.stderr).not.toContain("synthetic-stdin-key");
+      }
+    }
+    const command = await seek(["web", "exa", "query", "--providers-exa-api-key-file", file, "--providers-exa-api-key-stdin"], { stdin: "synthetic-stdin-key\n" });
+    expect(command.exitCode).toBe(1);
+    expect(command.stderr).toContain("sets 2 sources");
+  });
+
   test("an explicit empty value, false or 0 replaces a lower layer; an empty alias is unset", async () => {
     const { home: dir, config } = home();
     write(join(config, "client.yml"), "server:\n  url: https://seek.internal.example\nvault:\n  address: https://bao.internal.example\n  namespace: team\n");
@@ -213,6 +230,12 @@ describe("precedence", () => {
       const two = await seek(["config", "validate", "--server-token-stdin", "--providers-exa-api-key-stdin"], { stdin: "x\n" });
       expect(two.exitCode).toBe(1);
       expect(two.stderr).toContain("a run reads at most one secret from standard input");
+      const shown = await show(["--providers-exa-api-key-stdin"], { stdin: "synthetic-stdin-key\n" });
+      expect(setting(shown.json, "providers.exa.api-key")).toEqual({
+        path: "providers.exa.api-key",
+        source: { value: "<redacted>" },
+        layer: { kind: "flag", name: "--providers-exa-api-key-stdin" },
+      });
     } finally {
       seekServer.stop(true);
     }

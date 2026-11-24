@@ -53,11 +53,11 @@ proposed-design:
       HTTP surface.
   startup:
     >-
-      `seek serve` validates `--port` as an integer from 0 to 65535. When
-      `SEEK_VAULT_PATH` is set, it reads the Vault secret once and exits on
-      failure, then logs the address, mount, path, KV version and auth method.
-      With authentication on, it exits when no client token resolves. With
-      `--no-auth`, it logs a warning. It logs the address it listens on and
+      `seek serve` loads and validates the server configuration, resolves
+      every configured secret and exits when one fails, and logs the address,
+      mount, path, KV version and auth mode of each Vault secret it read. With
+      `server.require-token` true, it exits when `server.tokens` resolves to
+      no token. With it false, it logs a warning. It logs the address it listens on and
       the upstreams whose keys resolve, and stops the server and exits 0 on
       SIGINT or SIGTERM.
   request-pipeline:

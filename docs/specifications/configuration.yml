@@ -6,6 +6,7 @@ relationships:
     - secret-resolution
     - configuration-upgrade-from-0-3
     - familiar-environment-names
+    - authenticated-vault-proxy
 description: >-
   The settings seek reads and where it reads them from. seek has two
   configurations. The client configuration is read by the `web`, `research`
@@ -131,19 +132,26 @@ description: >-
   fails validation, which names both servers, before any credential is
   resolved. Servers match when their URLs have the same scheme, lowercase
   host, port (explicit or the scheme's default) and path without a trailing
-  slash, or the same canonical socket path.
+  slash, or the same canonical socket path. Whether a proxy that needs a user
+  name and password can be configured for Vault is pending the operator's
+  decision in `authenticated-vault-proxy`; until then `proxy` carries a host
+  and port only.
 
 
   seek builds each Vault connection from the effective configuration alone:
-  its address, its namespace header, its token, the `ca-cert` it trusts in
-  place of the system's certificate authorities, and the `proxy` it sends
-  through, if one is set. It always verifies the server's certificate,
-  whatever `NODE_TLS_REJECT_UNAUTHORIZED` says. It reads no `BAO_*` or
-  `VAULT_*` variable other than the aliases above, uses no proxy that
-  `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` or `NO_PROXY` would select, and
-  follows no redirect: a 3xx response to a KV read or an AppRole login is an
-  error. A request's URL is the address, with its base path kept, followed by
-  `/v1/` and the route, whose mount, path and AppRole mount are split into
+  its address, its namespace header, its token, its certificate authorities
+  and the `proxy` it sends through, if one is set. It always verifies the
+  server's certificate, whatever `NODE_TLS_REJECT_UNAUTHORIZED` says. When the
+  effective `vault` block sets `ca-cert`, the connection trusts exactly the
+  certificate authorities in that file; otherwise it trusts the runtime's
+  default store, which is the system's certificate authorities plus the bundle
+  `NODE_EXTRA_CA_CERTS` names when seek starts, as seek 0.3 did. It reads no
+  `BAO_*` or `VAULT_*` variable other than the aliases above, uses no proxy
+  that `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` or `NO_PROXY` would select,
+  and follows no redirect: a 3xx response to a KV read or an AppRole login is
+  an error. A request's URL is the address, with its base path kept, followed
+  by `/v1/` and the route, whose mount, path and AppRole mount lose their
+  leading and trailing slashes, as in seek 0.3, and are then split into
   segments, each percent-encoded; an empty, `.` or `..` segment is a
   validation error, and seek checks that the final URL keeps the address's
   origin and base path before it attaches a token. An `address` or `proxy`
@@ -250,23 +258,34 @@ validation-criteria: >-
   servers with only `VAULT_TOKEN` set; and `SEEK_VAULT_ADDRESS` set beside
   `BAO_ADDR` and `BAO_TOKEN` on another server. Each must fail before any
   credential is resolved, while matching alias pairs, and a single address
-  with either family's token, still work. Transport tests give the aliases
-  valid synthetic values and set every unsupported variable a Vault client or
-  Bun reads to a sentinel: `VAULT_SKIP_VERIFY`, `VAULT_CACERT`,
-  `VAULT_CAPATH`, `VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY`,
-  `VAULT_TLS_SERVER_NAME`, `VAULT_HEADERS`, `VAULT_PROXY_ADDR`,
-  `VAULT_HTTP_PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and
-  `NODE_TLS_REJECT_UNAUTHORIZED=0`. They require that no sentinel reaches a
-  request or a connection, that an untrusted certificate is rejected while a
-  configured `ca-cert` is accepted with verification on, that a 3xx answer to
+  with either family's token, still work. An upgrade case starts with
+  `BAO_ADDR` and `BAO_TOKEN` for one synthetic server and a file that declares
+  another server with AppRole: with the whole `BAO_*` set cleared, or with the
+  address and AppRole set on the secret's own `vault` block while the set
+  stays exported, `config show` must report AppRole on the file's server, and
+  the token must reach no request. Transport tests give the aliases valid
+  synthetic values and set every unsupported variable a Vault client or Bun
+  reads to a sentinel: `VAULT_SKIP_VERIFY`, `VAULT_CACERT`, `VAULT_CAPATH`,
+  `VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY`, `VAULT_TLS_SERVER_NAME`,
+  `VAULT_HEADERS`, `VAULT_PROXY_ADDR`, `VAULT_HTTP_PROXY`, `HTTP_PROXY`,
+  `HTTPS_PROXY`, `ALL_PROXY` and `NODE_TLS_REJECT_UNAUTHORIZED=0`. They
+  require that no sentinel reaches a request or a connection, and, for both a
+  KV read and an AppRole login against a server whose certificate comes from a
+  private authority, that the server is rejected with no `ca-cert` and no
+  `NODE_EXTRA_CA_CERTS`, accepted with that authority in `NODE_EXTRA_CA_CERTS`
+  and no `ca-cert`, accepted with it as `ca-cert`, and rejected when `ca-cert`
+  names another authority even though `NODE_EXTRA_CA_CERTS` names the right
+  one, all while `NODE_TLS_REJECT_UNAUTHORIZED=0` is set; that a 3xx answer to
   a KV read or an AppRole login is an error, and that both operations against
   an address with a base path such as `/team-a` reach routes under that path.
-  A dot segment in a mount or path fails validation. A read-sharing test puts
-  two secrets at the same KV location with different `auth` mappings or
-  `ca-cert` and requires two reads. Redaction tests give a helper a synthetic
-  sensitive argument and require it absent from errors and from both `config
-  show` formats. Inspection tests require `config show` and `config validate`
-  to redact as described while a command source would write a marker file, a
+  A mount, path or AppRole mount written with leading and trailing slashes,
+  such as `/team/seek/`, reaches the same route as without them, and an empty
+  or dot segment inside one fails validation. A read-sharing test puts two
+  secrets at the same KV location with different `auth` mappings or `ca-cert`
+  and requires two reads. Redaction tests give a helper a synthetic sensitive
+  argument and require it absent from errors and from both `config show`
+  formats. Inspection tests require `config show` and `config validate` to
+  redact as described while a command source would write a marker file, a
   secret file is unreadable and a Vault stub counts zero requests. Write tests
   run `config init` and `config path` with a new explicit `--config` path on a
   fresh installation, and require the file to be created with mode 0600.

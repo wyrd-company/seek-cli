@@ -20,7 +20,10 @@ description: >-
   `google-genai` after `GOOGLE_API_KEY`, and `FIRECRAWL_API_KEY` by the
   Firecrawl Python SDK. Brave's agent skills use `BRAVE_SEARCH_API_KEY`, and
   Brave's MCP server uses `BRAVE_API_KEY`. `BRAVE_ANSWERS_API_KEY` and
-  `SEEK_SERVER_TOKEN` are seek's own names.
+  `SEEK_SERVER_TOKEN` are seek's own names. The eight `SEEK_VAULT_*`
+  variables are outside this record; `configuration-upgrade-from-0-3`
+  decides them, and each option below states its outcome under either
+  answer to it.
 considered-options:
   keep-as-aliases:
     description: >-
@@ -29,20 +32,30 @@ considered-options:
       `server.token` and the server's `server.tokens`. A derived variable for
       the same secret wins over the alias, and an empty alias counts as unset.
     positive:
-      - Every environment-only setup keeps working unchanged, including the
-        documented `docker run` of the server image and anything that pulls
-        its `latest` tag.
+      - A setup whose keys and token are only in these eight variables, in a
+        shell, a CI job or a container such as the documented `docker run`
+        of the server image on its `latest` tag, keeps working unchanged under
+        either answer to `configuration-upgrade-from-0-3`.
       - A key exported once serves seek and the provider's own SDK.
     negative:
+      - The aliases do not cover a setup that reads secrets through
+        `SEEK_VAULT_PATH` or the JSON file. With `replace-and-migrate` it
+        needs `seek config migrate`; with `read-0-3-for-one-release` it works
+        until the removal.
       - Eight names do not follow the derivation rule, and two of them are
         not cross-tool names, which reads the standard's alias rule broadly.
   derived-names-only:
     description: >-
       seek reads only the derived names, the `BAO_*` and `VAULT_*` aliases,
-      and the removed-name warnings of `configuration-upgrade-from-0-3`.
+      and the warnings `configuration-upgrade-from-0-3` describes.
     positive:
       - One naming rule, with the standard's Vault aliases as its only
         exception.
     negative:
-      - Every seek 0.3 environment-only setup, including the documented
-        server image example, stops finding its keys and token on upgrade.
+      - Every seek 0.3 setup that keeps its keys or token in these variables
+        stops finding them on upgrade, under either answer to
+        `configuration-upgrade-from-0-3`, including the documented server
+        image example on `latest`. Its owner renames each variable, such as
+        `EXA_API_KEY` to `SEEK_PROVIDERS_EXA_API_KEY_VALUE`, wherever it is
+        set; seek can name each variable in a warning but cannot change the
+        environment it is started with.

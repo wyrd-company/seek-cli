@@ -39,8 +39,8 @@ assets:
 products:
   seek:
     name: seek
-    version: 0.3.2
-    docs-version: 0.1.1
+    version: 0.4.0
+    docs-version: 0.1.2
     release-unit: seek-cli
     tagline: Agent-friendly web search, research & scraping.
     blurb: >-

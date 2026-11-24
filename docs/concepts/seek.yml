@@ -24,8 +24,8 @@ properties:
       Search and Answers, so seek has seven upstreams.
   provider-keys:
     >-
-      One API key per upstream, named by an environment variable such as
-      `EXA_API_KEY`, set in the environment or the configuration file.
+      One API key per upstream, the setting `providers.<upstream>.api-key`,
+      also set by the provider's own variable, such as `EXA_API_KEY`.
   output-modes:
     >-
       Rendered text on stdout by default: numbered search results, answers and
@@ -45,13 +45,14 @@ properties:
       the `ghcr.io/wyrd-company/seek-server` image.
   secret-sources:
     >-
-      The environment, a Vault or OpenBao KV secret, and the configuration
-      file, read in that order. The server reads provider keys and client
-      tokens from all three; a client reads its client token from all three.
-  configuration-file:
+      Each provider key and client token names one source: the value itself,
+      a file, a credential helper command, or a field of a Vault or OpenBao
+      KV secret.
+  configuration-files:
     >-
-      A flat JSON object at `$XDG_CONFIG_HOME/seek/config.json` whose keys are
-      the environment variable names, managed with `seek config`.
+      YAML files of settings, one for the client and one for the server, with
+      an environment variable and a flag for each setting, managed with `seek
+      config`.
   bundled-skill:
     >-
       The agent skill in `skills/seek/SKILL.md`, compiled into the binary and
@@ -91,18 +92,19 @@ features:
       other commands of the same group, those with keys first.
   keep-keys-on-a-server:
     >-
-      Routes every provider call through a seek server when `SEEK_SERVER_URL`
-      is set, so the machine running the CLI holds no provider keys.
+      Routes every provider call through a seek server when `server.url` is
+      set, so the machine running the CLI holds no provider keys.
   read-secrets-from-vault:
     >-
-      Reads the server's provider keys and client tokens, or a client's token,
-      from one Vault or OpenBao KV secret, with token, token-file or AppRole
-      authentication, and reads it again after a refresh interval.
+      Reads any provider key or client token from a field of a Vault or
+      OpenBao KV secret, with token, AppRole or no authentication, and keeps
+      each credential bound to the server it was configured for.
   manage-configuration:
     >-
-      Prints the configuration file's path, writes a template with a
-      placeholder for every provider key, and shows each key's source with its
-      value masked.
+      Prints the configuration file's path, writes a commented template,
+      validates the configuration, shows the effective settings with each
+      one's source and every secret redacted, and converts a seek 0.3
+      configuration.
   print-the-skill:
     >-
       Prints the bundled skill so that an agent harness can install it from

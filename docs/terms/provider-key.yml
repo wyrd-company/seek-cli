@@ -1,6 +1,7 @@
 $schema: https://refinery.systems/ontology/term
 title: Provider key
 description: >-
-  The API key for one upstream, named by its environment variable and
-  configuration file key, such as `EXA_API_KEY`. In direct mode the CLI sends
-  it to the provider; in server mode only the seek server holds it.
+  The API key for one upstream, the setting `providers.<upstream>.api-key`,
+  also set by the provider's own variable, such as `EXA_API_KEY`. In direct
+  mode the CLI sends it to the provider; in server mode only the seek server
+  holds it.

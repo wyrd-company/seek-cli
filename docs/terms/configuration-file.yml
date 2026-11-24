@@ -1,6 +1,8 @@
 $schema: https://refinery.systems/ontology/term
 title: Configuration file
 description: >-
-  The JSON object at `$XDG_CONFIG_HOME/seek/config.json`, or
-  `~/.config/seek/config.json`, whose keys are seek's variable names. The
+  A YAML file of seek settings. The client configuration file is
+  `~/.config/seek/client.yml`, under `$XDG_CONFIG_HOME` when it is set, over
+  the system-wide `/etc/seek/client.yml`; the server configuration file is
+  `/etc/seek/server.yml`. `--config` or `SEEK_CONFIG` names another file. The
   interface calls it the config file and manages it with `seek config`.

@@ -1,6 +1,6 @@
 $schema: https://refinery.systems/ontology/term
 title: Server mode
 description: >-
-  How the CLI runs when `SEEK_SERVER_URL` is set: each provider command calls
-  the seek server's proxy route for its upstream with the client token, and
-  the CLI uses no local provider key.
+  How the CLI runs when `server.url` is set: each provider command calls the
+  seek server's proxy route for its upstream with the client token, and the
+  CLI uses no local provider key.

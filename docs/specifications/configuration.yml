@@ -1,63 +1,209 @@
 $schema: https://refinery.systems/ontology/specification
 title: seek configuration
+relationships:
+  related-to:
+    - command-line
+    - secret-resolution
+    - configuration-upgrade-from-0-3
+    - familiar-environment-names
 description: >-
-  The settings seek reads, and where it reads them from. Two JSON Schema
-  2020-12 definitions beside this document define them:
-  `configuration.file.schema.json` defines the configuration file, and
-  `configuration.environment.schema.json` defines the environment variables.
-  The file's keys are also the field names of a Vault or OpenBao secret, so
-  the file schema defines that secret's data as well.
+  The settings seek reads and where it reads them from. seek has two
+  configurations. The client configuration is read by the `web`, `research`
+  and `scrape` commands, and the server configuration by `seek serve`; `seek
+  config` inspects either. `seek skill`, `--help` and `--version` read
+  neither. Three
+  JSON Schema 2020-12 definitions beside this document define them:
+  `configuration.client.schema.json` and `configuration.server.schema.json`
+  each define one configuration file, and `configuration.secrets.schema.json`
+  defines the shapes both share: a secret source, the provider keys and the
+  Vault or OpenBao connection. Every environment variable and flag that sets
+  a setting is derived from these schemas.
 
 
-  The configuration file is a JSON object at
-  `$XDG_CONFIG_HOME/seek/config.json`, or `~/.config/seek/config.json` when
-  `XDG_CONFIG_HOME` is empty or unset. Its keys are seek's variable names: the
-  seven provider keys, `SEEK_SERVER_URL` and `SEEK_SERVER_TOKEN`. seek reads
-  string values and ignores other keys and non-string values. A file that is
-  missing contributes no values. A file that is not valid JSON, or not a JSON
-  object, produces one warning on stderr and contributes no values. `seek
-  config init` writes the file with an empty string for each provider key, in
-  a directory created with mode 0700 and a file with mode 0600, and refuses to
-  replace an existing file without `--force`.
+  Configuration files are YAML with `kebab-case` keys. The client reads
+  `/etc/seek/client.yml` and then `$XDG_CONFIG_HOME/seek/client.yml`, or
+  `~/.config/seek/client.yml` when `XDG_CONFIG_HOME` is unset, empty or
+  relative; the user file overrides the system file. The server reads
+  `/etc/seek/server.yml`. `--config <path>` on any command, or `SEEK_CONFIG`,
+  names one file that replaces these files; seek fails when that file is
+  missing or unreadable. Under default discovery a missing file contributes
+  nothing. In a file, a path value that starts with `~/` starts in the home
+  directory, and any other relative path is relative to the directory of the
+  file that sets it. A relative path from an environment variable or a flag is
+  relative to the working directory. A command name without a slash is found
+  on `PATH`. seek reads no project-local file and no admin policy file.
 
 
-  Each setting resolves from the first source that has a value. A provider
-  key, in direct mode, resolves from the environment and then the file.
-  `SEEK_SERVER_URL` resolves from the environment and then the file, and when
-  it resolves, the CLI is in server mode. A client's `SEEK_SERVER_TOKEN`
-  resolves from the environment, then the Vault secret when `SEEK_VAULT_PATH`
-  is set, then the file. `seek serve` resolves every provider key and
-  `SEEK_SERVER_TOKEN` from the environment, then the Vault secret when
-  `SEEK_VAULT_PATH` is set, then the file. `seek config show` reports each
-  provider key's source as `env`, `config` or `—`, and in server mode the
-  client token's source as `env`, `Vault/OpenBao configured`, `config` or
-  `(unset)`, without reading Vault. It prints a provider key as its first four
-  and last four characters around an ellipsis, and a value of eight characters
-  or fewer as eight asterisks. It prints no part of the client token.
+  Settings come from these layers, from lowest to highest precedence: built-in
+  defaults, the system file (client only), the user file (client) or
+  `/etc/seek/server.yml` (server), environment variables, then flags. A
+  mapping merges key by key across layers. A secret's source mapping and a
+  Vault `auth` mapping replace the lower layer's mapping whole, and so does a
+  `command` array. An unset environment variable or an omitted flag leaves the
+  lower layers' value; an explicit empty string, `false` or `0` replaces it.
+  An empty alias counts as unset.
 
 
-  The Vault settings are environment variables only. `SEEK_VAULT_PATH` turns
-  Vault on and names one KV secret. An address is then required, and one
-  credential: an AppRole role ID with a secret ID, a token file, or a token,
-  in that order of precedence. The server reads the secret at startup and
-  exits when that read fails. A client reads it when it first needs the client
-  token, and the request fails when that read fails. Both read the secret
-  again once the refresh interval has passed, and keep the values they hold
-  when a later read fails.
+  Each setting's environment variable is `SEEK_` followed by its YAML path in
+  upper case, with dots and hyphens replaced by underscores, and its flag is
+  `--` followed by its path with dots replaced by hyphens:
+  `providers.brave-search.api-key.file` is
+  `SEEK_PROVIDERS_BRAVE_SEARCH_API_KEY_FILE` and
+  `--providers-brave-search-api-key-file`. Every scalar has both, with these
+  exceptions: a secret's `value` has an environment variable and no flag, and
+  a secret's own `vault` block exposes only `path` and `key`, while its other
+  fields exist only in files. A boolean flag also has a `--no-` form. A
+  `command` array is written as a JSON array in its environment variable and
+  flag. `--<secret>-stdin`, such as `--server-token-stdin`, reads one secret
+  from standard input for one run; a run takes at most one. Configuration
+  flags are accepted by every command that reads that configuration and are
+  listed in its help under `Configuration options`, after the command's own
+  options. `--config`,
+  `SEEK_CONFIG`, `--help`, `-h`, `--version` and `-V` name no setting, and
+  `--config` has no short form because `-c` is `--chars`.
 
 
-  A provider key that is not set stops a direct-mode command before it calls
-  that provider, with exit status 2 and a message that names the variable and
-  the configuration file.
+  An alias is another environment variable for a setting, listed under
+  `x-env-aliases` in the schema, and `x-flag-aliases` lists another flag.
+  Within the environment layer a derived variable wins over an alias, and the
+  first alias listed wins over the next. The aliases are: each provider key's
+  variable, such as `EXA_API_KEY`, for that provider's `api-key` as a `value`;
+  `SEEK_SERVER_TOKEN` for the client's `server.token` and the server's
+  `server.tokens` as a `value`; `BAO_ADDR` and `VAULT_ADDR` for
+  `vault.address`; `BAO_NAMESPACE` and `VAULT_NAMESPACE` for
+  `vault.namespace`; and `BAO_TOKEN` and `VAULT_TOKEN` for `vault.auth` as `{
+  mode: token, token: { value: <token> } }`. An alias of a secret applies only
+  when no derived variable of the same secret is set. The flag aliases are
+  `--host` for `--server-host`, `--port` for `--server-port`, and `--no-auth`
+  for `--no-server-require-token`.
+
+
+  The client configuration holds `server.url`, `server.token`, `providers` and
+  `vault`. When `server.url` resolves to a URL, the CLI is in server mode: it
+  calls providers through that seek server with `server.token` and does not
+  use `providers`. Otherwise it calls each provider with that provider's
+  `api-key`. The server configuration holds `server.host` (`127.0.0.1`),
+  `server.port` (`8787`), `server.require-token` (`true`), `server.tokens`,
+  `server.secret-refresh-seconds` (`300`), `providers` and `vault`.
+  `server.tokens` resolves to a comma-separated list, and the server accepts
+  each entry. `providers` is keyed by upstream ID: `parallel`, `exa`,
+  `brave-search`, `brave-answers`, `perplexity`, `google` and `firecrawl`.
+
+
+  A secret is a mapping with exactly one source key. `value` is the secret
+  itself. `file` names a file whose content, less one trailing newline, is the
+  secret; seek reads it each time it resolves the secret. `command` is an
+  argument array that seek runs without a shell, in the directory of the file
+  that declared it, or the working directory when an environment variable or
+  flag declared it; its trimmed standard output is the secret, a non-zero exit
+  status is a failure, and `timeout` (`10s`) stops it. `vault` names one field
+  of a Vault or OpenBao KV secret with `path` and `key`, and may set
+  `address`, `namespace`, `mount`, `kv-version`, `ca-cert` and `auth` for that
+  secret. A credential inside `vault.auth`, the `token` or the AppRole
+  `secret-id`, takes `value`, `file` or `command`. A secret resolves from its
+  one source; when that source fails, the command or the server reports the
+  failure and reads no other source.
+
+
+  The top-level `vault` mapping holds defaults that merge across layers:
+  `address`, `namespace`, `mount` (`secret`), `kv-version` (`2`), `ca-cert`
+  and `auth`. After the merge they fill each field a secret's `vault` block
+  leaves unset. `auth.mode` is `token`, `approle` (with `mount`, `role-id` and
+  `secret-id`) or `none`. Every `auth` mapping is bound to the server in
+  effect in the layer that declared it: its own block's `address`, or else the
+  top-level `address` merged up to and including that layer. A mapping
+  declared with no server in effect is unbound and is used by no block. Each
+  `vault` block uses the `auth` mapping it declares itself; a block that
+  declares none uses the merged top-level `auth` mapping only when that
+  mapping is bound to the block's effective server. Servers match when their
+  URLs have the same scheme, lowercase host, port (explicit or the scheme's
+  default) and path without a trailing slash, or the same canonical socket
+  path. seek builds each Vault connection, its certificate trust and its
+  token from the effective configuration alone; it reads no `BAO_*` or
+  `VAULT_*` variable other than the aliases above.
+
+
+  Validation runs on each layer before the merge and on the merged result.
+  Each file, the environment and the flags are checked for unknown keys and
+  flags, types and formats, a secret with two sources, and a secret set
+  incompletely, such as a `vault` block without `key` or a `timeout` without
+  `command`. The environment layer reads only derived variables and aliases
+  and ignores every other variable. The merged result is checked for the
+  server's `server.tokens` while `server.require-token` is true, and for each
+  `vault` block that is used having an address and a usable `auth` mapping. An
+  error names the setting's path, the layer that supplied it (the file path,
+  the environment variable or the flag) and what was expected, and every error
+  is reported at once. A configuration error stops the command with exit
+  status 1 before it sends a request.
+
+
+  The client resolves a secret when a command needs it: in direct mode the
+  key of the provider it calls, and in server mode `server.token`. A
+  direct-mode command whose provider has no `api-key` source in any layer
+  stops with exit status 2 and a message that names the provider's variable,
+  the setting's path and the user file. A configured source that fails to
+  resolve stops the command with exit status 1 and a message that names the
+  source and not the secret. The server resolves every configured secret
+  before it listens and exits when one fails. It resolves each again once
+  `server.secret-refresh-seconds` has passed since the last resolution, and a
+  later resolution that fails writes one warning to stderr and keeps the
+  value it holds.
+
+
+  `seek config` inspects the client configuration, or with `--server` the
+  server configuration, and never runs a command, reads a secret file or
+  contacts Vault or OpenBao. `seek config show` prints the effective
+  configuration and the layer of each value, and `--json` prints it as JSON.
+  It prints a `value`, an AppRole `role-id` and any credential `value` inside
+  `vault.auth` as `<redacted>`, and every other source as configured. `seek
+  config validate` runs the validation above and exits 0 when it passes and 1
+  otherwise. `seek config path` prints the file that `seek config init`
+  writes: the `--config` or `SEEK_CONFIG` path, else the user file for the
+  client, else `/etc/seek/server.yml`. `seek config init` writes a commented
+  template of that configuration, with file mode 0600 in a directory created
+  with mode 0700, and refuses to replace a file without `--force`. The server
+  image reads `/etc/seek/server.yml` and sets `SEEK_SERVER_HOST=0.0.0.0` and
+  `XDG_CONFIG_HOME=/config`.
+
+
+  seek 0.3 read a JSON file at `$XDG_CONFIG_HOME/seek/config.json`, or
+  `~/.config/seek/config.json`, and the environment variables listed under
+  `x-removed-env` in each schema. When that file exists, or one of those
+  variables is set, a command that reads its configuration writes one warning
+  to stderr that names it and its replacement and reads it no further. `seek
+  config migrate` writes the client file, or with `--server` the server file,
+  from that seek 0.3 setup: the JSON file, or the file `--from` names, and the
+  removed variables in its environment. A provider key or `SEEK_SERVER_URL`
+  becomes its setting, and a `SEEK_SERVER_TOKEN` becomes `server.token` or
+  `server.tokens`, each with a `value` source. `SEEK_VAULT_PATH` becomes a
+  `vault` source on each secret, with that path and the secret's 0.3 variable
+  name as `key`; `SEEK_VAULT_ADDR` becomes `vault.address`; and the 0.3
+  AppRole and token-file variables become `vault.auth`. It writes no secret it
+  read from the environment: an AppRole secret ID set as
+  `SEEK_VAULT_SECRET_ID` stops it with a message to move the secret ID into a
+  file and run it again. It prints each environment change that remains, and
+  refuses to replace an existing file without `--force`.
 format: json-schema
 validation-criteria: >-
-  Both schemas compile under Ajv 8.20.0 in strict mode with the 2020-12
-  dialect and ajv-formats 3.0.1. Valid examples validate and invalid examples
-  are rejected: a non-string value, an unknown KV version, and a port that is
-  not a number. `tests/configuration.test.ts` binds the schemas to the code.
-  The file schema's keys are exactly the provider keys in `src/lib/config.ts`
-  and the two server keys, and the template that `seek config init` writes has
-  only those keys, with string values. The environment schema's keys are
-  exactly the variables the source reads. A key in both schemas has the same
-  definition, apart from the environment's extra sentence on
-  `SEEK_SERVER_URL`. The documented defaults are those the code applies.
+  The three schemas compile under Ajv 8.20.0 in strict mode with the 2020-12
+  dialect, ajv-formats 3.0.1 and the `x-env-aliases`, `x-flag-aliases` and
+  `x-removed-env` keywords registered as annotations. The examples in the
+  schemas and in `docs/user/` validate, and the invalid fixtures under
+  `tests/fixtures/invalid/` fail with the error each test names.
+  `tests/configuration.test.ts` derives every environment variable and flag
+  from the schemas and requires each name to be unique within its
+  configuration, distinct from the reserved names, and equal to the options
+  the program declares, so `--help` and the generated reference list the same
+  flags. Loader tests run the CLI and `seek serve` through their entry points
+  with fixture files, environment variables and flags, and cover default and
+  explicit discovery, each precedence step, whole replacement of secret
+  sources and `auth` mappings, explicit empty values, per-layer and merged
+  validation errors with their paths and layers, aliases, and each removed
+  0.3 variable's warning. A Vault test sets every `BAO_*` and `VAULT_*`
+  variable a Vault client reads to a sentinel and requires that no sentinel
+  reaches a request or a connection, and that an `auth` mapping bound to one
+  server never reaches another. Inspection tests require `config show` and
+  `config validate` to redact as described while a command source would write
+  a marker file, a secret file is unreadable and a Vault stub counts zero
+  requests. Migration tests convert representative 0.3.2 client and server
+  setups, including Vault with AppRole and with a token, and run them.

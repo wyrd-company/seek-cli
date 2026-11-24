@@ -54,10 +54,10 @@ export interface Mapping {
 export interface Settings {
   kind: ConfigurationKind;
   schema: Schema;
-  leaves: Leaf[];
-  mappings: Mapping[];
+  leaves: readonly Leaf[];
+  mappings: readonly Mapping[];
   /** The dotted paths of the secrets: provider keys and the client token or server tokens. */
-  secrets: string[];
+  secrets: readonly string[];
 }
 
 /** The `$defs` name a reference points to in the shared schema, or undefined. */
@@ -112,7 +112,13 @@ function scalarType(schema: Schema): ScalarType | undefined {
   return undefined;
 }
 
-function walk(node: Schema, path: string[], mapping: string | undefined, out: Settings): void {
+interface Building {
+  leaves: Leaf[];
+  mappings: Mapping[];
+  secrets: string[];
+}
+
+function walk(node: Schema, path: string[], mapping: string | undefined, out: Building): void {
   const def = refName(node);
   const resolved = resolve(node);
   const dotted = path.join(".");
@@ -148,7 +154,7 @@ function walk(node: Schema, path: string[], mapping: string | undefined, out: Se
   }
 }
 
-function walkMode(path: string[], mapping: string | undefined, out: Settings): void {
+function walkMode(path: string[], mapping: string | undefined, out: Building): void {
   out.leaves.push({
     path,
     dotted: path.join("."),
@@ -169,10 +175,17 @@ const cache = new Map<ConfigurationKind, Settings>();
 export function settings(kind: ConfigurationKind): Settings {
   const cached = cache.get(kind);
   if (cached) return cached;
-  const out: Settings = { kind, schema: SCHEMAS[kind], leaves: [], mappings: [], secrets: [] };
+  const out = { kind, schema: SCHEMAS[kind], leaves: [] as Leaf[], mappings: [] as Mapping[], secrets: [] as string[] };
   walk(SCHEMAS[kind], [], undefined, out);
-  cache.set(kind, out);
-  return out;
+  // Every command and test shares this model, so nothing may reorder or change it.
+  const frozen: Settings = Object.freeze({
+    ...out,
+    leaves: Object.freeze(out.leaves.map((leaf) => Object.freeze(leaf))),
+    mappings: Object.freeze(out.mappings.map((mapping) => Object.freeze(mapping))),
+    secrets: Object.freeze(out.secrets),
+  });
+  cache.set(kind, frozen);
+  return frozen;
 }
 
 /** The flag that reads one secret from standard input, such as `--server-token-stdin`. */

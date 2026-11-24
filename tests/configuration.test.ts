@@ -82,7 +82,8 @@ describe("names derived from the configuration schemas", () => {
       const model = settings(kind);
       expect(model.leaves.map((l) => l.dotted)).toEqual(derived[kind].map((d) => d.path));
       expect(model.leaves.map((l) => [l.env, ...l.envAliases])).toEqual(derived[kind].map((d) => d.env));
-      expect(model.secrets.sort()).toEqual(secretPaths(kind).sort());
+      expect([...model.secrets].sort()).toEqual(secretPaths(kind).sort());
+      expect(Object.isFrozen(model.secrets) && Object.isFrozen(model.leaves)).toBe(true);
     });
 
     test(`every ${kind} name is unique and none is reserved`, () => {

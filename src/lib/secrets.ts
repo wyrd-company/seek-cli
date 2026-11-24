@@ -36,9 +36,10 @@ export function describeSource(source: Source): string {
 
 async function runHelper(source: Extract<LocalSource, { kind: "command" }>, label: string): Promise<string> {
   const helper = describeHelper(source.argv);
-  let child: Bun.Subprocess<"inherit", "pipe", "inherit">;
+  let child: Bun.Subprocess<"inherit", "pipe", "ignore">;
   try {
-    child = Bun.spawn(source.argv, { cwd: source.cwd, stdin: "inherit", stdout: "pipe", stderr: "inherit" });
+    // A helper's diagnostics can repeat its arguments or the secret, so its stderr is discarded.
+    child = Bun.spawn(source.argv, { cwd: source.cwd, stdin: "inherit", stdout: "pipe", stderr: "ignore" });
   } catch {
     throw new SecretSourceError(`${label}: ${helper} could not be started`);
   }

@@ -643,6 +643,21 @@ describe("inspection never reads a secret", () => {
     expect(validateShow(json.json), JSON.stringify(validateShow.errors)).toBe(true);
   });
 
+  test("a helper's stderr never reaches seek's output", async () => {
+    const seekStub = seekServer();
+    const helper = write(join(tempDir(), "noisy.sh"), "#!/bin/sh\necho \"helper saw $1\" >&2\nexit 7\n", 0o755);
+    const file = write(join(tempDir(), "client.yml"), `server:\n  url: ${seekStub.url}\n  token: { command: [${helper}, synthetic-sensitive-argument] }\n`);
+    const result = await seek([...SEARCH, "--config", file]);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toBe(`error: server.token: helper ${helper} (1 argument) exited with status 7\n`);
+    const quiet = write(join(tempDir(), "quiet.sh"), "#!/bin/sh\necho \"helper saw $1\" >&2\necho synthetic-helper-token\n", 0o755);
+    const working = write(join(tempDir(), "client.yml"), `server:\n  url: ${seekStub.url}\n  token: { command: [${quiet}, synthetic-sensitive-argument] }\n`);
+    const ok = await seek([...SEARCH, "--config", working]);
+    expect(ok.exitCode).toBe(0);
+    expect(ok.stderr).toBe("");
+    expect(seekStub.authorizations).toEqual(["Bearer synthetic-helper-token"]);
+  });
+
   test("a failing helper's arguments never appear in its error", async () => {
     const seekStub = seekServer();
     const file = write(join(tempDir(), "client.yml"), `server:\n  url: ${seekStub.url}\n  token: { command: ["false", synthetic-sensitive-argument] }\n`);

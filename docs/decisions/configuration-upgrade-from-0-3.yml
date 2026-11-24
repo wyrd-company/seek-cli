@@ -1,0 +1,52 @@
+$schema: https://refinery.systems/ontology/decision-record
+title: How a seek 0.3 configuration upgrades
+relationships:
+  related-to:
+    - configuration
+    - familiar-environment-names
+description: >-
+  seek 0.3 reads a flat JSON file, `$XDG_CONFIG_HOME/seek/config.json` or
+  `~/.config/seek/config.json`, whose keys are environment variable names,
+  and reads its Vault and OpenBao settings only from environment variables
+  such as `SEEK_VAULT_PATH`. The server image reads that file at
+  `/config/seek/config.json`. The `configuration` specification replaces both
+  with one YAML file per configuration, `client.yml` and `server.yml`, a
+  source mapping on each secret, and names derived from each setting's path.
+  The JSON file and eight `SEEK_VAULT_*` variables have no place in that
+  contract. This record decides what a release that implements the
+  specification does with a setup that still uses them. Environment
+  variables that keep their meaning, such as `SEEK_SERVER_URL`,
+  `SEEK_SERVER_HOST` and `SEEK_VAULT_MOUNT`, are outside it, and the provider
+  and token variables are decided by `familiar-environment-names`.
+considered-options:
+  replace-and-migrate:
+    description: >-
+      The release reads only the specified files and names. A seek 0.3 file
+      or a removed variable writes one warning that names it and its
+      replacement, and `seek config migrate` writes the new file from the 0.3
+      file and the removed variables.
+    positive:
+      - seek has one configuration loader, one precedence rule and one set of
+        documents.
+      - A user changes a 0.3 setup once, with a command that the tests run on
+        representative client and server setups, and the KV secrets in Vault
+        or OpenBao keep their fields.
+    negative:
+      - A setup that keeps secrets in the 0.3 file or reads them through
+        `SEEK_VAULT_PATH` stops receiving them until it is migrated. A server
+        restarted on the `latest` image tag with such a setup refuses to start
+        without a client token, or serves 503 for each provider whose key it
+        lacks, with the warning in its log.
+  read-0-3-for-one-release:
+    description: >-
+      The release also reads the 0.3 file and the removed variables,
+      translated into the specified settings below the new files, with a
+      warning on each run, and a later release removes them.
+    positive:
+      - No setup stops working when seek is upgraded.
+    negative:
+      - The 0.3 rule, environment then Vault then file for each secret,
+        coexists with one source per secret. Both loaders, their interplay
+        and its documentation are built and tested, then removed in a second
+        breaking release.
+      - Every run of an unmigrated setup writes the warnings.

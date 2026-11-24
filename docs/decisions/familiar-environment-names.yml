@@ -1,0 +1,48 @@
+$schema: https://refinery.systems/ontology/decision-record
+title: Familiar environment variables as aliases
+relationships:
+  related-to:
+    - configuration
+    - configuration-upgrade-from-0-3
+description: >-
+  The `configuration` specification derives each setting's environment
+  variable from its YAML path, so the Exa key's direct value is
+  `SEEK_PROVIDERS_EXA_API_KEY_VALUE` and a client token's is
+  `SEEK_SERVER_TOKEN_VALUE`. seek 0.3 users set `EXA_API_KEY` and the six
+  other provider key variables, and `SEEK_SERVER_TOKEN`, in shells, CI jobs
+  and `docker run -e`, as the published guides show. The application
+  configuration standard keeps well-known cross-tool variables, such as
+  `BAO_ADDR` and `VAULT_TOKEN`, as documented aliases in the environment
+  layer, below the derived name. This record decides whether those eight
+  seek 0.3 variables are aliases too. Five of the provider variables are read
+  by the provider's own SDK: `PARALLEL_API_KEY`, `EXA_API_KEY` and
+  `PERPLEXITY_API_KEY` by their Python SDKs, `GEMINI_API_KEY` by
+  `google-genai` after `GOOGLE_API_KEY`, and `FIRECRAWL_API_KEY` by the
+  Firecrawl Python SDK. Brave's agent skills use `BRAVE_SEARCH_API_KEY`, and
+  Brave's MCP server uses `BRAVE_API_KEY`. `BRAVE_ANSWERS_API_KEY` and
+  `SEEK_SERVER_TOKEN` are seek's own names.
+considered-options:
+  keep-as-aliases:
+    description: >-
+      Each provider key variable is an alias of that provider's `api-key` as
+      a `value`, and `SEEK_SERVER_TOKEN` is an alias of the client's
+      `server.token` and the server's `server.tokens`. A derived variable for
+      the same secret wins over the alias, and an empty alias counts as unset.
+    positive:
+      - Every environment-only setup keeps working unchanged, including the
+        documented `docker run` of the server image and anything that pulls
+        its `latest` tag.
+      - A key exported once serves seek and the provider's own SDK.
+    negative:
+      - Eight names do not follow the derivation rule, and two of them are
+        not cross-tool names, which reads the standard's alias rule broadly.
+  derived-names-only:
+    description: >-
+      seek reads only the derived names, the `BAO_*` and `VAULT_*` aliases,
+      and the removed-name warnings of `configuration-upgrade-from-0-3`.
+    positive:
+      - One naming rule, with the standard's Vault aliases as its only
+        exception.
+    negative:
+      - Every seek 0.3 environment-only setup, including the documented
+        server image example, stops finding its keys and token on upgrade.

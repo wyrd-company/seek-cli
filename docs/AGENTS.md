@@ -10,6 +10,7 @@ seek's design documents and its published documentation. The design documents de
 | `terms/` | Words with one meaning in seek, in the names the interface uses. |
 | `specifications/` | The contracts: `command-line`, `http-api`, `configuration` and `research-job-envelope`, each a `<slug>.yml` with its flat definitions beside it. |
 | `technical-designs/` | How seek is built: `architecture`, `server`, `secret-resolution`, `research-jobs`, and `documentation`, which generates the published reference. |
+| `decisions/` | Decision records: a trade-off, the options considered and the one chosen, linked from the documents it shapes. |
 | `user/` | The published documentation, which wyrd.foo publishes. Nothing else under `docs/` is published. `user/reference/` is generated; `user/examples/` holds the downloadable examples, including the practice server the tutorials use. |
 | `captures/` | One VHS tape per recording in `user/assets/`, `<name>.tape` for `<name>.gif`, the shared `_settings.tape`, and the `Dockerfile` of the container that records them. |
 
